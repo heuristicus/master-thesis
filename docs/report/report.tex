@@ -1,0 +1,23 @@
+\documentclass[10pt,a4paper]{article}
+
+\usepackage{fontspec}
+\usepackage[backend=bibtex]{biblatex}
+\usepackage[top=1cm]{geometry}
+\defaultfontfeatures{Mapping=tex-text}
+\setromanfont[Ligatures={Common},Numbers={Lining}]{Linux Libertine}
+
+\bibliography{report.bib}
+
+\author{Michal Staniaszek}
+\title{Some title here}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+  this is the abstract
+\end{abstract}
+\section{Introduction}
+\section{Background}
+\nocite{*}
+\printbibliography
+\end{document}

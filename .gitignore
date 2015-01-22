@@ -107,3 +107,11 @@ sympy-plots-for-*.tex/
 
 # xindy
 *.xdy
+
+# text editor files
+\#*
+.#*
+*~
+
+# auctex auto
+docs/report/auto
