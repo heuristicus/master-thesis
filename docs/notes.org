@@ -1,0 +1,28 @@
+* Papers
+** Finding Frequent 3D Structures in Human Environments
+*** Introduction
+    - Things in indoor environments have some sort of regular structure which
+     repeats. Tables, chairs and so on have basically the same primitive
+     structure. Can find multiple examples of the same thing in indoor
+     environments.
+    - Can break the structures/objects down further into corners or edges?
+    - Identify frequent substructures -> compression
+    - Looks at surface topologies of varying complexity to see their
+      discriminative power.
+    - Want to make a qualitative representation which can be searched for
+     similar parts.
+*** Related work
+    - Nowozin weighted substructure mining. Representation of spatial relations
+      is easier to interpret by humans, and more powerful than bag of words.
+    - Nuchter semantic maps for mobile robots. Segment a scene into planes and
+      for discrete pairwise angle features over the segments. Have prior
+      knowledge of angles and co-planarity between plane classes, so can find
+      labels by satisfying local inter-planar constraints.
+    - Schnabel shape recognition in 3d point clouds. Look for structures by
+      specifying query graph.
+*** Method
+** Object recognition in RGBD images of cluttered environments using graph-based categorization with unsupervised learning of shape parts
+** Hierarchical matching pursuit for image classification: Architecture and fast algorithms
+* Work
+** [2015-01-22 Thu]
+   Set up git repository, started thorough reading of papers.
