@@ -1,8 +1,9 @@
-\documentclass[10pt,a4paper]{article}
+\documentclass[10pt,a4paper]{report}
 
 \usepackage{fontspec}
 \usepackage[backend=bibtex]{biblatex}
 \usepackage[top=1cm]{geometry}
+\usepackage{hyperref}
 \defaultfontfeatures{Mapping=tex-text}
 \setromanfont[Ligatures={Common},Numbers={Lining}]{Linux Libertine}
 
@@ -16,8 +17,9 @@
 \begin{abstract}
   this is the abstract
 \end{abstract}
-\section{Introduction}
-\section{Background}
+\tableofcontents
+\chapter{Introduction}
+\chapter{Background}
 \nocite{*}
 \printbibliography
 \end{document}
