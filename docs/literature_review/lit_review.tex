@@ -32,23 +32,86 @@ Figure~\ref{fig:meanshift}.
     mean shift. c) Trajectories of mean shift over the density estimate.}
   \label{fig:meanshift}
 \end{figure}
-\section{Interest Points}
-Mikolajczyk and Schmid~\cite{mikolajczyk2004scale} introduce an interest point
-detector which is an improvement on SIFT \cite{lowe2004distinctive} and the
-Laplacian of Gaussians \cite{lindeberg1998feature} in the sense that it is able
-to deal with affine transformations. They do not, however, introduce a new type
-of descriptor to go with the point selection.
-\section{2D Descriptors}
-Different considerations must be made for 2D images because of affine
-transforms, rotation and so on
 
+Random Sample Consensus (RANSAC) is a technique which uses shape models to find
+ideal models in noisy data. Points in the data set are randomly sampled, and
+used to construct a shape. For example, in the case of a line, two points are
+sampled, and define the line. Distances from points in the data set to the model
+defined by the randomly sampled points are then computed to find points which
+are inliers to the model. This number is stored, and the process repeated a
+number of times. At the end of the process, the model with the largest number of
+inliers is returned \cite{fischler1981random}. RANSAC can be applied to
+segmentation tasks by using it to find planes, cylinders, spheres and so on in
+point clouds. In the case of planes this is particularly useful, as they are
+usually not part of objects of interest, mostly making up walls, floors or
+surfaces on which interesting objects rest. By removing the points corresponding
+to these uninteresting surfaces, segmentation should be made easier. Several
+extensions to RANSAC have been proposed. Maximum Likelihood Estimation Sample
+Consensus (MLESAC) chooses a solution that maximises the likelihood of the model
+instead of just the number of inliers \cite{torr2000mlesac}. M-estimator Sample
+Consensus (MSAC) uses a different cost function to the original implementation,
+additionally scoring the inliers depending on how well they fit the data
+\cite{torr2000mlesac}. The Progressive Sample Consensus (PROSAC) uses prior
+information about the likelihood of input data being an inlier or an outlier to
+limit the sampling pool and greatly reduce computation cost
+\cite{chum2005matching}.
+
+
+\section{Methods for 2D}
+While we are not directly interested in 2D descriptors, it may be instructive to
+look at the techniques used in the selection of interest points and the way that
+descriptors are constructed.
+\subsection{Descriptors}
 Van Gool \cite{van1996affine} gives a description of how to use moment
 invariants to recognise planar patterns like labels and signs under affine
 deformations. The moments describe things like the size of the shape and its centre
 of mass, or statistics like the mean and variance of pixel intensities in the
 shape. These moments can be combined in such a way that they are invariant to
 deformations, which is useful to have in a descriptor.
-\section{3D Descriptors}
+
+\subsection{Combined Interest Point Extraction and Descriptors}
+The Laplacian of Gaussians was introduced by Lindeberg, and uses derivatives
+combined with some other techniques to select interest points.
+\cite{lindeberg1998feature}. This paper also introduces the concept of automatic
+scale selection for feature detection, which has played an important part in the
+field since then. The scale of features can be investigated by blurring an image
+using a Gaussian kernel --- higher standard deviation blurs the image more,
+resulting in the removal of small scale features.
+
+Even today the Scale Invariant Feature Transform (SIFT) is among the most
+popular descriptors for 2D images. It is invariant to scale and rotation, and is
+robust to some variation in affine distortion, viewpoint and illumination, and
+is distinctive, allowing for correct matching of single features in large
+databases. There are several stages of computation. Extrama are found in
+different scales to find points invariant to scale and orientation. Keypoints
+are selected at the extrema based on their stability. Image gradients at the
+keypoint are used to define its orientation for future computations. The image
+gradients are then transformed into a local descriptor vector with length 128
+\cite{lowe2004distinctive}.
+
+Mikolajczyk and Schmid~\cite{mikolajczyk2004scale} introduce the Harris-Laplace
+detector which is an improvement on SIFT \cite{lowe2004distinctive} and the
+Laplacian of Gaussians \cite{lindeberg1998feature} in the sense that it is able
+to deal with affine transformations. They do not, however, introduce a new type
+of descriptor to go with the point selection. 
+
+Speeded-Up Robust Features (SURF) is a more recent descriptor which can be
+computed and compared much faster than most other descriptors. It makes use of
+integral images, which replace pixels in an image or image patch with a
+cumulative sum of the pixel intensities over the rows and columns. This allows
+for fast computation of pixel intensities in an area of the image. SURF takes
+some ideas from SIFT, using the spatial distribution of gradients as a
+descriptor, but integrates over the gradients instead of using individual
+values, which makes it more robust to noise. The resulting descriptor is a 64
+element vector, which means that it is faster to compare than SIFT
+\cite{bay2008speeded}.
+
+\section{Methods for 3D}
+\subsection{Interest Points and Saliency}
+Sipiran and Bustos extend the popular Harris detector \cite{harris1988combined}
+to three dimensions \cite{sipiran2011harris}.
+
+\subsection{Descriptors}
 The Ensemble of Shape Functions (ESF) descriptor introduced in
 \cite{wohlkinger2011ensemble} by Wohlkinger and Vincze combines the Shape
 Distribution approach introduced by \cite{osada2002shape} along with some
@@ -70,6 +133,28 @@ also improved the speed of the FPFH. The clustered version (CVFH) further
 improved the viewpoint technique by mitigating the effect of missing
 parts and extending it to be able to estimate rotations of objects
 \cite{aldoma2011cad}.
+
+Bo et al. develop the kernel descriptor initially created for RGB images for use
+on depth images and point clouds. The kernels are used to describe size, shape
+and edge features. Local features are combined to object-level features . Kernel
+descriptors avoid the need to quantise attributes. Similarity is instead defined
+by a match kernel \cite{bo2010kernel}, which improves recognition accuracy
+\cite{bo2011depth}.
+
+The point pair feature describes the relation between two oriented points on a
+model. This means that it does not depend so much on the quality and resolution
+of the model data. The model is described by grouping the point pair features of
+the model, providing a global distribution of all the features on the model
+surface \cite{drost2010model}. 
+
+The Signature of Histograms of Orientations (SHOT) descriptor takes inspiration
+from SIFT in that it makes extensive use of histograms. It takes the form of a
+sphere, which is divided into regions by dividing the sphere horizontally,
+vertically and radially. A local histogram is computed in each of the regions,
+using the angle between the normal of points and the feature point. The local
+histograms are then combined to form the final
+descriptor \cite{tombari2010unique}. The authors also extend the descriptor to
+include colour (COLORSHOT) \cite{tombari2011combined}.
 
 Multi-scale descriptors are useful as they can be used to characterise regions
 of varying size. Cipriano et al. introduce such a descriptor for use on meshes
@@ -129,7 +214,8 @@ additional angles between it and a coordinate system centred on the reference
 normal are computed. These angles and the angle around the circle are then
 mapped into a 3D space, where polygonal approximation is made, connecting each
 point with a straight line. Some additional computation is done to allow the
-encoded polygons to act as a hash. The method is quite complex.
+encoded polygons to act as a hash. Figure~\ref{fig:splash} shows part of the
+formulation.
 
 \begin{figure}
   \centering
@@ -156,7 +242,8 @@ sphere is a 3D space curve. The orientation of the curve is defined by fitting a
 plane to it. The distances between the space curve and the fitted plane at
 sampled points define the signature of the reference point. These signatures can
 be compared by lining them up and checking whether the query falls within the
-tolerance band of previous signatures.
+tolerance band of previous signatures. Figure~\ref{fig:pointsig} shows
+signatures from various surfaces.
 
 \begin{figure}
   \centering
@@ -167,15 +254,43 @@ tolerance band of previous signatures.
     at $N$. Ref rotates about $N$.}
   \label{fig:pointsig}
 \end{figure}
-\section{Point Matching}
-In \cite{chui2003new}, Chui and Rangarajan introduce an extension to ICP which
-allows for non-rigid registration and improved robustness to outliers. In
-contrast to ICP, their approach does not use the nearest-neighbour approach to
-define correspondence. Instead, they use an alternating algorithm similar to
-expectation maximisation. Annealing is used to prevent binary correspondences
-when the algorithm is not yet close to the solution --- at the beginning there
-is a large search range for correspondences, which gradually shrinks as the
-temperature decreases.
+\subsection{Combined Interest Point Extraction and Descriptors}
+The Normal Aligned Radial Feature (NARF) is an interest point extraction method
+with a feature descriptor. A score for the image points is determined based on
+the surface changes at the point, and information about borders. An interest
+value is computed from this based on the score of the surrounding points.
+Smoothing is applied, and non-maximum suppression is applied to find the final
+interest points. To compute the descriptor, rays are projected over the range
+image from the centre at certain intervals. The intensities of cells lying under
+the ray are weighted based on their distance from the centre, and a normalised
+weighted average of the pairwise difference of cells is used to define each
+element of the descriptor vector, which has a length equal to the number of rays
+\cite{steder2011point}. The method is an improvement on a previous paper by the
+authors \cite{steder2009robust}. A problem with this method is that it uses
+range images directly. Point clouds can be used to generate range images by
+looking at them from different viewpoints, but this adds complexity to the
+method.
+
+The integral volume descriptor is interesting as it combines interest point
+selection and description into one. The descriptor is defined as the volume of
+the intersection of a sphere centred at a point on the surface of an object with
+the inside of the object. Interest points are selected by histogramming the
+descriptor values, identifying bins with a number of points less than a
+specified values, and selecting points from these bins. To ensure features are
+properly spaced, points in a certain radius of already selected points cannot be
+used. By modifying the radius of the sphere used to generate the descriptor,
+interest points at different scales can be selected \cite{gelfand2005robust}.
+
+% \section{Point Matching}
+% In \cite{chui2003new}, Chui and Rangarajan introduce an extension to ICP which
+% allows for non-rigid registration and improved robustness to outliers. In
+% contrast to ICP, their approach does not use the nearest-neighbour approach to
+% define correspondence. Instead, they use an alternating algorithm similar to
+% expectation maximisation. Annealing is used to prevent binary correspondences
+% when the algorithm is not yet close to the solution --- at the beginning there
+% is a large search range for correspondences, which gradually shrinks as the
+% temperature decreases.
+
 \section{Model Matching}
 \begin{figure}
   \centering
@@ -211,6 +326,12 @@ the search. A priority search tree algorithm is introduced in
 \cite{muja2014scalable}, which appears to be very effective. This may be the
 same one as in \cite{muja2009fast}. The algorithm in the last two papers has
 been integrated into PCL, which is useful.
+
+A different approach to nearest neighbour search is the balltree, which uses
+hyperspheres in a hierarchy to enclose points in the space
+\cite{omohundro1989five}. Unlike the k-d tree, regions on the same level of the
+tree are allowed to intersect, and no not need to partition the whole space,
+which gives the balltree its representative power.
 
 The vocabulary tree \cite{nister2006scalable} makes use of techniques from
 document search to index images. Using $k$-means clustering, construction stage
@@ -260,6 +381,16 @@ Some work has been done on optimising the retrieval of relevant images by
 learning from user input \cite{rui2000optimizing}. When retrieved images are
 presented, the user ranks them in terms of relevance, and this rank is then used
 to improve the relevance of future searches.
+
+\section{Other}
+Here are some papers which are interesting and might yield some interesting
+insights, but do not directly relate to our problem for whatever reason.
+
+The convolutional k-means descriptor introduced in \cite{blum2012learned} works
+on RGB-D images, and not point clouds. \cite{kim20113d} makes use of the
+visibility of objects and point pair features to improve recognition
+performance. Kim et al. use the RGB image and corresponding point
+cloud to improve the hypotheses for segmentation \cite{kim2013accurate}.
 
 \printbibliography
 \end{document}
