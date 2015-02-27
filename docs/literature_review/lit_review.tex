@@ -109,9 +109,59 @@ element vector, which means that it is faster to compare than SIFT
 \section{Methods for 3D}
 \subsection{Interest Points and Saliency}
 Sipiran and Bustos extend the popular Harris detector \cite{harris1988combined}
-to three dimensions \cite{sipiran2011harris}.
+to 3D \cite{sipiran2011harris}. Knopp et al. extend the SURF detector to 3D
+\cite{knopp2010hough}.
+
+Shilane and Funkhouser introduce a distinctiveness measure over classes of
+meshed objects \cite{shilane2007distinctive}.
+
+A multi-scale signature defined by the heat diffusion properties of an object
+called the Heat Kernel Signature (HKS) \cite{sun2009concise}. This signature is
+used in \cite{ovsjanikov2009shape} to retrieve shapes.
 
 \subsection{Descriptors}
+One early descriptor which remains popular is the spin image. The descriptor is
+generated from a mesh model at oriented points with a surface normal. A plane
+intersecting the normal with a certain width and height is rotated around the
+normal, forming a cylinder. The plane is separated into bins. The bins
+accumulate the number of points which pass through a certain bin during the
+rotation. The resulting 2D image is the descriptor. By varying the width of the
+plane the region which defines the descriptor can be modified. A small width
+will give a local descriptor, while a large width will give a descriptor for the
+whole image \cite{johnson1997spin,johnson1999using}. Figure~\ref{fig:spinimg}
+shows a visualisation of how the image is generated.
+
+\begin{figure}
+  \centering
+  \subfloat{
+    \includegraphics[width=0.11\textwidth]{images/spin1}
+  }
+  \subfloat{
+    \includegraphics[width=0.11\textwidth]{images/spin2}
+  }
+  \subfloat{
+    \includegraphics[width=0.11\textwidth]{images/spin3}
+  }
+  \subfloat{
+    \includegraphics[width=0.11\textwidth]{images/spin4}
+  }
+  \subfloat{
+    \includegraphics[width=0.11\textwidth]{images/spin5}
+  }
+  \subfloat{
+    \includegraphics[width=0.11\textwidth]{images/spin6}
+  }
+  \subfloat{
+    \includegraphics[width=0.11\textwidth]{images/spin7}
+  }
+  \subfloat{
+    \includegraphics[width=0.11\textwidth]{images/spin8}
+  }
+  \caption{Frames from construction of a spin image \cite{johnson1997spin}. The
+    image plane spins around the oriented point normal and accumulates points.}
+  \label{fig:spinimg}
+\end{figure}
+
 The Ensemble of Shape Functions (ESF) descriptor introduced in
 \cite{wohlkinger2011ensemble} by Wohlkinger and Vincze combines the Shape
 Distribution approach introduced by \cite{osada2002shape} along with some
@@ -130,9 +180,8 @@ in real time \cite{rusu2009fast}. The Viewpoint Feature Histogram (VFH) extended
 the FPFH by adding viewpoint information to the histogram by computing
 statistics of surface normals relative to the viewpoint \cite{rusu2010fast}. It
 also improved the speed of the FPFH. The clustered version (CVFH) further
-improved the viewpoint technique by mitigating the effect of missing
-parts and extending it to be able to estimate rotations of objects
-\cite{aldoma2011cad}.
+improved the viewpoint technique by mitigating the effect of missing parts and
+extending it to facilitate estimation of the rotation of objects \cite{aldoma2011cad}.
 
 Bo et al. develop the kernel descriptor initially created for RGB images for use
 on depth images and point clouds. The kernels are used to describe size, shape
@@ -145,16 +194,65 @@ The point pair feature describes the relation between two oriented points on a
 model. This means that it does not depend so much on the quality and resolution
 of the model data. The model is described by grouping the point pair features of
 the model, providing a global distribution of all the features on the model
-surface \cite{drost2010model}. 
+surface \cite{drost2010model}.
 
-The Signature of Histograms of Orientations (SHOT) descriptor takes inspiration
-from SIFT in that it makes extensive use of histograms. It takes the form of a
-sphere, which is divided into regions by dividing the sphere horizontally,
-vertically and radially. A local histogram is computed in each of the regions,
+\begin{figure}
+  \centering
+  \subfloat[3DSC \cite{frome2004recognizing}]{
+    \includegraphics[width=0.24\textwidth]{images/3dsc}
+    \label{fig:3dsc}
+  }
+  \subfloat[SHOT \cite{tombari2010unique}]{
+    \includegraphics[width=0.24\textwidth]{images/shot}
+    \label{fig:shot}
+  }
+  \subfloat[Context Shape \cite{shentu2008context}]{
+    \includegraphics[width=0.24\textwidth]{images/contextshape}
+    \label{fig:contextshape}
+  }
+  \subfloat[Integral Volume \cite{gelfand2005robust}]{
+    \includegraphics[width=0.24\textwidth]{images/volint}
+    \label{fig:volint}
+  }
+  \caption{Visualisation of spherical descriptors.}
+  \label{fig:descexample}
+\end{figure}
+
+3D Shape Context (3DSC) is an extension of the original Shape Context descriptor
+for 2D images \cite{belongie2002shape}. A sphere is placed at a point, and its
+``top'' is oriented to match the direction of the normal at the point. Bins are
+created within the sphere by equally spaced boundaries in the azimuth and
+elevation, and logarithmically spaced boundaries in the radial dimension (Figure~\ref{fig:3dsc}). The
+logarithmic spacing means that shape distortions far from the basis point have
+less effect on the descriptor. Each bin accumulates a weighted count based on
+the volume of the bin and local point density \cite{frome2004recognizing}. 3DSC
+does not compute a local reference frame --- the vector of the azimuth is chosen
+randomly, and subdivisions computed from that. This means that a number of
+descriptors equal to the number of azimuth divisions need to be computed and
+stored in order to compensate, and the matching process is complicated as a
+result. The Unique Shape Context (USC) solves this problem by defining a local
+reference frame and using the directions of that reference frame to subdivide
+the sphere \cite{tombari2010uniquesc}.
+
+The Signature of Histograms of Orientations (SHOT) descriptor improves on 3DSC
+by taking inspiration from SIFT and making extensive use of histograms. The
+sphere is split into 32 volumes: 8 azimuth regions, 2 elevation and 2 radial
+(Figure~\ref{fig:shot}). A local histogram is computed in each of the regions,
 using the angle between the normal of points and the feature point. The local
-histograms are then combined to form the final
-descriptor \cite{tombari2010unique}. The authors also extend the descriptor to
-include colour (COLORSHOT) \cite{tombari2011combined}.
+histograms are then combined to form the final descriptor
+\cite{tombari2010unique}. The authors also extend the descriptor to include
+colour (COLORSHOT) \cite{tombari2011combined}.
+
+The Rotation Invariant Feature Transform (RIFT) is a generalisation of SIFT. Using
+intensity values computed at each point from the RGB values, a gradient is
+computed. Concentric rings are placed around the initial point, and a histogram
+of the gradient orientations is created for points within each ring. The
+orientation of the gradient is computed relative to the line from the central
+point so that the descriptor is rotation invariant. The descriptor is 2D --- one
+dimension is the distance, the other the gradient angle. The distance between
+two descriptors is measured using the Earth Mover's Distance (EMD), which is a
+measure of the distance between two probability distributions
+\cite{lazebnik2005sparse}.
 
 Multi-scale descriptors are useful as they can be used to characterise regions
 of varying size. Cipriano et al. introduce such a descriptor for use on meshes
@@ -177,7 +275,7 @@ immediately give a potential pose for the docking.
 
 Another example of a shape descriptor from biology is the Context Shape
 \cite{shentu2008context}. A sphere is centred on a point, and rays are projected
-from this point to points evenly distributed on the surface of the sphere. Each
+from this point to points evenly distributed on the surface of the sphere (Figure~\ref{fig:contextshape}). Each
 of the rays is divided into segments, with a binary value associated with each
 segment depending on whether the segment is inside or outside the protein. To
 compare the descriptor, a rotation is applied to match the rays, and a volume of
@@ -274,7 +372,7 @@ method.
 The integral volume descriptor is interesting as it combines interest point
 selection and description into one. The descriptor is defined as the volume of
 the intersection of a sphere centred at a point on the surface of an object with
-the inside of the object. Interest points are selected by histogramming the
+the inside of the object (Figure~\ref{fig:volint}). Interest points are selected by histogramming the
 descriptor values, identifying bins with a number of points less than a
 specified values, and selecting points from these bins. To ensure features are
 properly spaced, points in a certain radius of already selected points cannot be
@@ -291,28 +389,28 @@ interest points at different scales can be selected \cite{gelfand2005robust}.
 % is a large search range for correspondences, which gradually shrinks as the
 % temperature decreases.
 
-\section{Model Matching}
-\begin{figure}
-  \centering
-  \subfloat[Conformal factors. High value indicates high required deformation to
-  sphere \cite{ben2008characterizing}.]{
-    \includegraphics[width=0.48\textwidth]{images/conformal.png}
-    \label{fig:conform}
-  }
-  \caption{Model matching approaches}
-  \label{fig:modelmatch}
-\end{figure}
-In \cite{ben2008characterizing}, Chen et al. describe another approach to model
-matching using conformal factors. This technique uses ideas from conformal
-geometry, transforming the mesh of an object such that it has a uniform Gaussian
-curvature. Information is stored about how much deformation is needed locally to
-globally transform the object into a sphere --- this is the conformal factor.
-The factor is based on a global computation on the whole mesh, as opposed to
-per-vertex computations of the Gaussian curvature, which makes it much smoother
-and appropriate for use in histograms. The histogram of a sample of the factors
-is used as a descriptor, and is pose invariant, as seen in
-Figure~\ref{fig:conform}. The authors say that it should be possible to use the
-approach in partial model matching.
+% \section{Model Matching}
+% \begin{figure}
+%   \centering
+%   \subfloat[Conformal factors. High value indicates high required deformation to
+%   sphere \cite{ben2008characterizing}.]{
+%     \includegraphics[width=0.48\textwidth]{images/conformal.png}
+%     \label{fig:conform}
+%   }
+%   \caption{Model matching approaches}
+%   \label{fig:modelmatch}
+% \end{figure}
+% In \cite{ben2008characterizing}, Chen et al. describe another approach to model
+% matching using conformal factors. This technique uses ideas from conformal
+% geometry, transforming the mesh of an object such that it has a uniform Gaussian
+% curvature. Information is stored about how much deformation is needed locally to
+% globally transform the object into a sphere --- this is the conformal factor.
+% The factor is based on a global computation on the whole mesh, as opposed to
+% per-vertex computations of the Gaussian curvature, which makes it much smoother
+% and appropriate for use in histograms. The histogram of a sample of the factors
+% is used as a descriptor, and is pose invariant, as seen in
+% Figure~\ref{fig:conform}. The authors say that it should be possible to use the
+% approach in partial model matching.
 \section{Storing and Querying Descriptors}
 There are several techniques for storing and querying descriptors, mostly based
 on some form of tree. Recently, the k-d tree\cite{bentley1975multidimensional,
@@ -359,17 +457,16 @@ information. The local NBNN \cite{mccann2012local} does not do the search based
 on classes. Instead, all the descriptors are merged into a k-d tree on which
 approximate $k$-NN is run to find descriptors in the local region of a query
 descriptor. A distance to classes not present in the $k$-NN region is
-approximated by the distance to the $k+1$th neighbour. Figure~\ref{fig:nbnncomp}
-shows a comparison of the two approaches.
+approximated by the distance to the $k+1$th neighbour.
 
-\begin{figure}
-  \centering
-  \includegraphics[width=0.6\textwidth]{images/nbnn_comp}
-  \caption{NBNN vs. local NBNN \cite{mccann2012local}. NBNN looks at the nearest
-  neighbours in all classes, whereas local NBNN just looks at the local region,
-  regardless of what classes are present in the database.}
-  \label{fig:nbnncomp}
-\end{figure}
+% \begin{figure}
+%   \centering
+%   \includegraphics[width=0.6\textwidth]{images/nbnn_comp}
+%   \caption{NBNN vs. local NBNN \cite{mccann2012local}. NBNN looks at the nearest
+%   neighbours in all classes, whereas local NBNN just looks at the local region,
+%   regardless of what classes are present in the database.}
+%   \label{fig:nbnncomp}
+% \end{figure}
 
 Funkhouser and Shilane present a method for querying a database of 3D objects
 represented by local shape features \cite{funkhouser2006partial}. Partial
@@ -384,13 +481,16 @@ to improve the relevance of future searches.
 
 \section{Other}
 Here are some papers which are interesting and might yield some interesting
-insights, but do not directly relate to our problem for whatever reason.
+insights or techniques, but do not directly relate to our problem for whatever
+reason.
 
-The convolutional k-means descriptor introduced in \cite{blum2012learned} works
-on RGB-D images, and not point clouds. \cite{kim20113d} makes use of the
-visibility of objects and point pair features to improve recognition
-performance. Kim et al. use the RGB image and corresponding point
-cloud to improve the hypotheses for segmentation \cite{kim2013accurate}.
+The convolutional k-means descriptor introduced in \cite{blum2012learned} and
+BRAND descriptor \cite{nascimento2012brand} work on RGB-D images, not directly
+on point clouds. \cite{kim20113d} makes use of the visibility of objects and
+point pair features to improve recognition performance. Kim et al. use the RGB
+image and corresponding point cloud to improve the hypotheses for segmentation
+\cite{kim2013accurate}. \cite{mueller2013recognition} uses a growing neural gas
+to characterise the shape of parts of objects.
 
 \printbibliography
 \end{document}
