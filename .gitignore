@@ -118,3 +118,9 @@ sympy-plots-for-*.tex/
 
 # html for doxygen
 html/
+
+# cmake stuff
+*/CMakeCache.txt
+*/CMakeFiles/
+*.cmake
+*.gch

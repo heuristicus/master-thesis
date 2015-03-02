@@ -6,7 +6,7 @@
  * @brief  test brief description 
  *
  * I suppose this is the long description where you write stuff down?
- * \f[\sum_{i=1}^5\f]
+ * Latex works here too! \f[\hat{x}= \sum_{i=1}^n x_i\f]
  *
  * Test code from 
  * http://www.thebigblob.com/getting-started-with-google-test-on-ubuntu/
