@@ -114,4 +114,7 @@ sympy-plots-for-*.tex/
 *~
 
 # auctex auto
-docs/report/auto
+*auto/
+
+# html for doxygen
+html/

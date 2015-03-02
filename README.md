@@ -28,7 +28,7 @@ for some pointers).
     sudo cp *.a /usr/lib
 
 In the `code/test` directory there are some files which you can use to check if
-things are properly configured. You can compile either with `cmake` or `g++`.
+things are properly configured. You can compile either with `g++` or `cmake`.
 
     g++ -g tests.cpp totest.cpp totest.hpp -lgtest -lpthread -o gpRun
     ./gpRun
