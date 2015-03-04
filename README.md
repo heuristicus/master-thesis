@@ -38,3 +38,31 @@ or
     cmake CMakeLists.txt
     make
     ./runTests
+
+# Compilation
+
+Some of the packages used by the STRANDS project require `qt_build` and
+`mongodb_store`. On Ubuntu systems set up according to the
+[tutorial](http://wiki.ros.org/indigo/Installation/Ubuntu), this can be done
+with
+
+    sudo apt-get install ros-indigo-qt-build
+    sudo apt-get install ros-indigo-mongodb-store
+
+You will also require the OpenCV nonfree library. There doesn't seem to be a
+package for this in Ubuntu (although `libopencv-nonfree-dev` existed at some
+point). To install, download OpenCV and run the following in the top level of
+the extracted zip:
+
+    cmake CMakeLists.txt
+    make
+
+This will take a while to compile everything. It may be possible to just compile
+the nonfree library, but I don't know how. Find where other libraries from
+OpenCV sit on your system with `locate --regexp 'libopencv.*.so'`. For me, they
+sit in `/usr/lib/x86_64-linux-gnu/`. Copy the library files to that location.
+
+    sudo cp lib/libopencv_nonfree* /usr/lib/x86-64-linux-gnu
+
+And things should compile when `catkin_make` is run in the workspace.
+
