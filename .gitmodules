@@ -1,3 +1,6 @@
-[submodule "code/obj_search/Probabilistic-Plane-Refinement"]
-	path = code/obj_search/Probabilistic-Plane-Refinement
-	url = git@github.com:heuristicus/Probabilistic-Plane-Refinement.git
+[submodule "code/obj_search/strands_3d_mapping"]
+	path = code/obj_search/strands_3d_mapping
+	url = git@github.com:heuristicus/strands_3d_mapping.git
+[submodule "code/obj_search/probabilistic-plane-refinement"]
+	path = code/obj_search/probabilistic-plane-refinement
+	url = git@github.com:heuristicus/probabilistic-plane-refinement.git
