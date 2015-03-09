@@ -7,20 +7,22 @@
 
 var indexSectionsWithContent =
 {
-  0: "bmost",
-  1: "mt",
-  2: "st",
-  3: "b",
-  4: "o"
+  0: "bgmorst",
+  1: "r",
+  2: "mrt",
+  3: "gst",
+  4: "b",
+  5: "o"
 };
 
 var indexSectionNames =
 {
   0: "all",
-  1: "files",
-  2: "functions",
-  3: "groups",
-  4: "pages"
+  1: "namespaces",
+  2: "files",
+  3: "functions",
+  4: "groups",
+  5: "pages"
 };
 
 function convertToId(search)
