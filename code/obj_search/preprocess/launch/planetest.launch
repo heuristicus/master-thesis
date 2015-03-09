@@ -1,0 +1,9 @@
+<launch>
+  <arg name="distance_threshold" default="0.04" />
+  <param name="/planetest/RANSAC_distance_threshold" value="$(arg distance_threshold)" />
+  <arg name="iterations" default="100" />
+  <param name="/planetest/RANSAC_iterations" value="$(arg iterations)" />
+  <arg name="cloud_file" />
+  <param name="/planetest/cloud_file" value="$(arg cloud_file)" />
+  <node name="planetest" pkg="preprocess" type="planetest" output="screen" />
+</launch>
