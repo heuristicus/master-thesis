@@ -1,3 +1,13 @@
+/**
+ * @file   planeTest.cpp
+ * @author Michal Staniaszek <michalst@kth.se>
+ * @date   Mon Mar  9 14:06:36 2015
+ * 
+ * @brief  Some prototype code for doing preprocessing on point clouds.
+ * 
+ * 
+ */
+
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/io/pcd_io.h>
@@ -7,8 +17,10 @@
 #include <pcl/sample_consensus/method_types.h>
 #include <pcl/sample_consensus/model_types.h>
 #include <pcl/segmentation/sac_segmentation.h>
+#include <pcl/filters/extract_indices.h>
 
 #include "rosutil/rosutil.hpp"
+#include <ros/console.h>
 
 #include <iostream>
 #include <string>
@@ -17,18 +29,23 @@
 
 int main(int argc, char *argv[])
 {
+    
     ros::init(argc, argv, "planetest");
     ros::NodeHandle handle;
 
     std::string cloudFile;
     ROSUtil::getParam(handle, "/planetest/cloud_file", cloudFile);
+    std::string outDir;
+    ROSUtil::getParam(handle, "/planetest/output_dir", outDir);
     float ransacDistanceThresh;
     ROSUtil::getParam(handle, "/planetest/RANSAC_distance_threshold", ransacDistanceThresh);
     int ransacIterations;
     ROSUtil::getParam(handle, "/planetest/RANSAC_iterations", ransacIterations);
+    int planesToExtract;
+    ROSUtil::getParam(handle, "/planetest/planes_to_extract", planesToExtract); 
     
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-    if (pcl::io::loadPCDFile<pcl::PointXYZRGB>(cloudFile, *cloud) != -1){
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr originalCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+    if (pcl::io::loadPCDFile<pcl::PointXYZRGB>(cloudFile, *originalCloud) != -1){
 	std::cout << "Loaded cloud from " << cloudFile.c_str() << std::endl;
     } else {
 	std::cout << "Could not load cloud from " << cloudFile.c_str() << std::endl;
@@ -44,27 +61,71 @@ int main(int argc, char *argv[])
     seg.setDistanceThreshold(ransacDistanceThresh);
     seg.setMaxIterations(ransacIterations);
 
-    seg.setInputCloud(cloud);
-    seg.segment(*inliers, *coefficients);
 
-    for (size_t i = 0; i < inliers->indices.size(); i++) {
-	cloud->points[inliers->indices[i]].r = 255;
-	cloud->points[inliers->indices[i]].b = 255;
+
+    
+    pcl::ExtractIndices<pcl::PointXYZRGB> extract;
+    // Points will be removed from this cloud - at the end of the process it
+    // will contain all the points which were not extracted by the segmentation
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr intermediateCloud (originalCloud);
+    // At each stage, the inliers of the plane model will be extracted to this
+    // cloud
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr extractedPlane (new pcl::PointCloud<pcl::PointXYZRGB>);
+    // All of the points that are extracted throughout the process will end up
+    // in this cloud
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr allPlanes (new pcl::PointCloud<pcl::PointXYZRGB>);
+    // The points which are not inliers to the plane will be placed into this
+    // cloud and then swapped into intermediateCloud
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr remainingPoints (new pcl::PointCloud<pcl::PointXYZRGB>);
+
+    ROS_INFO("Starting plane extraction.");
+    for (int i = 0; i < planesToExtract; i++) {
+	ROS_INFO("Extracting plane %d", i + 1);
+	seg.setInputCloud(intermediateCloud);
+	seg.segment(*inliers, *coefficients);
+
+	if (inliers->indices.size () == 0) {
+	    std::cerr << "Could not estimate a planar model for the given dataset." << std::endl;
+	    break;
+	}
+
+	// colour the inliers so we can tell them apart easily // TODO: Put this outside the loop
+	for (size_t i = 0; i < inliers->indices.size(); i++) {
+	    intermediateCloud->points[inliers->indices[i]].r = 255;
+	    intermediateCloud->points[inliers->indices[i]].b = 255;
+	}
+
+	// Extract the inliers
+	extract.setInputCloud(intermediateCloud);
+	extract.setIndices(inliers);
+	extract.setNegative(false); // Extract the points which are inliers
+	extract.filter(*extractedPlane);
+	*allPlanes += *extractedPlane; // Add the extracted inliers to the cloud of all planes
+	
+	// Extract non-inliers
+	extract.setNegative(true); // Extract the points which are not inliers
+	extract.filter(*remainingPoints);
+	intermediateCloud.swap(remainingPoints);
     }
 
+    // After the process is finished, combine the extracted planes and the other points together again
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr fullCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+    *fullCloud = *allPlanes + *remainingPoints;
 
-    boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer = boost::shared_ptr<pcl::visualization::PCLVisualizer>(new pcl::visualization::PCLVisualizer ("Cloud viewer"));;
+    pcl::PCDWriter writer;
+    writer.write<pcl::PointXYZRGB>(outDir + "allPlanes.pcd", *allPlanes, false);
+    writer.write<pcl::PointXYZRGB>(outDir + "nonPlanes.pcd", *remainingPoints, false);
+
+    boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer = boost::shared_ptr<pcl::visualization::PCLVisualizer>(new pcl::visualization::PCLVisualizer("Cloud viewer"));
     std::string cloudName("cloud");
-    pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(cloud);
+    pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(fullCloud);
     viewer->setBackgroundColor(0,0,0);
-    viewer->addPointCloud(cloud, rgb, cloudName.c_str());
+    viewer->addPointCloud(fullCloud, rgb, cloudName.c_str());
     viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, cloudName.c_str());
-    viewer->addCoordinateSystem(1.0);
     viewer->initCameraParameters();
     
-    while (!viewer->wasStopped ())
-    {
-	viewer->spinOnce (100);
-	boost::this_thread::sleep (boost::posix_time::microseconds (100000));
+    while (!viewer->wasStopped()) {
+	viewer->spinOnce(100);
+	boost::this_thread::sleep(boost::posix_time::microseconds(100000));
     }
 }
