@@ -1,11 +1,14 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(preprocess)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -Wall")
+
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   pcl_ros
   rosutil
+  sysutil
 )
 
 find_package(PCL REQUIRED)
@@ -13,7 +16,7 @@ find_package(PCL REQUIRED)
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES 
-  CATKIN_DEPENDS roscpp std_msgs pcl_ros rosutil
+  CATKIN_DEPENDS roscpp std_msgs pcl_ros rosutil sysutil
 #  DEPENDS system_lib
 )
 

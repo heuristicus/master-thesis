@@ -20,6 +20,8 @@
 #include <pcl/filters/extract_indices.h>
 
 #include "rosutil/rosutil.hpp"
+#include "sysutil/sysutil.hpp"
+#include <ros/ros.h>
 #include <ros/console.h>
 
 #include <iostream>
@@ -29,20 +31,41 @@
 
 int main(int argc, char *argv[])
 {
-    
+
     ros::init(argc, argv, "planetest");
     ros::NodeHandle handle;
 
     std::string cloudFile;
     ROSUtil::getParam(handle, "/planetest/cloud_file", cloudFile);
+    std::string dataPath;
+    ROSUtil::getParam(handle, "/obj_search/raw_data_dir", dataPath);
+    // If the given cloud file corresponds to a file in the raw data directory,
+    // extract the remaining directories in the path of the file so that the
+    // data can be put into the output directory with the same path.
+    std::string dataSubDir;
+    if (cloudFile.compare(0, dataPath.size(), dataPath) == 0){
+	dataSubDir = std::string(cloudFile, dataPath.size());
+    }
+
+    std::cout << dataSubDir << std::endl;
+    
+    exit(0);
+
     std::string outDir;
     ROSUtil::getParam(handle, "/planetest/output_dir", outDir);
+    // If output is not specified, set the output directory to be the processed
+    // data directory specified by the global parameters.
+    if (std::string("NULL").compare(outDir) == 0) {
+	ROSUtil::getParam(handle, "/obj_search/processed_data_dir", outDir);
+    }
+
     float ransacDistanceThresh;
     ROSUtil::getParam(handle, "/planetest/RANSAC_distance_threshold", ransacDistanceThresh);
     int ransacIterations;
     ROSUtil::getParam(handle, "/planetest/RANSAC_iterations", ransacIterations);
     int planesToExtract;
-    ROSUtil::getParam(handle, "/planetest/planes_to_extract", planesToExtract); 
+    ROSUtil::getParam(handle, "/planetest/planes_to_extract", planesToExtract);
+
     
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr originalCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
     if (pcl::io::loadPCDFile<pcl::PointXYZRGB>(cloudFile, *originalCloud) != -1){
@@ -61,9 +84,6 @@ int main(int argc, char *argv[])
     seg.setDistanceThreshold(ransacDistanceThresh);
     seg.setMaxIterations(ransacIterations);
 
-
-
-    
     pcl::ExtractIndices<pcl::PointXYZRGB> extract;
     // Points will be removed from this cloud - at the end of the process it
     // will contain all the points which were not extracted by the segmentation
@@ -89,11 +109,6 @@ int main(int argc, char *argv[])
 	    break;
 	}
 
-	// colour the inliers so we can tell them apart easily // TODO: Put this outside the loop
-	for (size_t i = 0; i < inliers->indices.size(); i++) {
-	    intermediateCloud->points[inliers->indices[i]].r = 255;
-	    intermediateCloud->points[inliers->indices[i]].b = 255;
-	}
 
 	// Extract the inliers
 	extract.setInputCloud(intermediateCloud);
@@ -107,14 +122,20 @@ int main(int argc, char *argv[])
 	extract.filter(*remainingPoints);
 	intermediateCloud.swap(remainingPoints);
     }
-
-    // After the process is finished, combine the extracted planes and the other points together again
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr fullCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-    *fullCloud = *allPlanes + *remainingPoints;
-
     pcl::PCDWriter writer;
     writer.write<pcl::PointXYZRGB>(outDir + "allPlanes.pcd", *allPlanes, false);
     writer.write<pcl::PointXYZRGB>(outDir + "nonPlanes.pcd", *remainingPoints, false);
+
+    // colour the inliers so we can tell them apart easily
+    for (auto it = allPlanes->begin(); it != allPlanes->end(); it++) {
+	it->r = 255;
+	it->b = 255;
+    }
+
+    // After the process is finished, combine the extracted planes and the other
+    // points together again so that they can be displayed
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr fullCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+    *fullCloud = *allPlanes + *remainingPoints;
 
     boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer = boost::shared_ptr<pcl::visualization::PCLVisualizer>(new pcl::visualization::PCLVisualizer("Cloud viewer"));
     std::string cloudName("cloud");

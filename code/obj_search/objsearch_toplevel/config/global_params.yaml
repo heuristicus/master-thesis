@@ -1,0 +1,4 @@
+obj_search : {
+  raw_data_dir : "/home/michal/Dropbox/study/university/kth/thesis/data/raw/",
+  processed_data_dir : "/home/michal/Dropbox/study/university/kth/thesis/data/processed/"
+}

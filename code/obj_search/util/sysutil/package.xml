@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<package>
+  <name>sysutil</name>
+  <version>0.0.1</version>
+  <description>Package for system utilities like directory interaction</description>
+
+  <maintainer email="michalst@kth.se">michal</maintainer>
+  <license>TODO</license>
+  <buildtool_depend>catkin</buildtool_depend>
+</package>
