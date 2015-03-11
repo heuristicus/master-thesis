@@ -28,7 +28,6 @@
 #include <string>
 #include <cstdlib>
 
-
 int main(int argc, char *argv[])
 {
 
@@ -37,6 +36,15 @@ int main(int argc, char *argv[])
 
     std::string cloudFile;
     ROSUtil::getParam(handle, "/planetest/cloud_file", cloudFile);
+    
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr originalCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+    if (pcl::io::loadPCDFile<pcl::PointXYZRGB>(cloudFile, *originalCloud) != -1){
+	std::cout << "Loaded cloud from " << cloudFile.c_str() << std::endl;
+    } else {
+	std::cout << "Could not load cloud from " << cloudFile.c_str() << std::endl;
+	exit(1);
+    }
+    
     std::string dataPath;
     ROSUtil::getParam(handle, "/obj_search/raw_data_dir", dataPath);
     // If the given cloud file corresponds to a file in the raw data directory,
@@ -44,12 +52,8 @@ int main(int argc, char *argv[])
     // data can be put into the output directory with the same path.
     std::string dataSubDir;
     if (cloudFile.compare(0, dataPath.size(), dataPath) == 0){
-	dataSubDir = std::string(cloudFile, dataPath.size());
+	dataSubDir = SysUtil::trimPath(std::string(cloudFile, dataPath.size()), 1);
     }
-
-    std::cout << dataSubDir << std::endl;
-    
-    exit(0);
 
     std::string outDir;
     ROSUtil::getParam(handle, "/planetest/output_dir", outDir);
@@ -65,15 +69,6 @@ int main(int argc, char *argv[])
     ROSUtil::getParam(handle, "/planetest/RANSAC_iterations", ransacIterations);
     int planesToExtract;
     ROSUtil::getParam(handle, "/planetest/planes_to_extract", planesToExtract);
-
-    
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr originalCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-    if (pcl::io::loadPCDFile<pcl::PointXYZRGB>(cloudFile, *originalCloud) != -1){
-	std::cout << "Loaded cloud from " << cloudFile.c_str() << std::endl;
-    } else {
-	std::cout << "Could not load cloud from " << cloudFile.c_str() << std::endl;
-	exit(1);
-    }
 
     pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
     pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
@@ -122,9 +117,18 @@ int main(int argc, char *argv[])
 	extract.filter(*remainingPoints);
 	intermediateCloud.swap(remainingPoints);
     }
-    pcl::PCDWriter writer;
-    writer.write<pcl::PointXYZRGB>(outDir + "allPlanes.pcd", *allPlanes, false);
-    writer.write<pcl::PointXYZRGB>(outDir + "nonPlanes.pcd", *remainingPoints, false);
+
+    // create the directory for output if it has not already been created
+    std::string outPath = SysUtil::combinePaths(outDir, dataSubDir);
+    std::cout << "Outputting results to: " << outPath << std::endl;
+    if (SysUtil::makeDirs(outPath)){
+	pcl::PCDWriter writer;
+	writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath) + "allPlanes.pcd", *allPlanes, false);
+	writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath) + "nonPlanes.pcd", *remainingPoints, false);
+	std::cout << "Done." << std::endl;
+    } else {
+	std::cout << "Could not write point clouds to output directory." << std::endl;
+    }
 
     // colour the inliers so we can tell them apart easily
     for (auto it = allPlanes->begin(); it != allPlanes->end(); it++) {

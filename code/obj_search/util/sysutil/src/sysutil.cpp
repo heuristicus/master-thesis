@@ -106,10 +106,17 @@ namespace SysUtil {
      *
      * The \p path `/home/user/data/file.txt` has four elements. Three are
      * directories and one is a filename. The elements are trimmed from the end
-     * of the path by default.
+     * of the path by default. Calling the function on this path with \p
+     * nToTrim=1 returns `/home/user/data`. The same with \p fromFront=true
+     * gives `user/data/file.txt`. Calling with \p nToTrim=-1 gives `file.txt`,
+     * and with \p fromFront=true as well, gives `/home`.
      * 
      * @param path The path to trim
-     * @param nToTrim The number of elements to trim from the path.
+     * @param nToTrim The number of elements to
+     * trim from the path. If the argument given is negative, the behaviour
+     * changes so that instead of trimming the elements from the starting point,
+     * it trims them from the end point, leaving the number of elements
+     * specified by this parameter.
      * @param fromFront When true, trim the elements from the front of the path
      * instead of the back.
      * 
@@ -120,39 +127,58 @@ namespace SysUtil {
      * `/home/user`. Notice that there is no trailing slash. Going from the
      * front the return would be `data/file.txt`.
      */
-    std::string trimPath(std::string path, int nToTrim, bool fromFront){
-	if (nToTrim <= 0) {
-	    return path;
+    std::string trimPath(std::string inPath, int nToTrim, bool fromFront){
+	if (nToTrim == 0){ return inPath; }
+
+	std::string path = inPath;
+	// Whether we want to modify the behaviour to leave nToTrim elements, or
+	// to take them away
+	bool reverse = false;
+	if (nToTrim < 0){
+	    reverse = true;
+	    nToTrim = -nToTrim;
+	}
+	
+	if (fromFront && !reverse && path[0] == '/') {
+	    // if starting from the root, skip the first character of the path
+	    path = std::string(path, 1);
 	}
 
 	int nextDir;
 	if (fromFront) {
-	    // going from the front, so need to ignore ~/ or / at the start of paths.
-
-	    if (path[0] == '/') {
-		// if starting from the root, skip the first character of the
-		// path
-		path = std::string(path, 1);
-	    } 
-	    
-	    // could consider these cases, but they are actually directories,
-	    // and shouldn't be ignored
-	    // else if (path[0] == '~') {
-	    // 	// if starting from the home directory, skip the first two
-	    // 	// characters of the path (~/)
-	    // 	path = std::string(path, 2);
-	    // } else if (std::string("../").compare(path, 0)) {
-	    // } 
-
-	    while ((nextDir = path.find_first_of("/")) != std::string::npos
-		   && nToTrim-- > 0) {
-		path = std::string(path, nextDir + 1);
-	    }
+	    nextDir = -1; // start it off at -1 so the loop is clean
+	    // keep going until we have gathered the number of elements to trim,
+	    // and while the first directory delimiter exists. The nextDir
+	    // variable is updated at each loop, and we only examine the part
+	    // of the string which begins at nextDir + 1. When the loop ends, the 
+	    while (nToTrim-- > 0
+		   && (nextDir = path.find_first_of("/", nextDir + 1)) != (int)std::string::npos);
+	    // Depending on whether the reverse flag is true, we either return
+	    // the front part of the string, or the end part. If reversed,
+	    // return the front part of the string, otherwise return the back.
+	    path = reverse ? std::string(path, 0, nextDir) : std::string(path, nextDir + 1);
 	} else {
-	    while ((nextDir = path.find_last_of("/")) != std::string::npos
-		   && nToTrim-- > 0) {
-		path = std::string(path, 0, nextDir);
-	    }	    
+	    nextDir = 0;
+	    // Keep going until the number of elements requested to trim have
+	    // been gathered, and the last delimiter in the string exists. We
+	    // are going from the back of the string, so look for the last
+	    // directory delimiter and then update the nextDir variable to point
+	    // to that. In the next loop, only look at the part of the string
+	    // that preceeds that delimiter to find the next one.
+	    while (nToTrim-- > 0
+		   && (nextDir = path.find_last_of("/", nextDir - 1)) != (int)std::string::npos
+		   && nextDir != 0); // edge case where there is a / in first position
+	    // Depending on whether the reverse flag is true, we either return
+	    // the front part of the string, or the end part. If reversed,
+	    // return the back part of the string, otherwise return the front.
+	    path = reverse ? std::string(path, nextDir + 1) : std::string(path, 0, nextDir);
+	}
+
+	// If there are still elements left over when the loop has completed
+	// (std::string::npos was reached), then either return the full string,
+	// or the empty string, depending on whether the reverse flag is true
+	if (nToTrim > 0) {
+	    return reverse ? inPath : "";
 	}
 
 	return path;
@@ -175,4 +201,87 @@ namespace SysUtil {
 	return cleanPath.substr(lastDir + 1);
     }
 
-} // namespace SysUtil
+    /** 
+     * Make directories lying on a given path. Works like `mkdir -p`.
+     *
+     * For example, if `/tmp` exists, and this function is called on
+     * `/tmp/some/dir/here`, all the directories in the path which did not yet
+     * exist will be created.
+     * 
+     * @param path The path of the directory to create.
+     * 
+     * @return True if all directories which did not exist were successfully
+     * created, false if the directory path already existed, or one or more of
+     * the directories that were supposed to be created were not.
+     */
+    bool makeDirs(std::string path){
+	int trimNum = 0; // start off by trimming nothing
+	std::string tPath; // store a trimmed path here
+	std::vector<std::string> toCreate; // store the paths we need to create here
+	// Trim the path repeatedly from the back (e.g. /usr/home/michal/item ->
+	// /usr/home/michal -> /usr/home -> /usr) until a path is found which is
+	// already a directory. Push the paths which aren't directories onto the
+	// vector and create them in reverse order so that the parent directory
+	// always exists when creating a child.
+	while (!isDir(tPath = trimPath(path, trimNum++))){
+	    toCreate.push_back(tPath);
+	}
+
+	// If no directories were added to the vector then we aren't going to create any
+	if (toCreate.empty()) {
+	    return false;
+	}
+
+	bool ret = true;
+	// Go treat the vector as a stack, and create directories from highest
+	// to lowest in the hierarchy to ensure that the parent exists before
+	// creating the child. If an error occurs, change the return value to
+	// indicate that some error occurred.
+	while (!toCreate.empty()) {
+	    int r = mkdir(toCreate.back().c_str(), S_IRWXU | S_IRWXG | S_IROTH);
+	    if (r == -1) {
+		std::cout << "Did not mkdir " << path << ": ";
+		perror("");
+		ret = false;
+	    }
+	    toCreate.pop_back();
+	}
+	return ret;
+    }
+
+
+    /** 
+     * Combines two paths into a single path by concatenating them, ensuring
+     * that the path is a valid one by removing `~/`, `../` and `./` from the
+     * front of the second string.
+     * 
+     * @param a 
+     * @param b 
+     * 
+     * @return 
+     */
+    std::string combinePaths(std::string a, std::string b){
+	if (isFile(a)) { // need to remove the filename
+	    int lastDir = a.find_last_of('/');
+	    a = std::string(a, 0, lastDir);
+	}
+
+	bool trimmed = false;
+	while (!trimmed) {
+	    if (b[0] == '/'){
+		b = std::string(b, 1);
+	    } else if (b.compare(0, 2, "~/") == 0
+		       || b.compare(0, 2, "./") == 0) {
+		b = std::string(b, 2);
+	    } else if (b.compare(0, 3, "../") == 0) {
+		b = std::string(b, 3);
+	    } else {
+		b = cleanDirPath(b);
+		trimmed = true;
+	    }
+	}
+
+	return fullDirPath(a) + b;
+    }
+
+} // namespae SysUtil
