@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(preprocess)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++1y -Wall")
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -9,7 +9,10 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_ros
   rosutil
   sysutil
+  metaroom_xml_parser
 )
+
+rosbuild_prepare_qt4(QtCore QtXml)
 
 find_package(PCL REQUIRED)
 
@@ -27,3 +30,7 @@ add_definitions(${PCL_DEFINITIONS})
 add_executable(planetest src/planeTest.cpp)
 target_link_libraries(planetest ${catkin_LIBRARIES} ${PCL_LIBRARIES} rosutil)
 add_dependencies(planetest ${catkin_EXPORTED_TARGETS})
+
+add_executable(readtest src/findRotation.cpp)
+target_link_libraries(readtest ${catkin_LIBRARIES} metaroom_xml_parser)
+add_dependencies(readtest ${catkin_EXPORTED_TARGETS})
