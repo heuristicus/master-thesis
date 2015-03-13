@@ -123,8 +123,9 @@ int main(int argc, char *argv[])
     std::cout << "Outputting results to: " << outPath << std::endl;
     if (SysUtil::makeDirs(outPath)){
 	pcl::PCDWriter writer;
-	writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath) + "allPlanes.pcd", *allPlanes, false);
-	writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath) + "nonPlanes.pcd", *remainingPoints, false);
+	// Write the extracted planes and the remaining points to separate files
+	writer.writeBinary<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath) + "allPlanes.pcd", *allPlanes);
+	writer.writeBinary<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath) + "nonPlanes.pcd", *remainingPoints);
 	std::cout << "Done." << std::endl;
     } else {
 	std::cout << "Could not write point clouds to output directory." << std::endl;

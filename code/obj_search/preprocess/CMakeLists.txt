@@ -28,9 +28,9 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 add_executable(planetest src/planeTest.cpp)
-target_link_libraries(planetest ${catkin_LIBRARIES} ${PCL_LIBRARIES} rosutil)
+target_link_libraries(planetest ${catkin_LIBRARIES} ${PCL_LIBRARIES} rosutil sysutil)
 add_dependencies(planetest ${catkin_EXPORTED_TARGETS})
 
 add_executable(readtest src/findRotation.cpp)
-target_link_libraries(readtest ${catkin_LIBRARIES} metaroom_xml_parser)
+target_link_libraries(readtest ${catkin_LIBRARIES} rosutil sysutil metaroom_xml_parser)
 add_dependencies(readtest ${catkin_EXPORTED_TARGETS})
