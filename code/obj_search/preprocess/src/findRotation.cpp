@@ -43,6 +43,10 @@ int main(int argc, char *argv[]) {
 
     tf::StampedTransform roomRotation = roomData.vIntermediateRoomCloudTransforms[0];
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformedCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+
+    // This is the point at which the camera was while taking the images.
+    tf::Vector3 origin = roomRotation.getOrigin();
+    std::cout << origin.getX() << ", " << origin.getY() << ", " << origin.getZ() << std::endl;
     pcl_ros::transformPointCloud(*originalCloud, *transformedCloud, roomRotation);
 
     // pcl::PointXYZRGB min;
