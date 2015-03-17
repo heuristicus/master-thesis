@@ -24,23 +24,21 @@ namespace objsearch {
 	PreprocessRoom::PreprocessRoom(int argc, char* argv[]){
 	    ros::init(argc, argv, "planetest");
 	    ros::NodeHandle handle;
-	    
-	    ROSUtil::getParam(handle, "/planetest/cloud_file", cloudFile);
-    
-	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr originalCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-	    if (pcl::io::loadPCDFile<pcl::PointXYZRGB>(cloudFile, *originalCloud) != -1){
-		std::cout << "Loaded cloud from " << cloudFile.c_str() << std::endl;
-	    } else {
-		std::cout << "Could not load cloud from " << cloudFile.c_str() << std::endl;
-		exit(1);
-	    }
+
+	    // Retrieve the directory containing the cloud to be processed
+	    ROSUtil::getParam(handle, "/rotationtest/cloud_dir", cloudDir);
+
+	    // Construct the filenames for the XML file containing data, and the
+	    // merged cloud
+	    roomXML = std::string(SysUtil::fullDirPath(cloudDir)) + "room.xml";
+	    roomCloud = std::string(SysUtil::fullDirPath(cloudDir)) + "complete_cloud.pcd";
     
 	    ROSUtil::getParam(handle, "/obj_search/raw_data_dir", dataPath);
 	    // If the given cloud file corresponds to a file in the raw data directory,
 	    // extract the remaining directories in the path of the file so that the
 	    // data can be put into the output directory with the same path.
-	    if (cloudFile.compare(0, dataPath.size(), dataPath) == 0){
-		dataSubDir = SysUtil::trimPath(std::string(cloudFile, dataPath.size()), 1);
+	    if (roomCloud.compare(0, dataPath.size(), dataPath) == 0){
+		dataSubDir = SysUtil::trimPath(std::string(roomCloud, dataPath.size()), 1);
 	    }
 
 	    ROSUtil::getParam(handle, "/planetest/output_dir", outDir);
@@ -53,8 +51,49 @@ namespace objsearch {
 	    ROSUtil::getParam(handle, "/planetest/RANSAC_distance_threshold", ransacDistanceThresh);
 	    ROSUtil::getParam(handle, "/planetest/RANSAC_iterations", ransacIterations);
 	    ROSUtil::getParam(handle, "/planetest/planes_to_extract", planesToExtract);
+	    ROSUtil::getParam(handle, "/rotationtest/floor_offset", floorOffset);
+	    ROSUtil::getParam(handle, "/rotationtest/ceiling_offset", ceilingOffset);
+	    ROSUtil::getParam(handle, "/obj_search/floor_z", floorZ);
+	    ROSUtil::getParam(handle, "/obj_search/ceiling_z", ceilingZ);
 
-	    extractPlanes(originalCloud);
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr workingCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+	    tf::StampedTransform roomRotation;
+
+	    loadRoom(workingCloud, roomRotation, roomXML);
+	    transformAndRemoveFloorCeiling(workingCloud, roomRotation);
+	    extractPlanes(workingCloud);
+	}
+
+	/** 
+	 * Load a room from the directory of interest, using the given XML file
+	 * to extract information about the rotation of the room. The cloud data
+	 * is loaded into the cloud pointer passed to the function, the
+	 * transformation data is put into the StampedTransform given.
+	 * 
+	 * @param cloud This pointer to a cloud will be populated with the
+	 * merged cloud representing the room.
+	 * @param roomTransform This object will be populated with the
+	 * transformation from the global frame to the local cloud frame.
+	 * @param fileXMLPath Path to the XML file which holds information about
+	 * the room to process
+	 */
+	void PreprocessRoom::loadRoom(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
+				      tf::StampedTransform& roomTransform,
+				      std::string fileXMLPath){
+	    SimpleXMLParser<pcl::PointXYZRGB> parser;
+	    ROS_INFO("Starting load");
+	    SimpleXMLParser<pcl::PointXYZRGB>::RoomData roomData = parser.loadRoomFromXML(fileXMLPath);
+	    ROS_INFO("Load complete.");
+	    
+	    // if (pcl::io::loadPCDFile<pcl::PointXYZRGB>(roomCloud, *cloud) != -1){
+	    // 	std::cout << "Loaded cloud from " << roomCloud.c_str() << std::endl;
+	    // } else {
+	    // 	std::cout << "Could not load cloud from " << roomCloud.c_str() << std::endl;
+	    // 	exit(1);
+	    // }
+
+	    cloud = roomData.completeRoomCloud;
+	    roomTransform = roomData.vIntermediateRoomCloudTransforms[0];
 	}
 
 	/** 
@@ -68,7 +107,38 @@ namespace objsearch {
 	 * which make up those structures.
 	 * 
 	 */
-	void PreprocessRoom::transformAndRemoveFloorCeiling(){}
+	void PreprocessRoom::transformAndRemoveFloorCeiling(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
+							    const tf::StampedTransform& roomRotation){
+//	    tf::StampedTransform roomRotation = roomData.vIntermediateRoomCloudTransforms[0];
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformedCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+
+	    // This is the point at which the camera was while taking the images.
+	    tf::Vector3 origin = roomRotation.getOrigin();
+	    std::cout << origin.getX() << ", " << origin.getY() << ", " << origin.getZ() << std::endl;
+	    pcl_ros::transformPointCloud(*cloud, *transformedCloud, roomRotation);
+
+	    // pcl::PointXYZRGB min;
+	    // pcl::PointXYZRGB max;
+	    // pcl::getMinMax3D(*transformedCloud, min, max);
+
+	    // ROS_INFO("min: %f, %f, %f", min.x, min.y, min.z);
+	    // ROS_INFO("max: %f, %f, %f", max.x, max.y, max.z);
+
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr trimmedCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+	    pcl::PassThrough<pcl::PointXYZRGB> pass;
+	    pass.setInputCloud(transformedCloud);
+	    pass.setFilterFieldName("z");
+	    pass.setFilterLimits(floorZ + floorOffset, ceilingZ - ceilingOffset);
+	    pass.filter(*trimmedCloud);
+
+	    pcl::PCDWriter writer;
+	    ROS_INFO("Writing transformed cloud...");
+	    writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(cloudDir) + "transformedRoom.pcd", *transformedCloud, true);
+	    ROS_INFO("Done");
+	    ROS_INFO("Writing trimmed cloud...");
+	    writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(cloudDir) + "trimmedRoom.pcd", *trimmedCloud, true);
+	    ROS_INFO("Done");
+	}
 
 	/** 
 	 * Once the room has been stripped of its floor and ceiling, remove
