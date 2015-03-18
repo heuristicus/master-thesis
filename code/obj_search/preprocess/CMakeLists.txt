@@ -27,6 +27,6 @@ include_directories(include ${PCL_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-add_executable(preprocess src/planeTest.cpp)
+add_executable(preprocess src/preprocess.cpp)
 target_link_libraries(preprocess ${catkin_LIBRARIES} ${PCL_LIBRARIES} rosutil sysutil metaroom_xml_parser)
 add_dependencies(preprocess ${catkin_EXPORTED_TARGETS})
