@@ -5,7 +5,7 @@
  * 
  * @brief  Some prototype code for doing preprocessing on point clouds.
  */
-#include "planeTest.hpp"
+#include "preprocess.hpp"
 
 namespace objsearch {
     namespace preprocessing {
@@ -60,7 +60,7 @@ namespace objsearch {
 	    ROS_INFO("Starting load");
 	    loadRoom(workingCloud, roomRotation, roomXML);
 	    ROS_INFO("Finished load");
-	    ROS_INFO("Cloud size outside load %d", (int)workingCloud->points.size());
+	    ROS_INFO("Cloud size outside load %d", (int)workingCloud->size());
 	    transformAndRemoveFloorCeiling(workingCloud, roomRotation);
 	    extractPlanes(workingCloud);
 	}
@@ -94,7 +94,7 @@ namespace objsearch {
 	    // }
 
 	    cloud = roomData.completeRoomCloud->makeShared();
-	    ROS_INFO("loadroom: Cloud size %d", (int)cloud->points.size());
+	    ROS_INFO("loadroom: Cloud size %d", (int)cloud->size());
 	    roomTransform = roomData.vIntermediateRoomCloudTransforms[0];
 	}
 
@@ -167,8 +167,14 @@ namespace objsearch {
 	 * 
 	 */
 	void PreprocessRoom::extractPlanes(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud){
+	    ROS_INFO("Extracting planes.");
+	    ROS_INFO("Number of points in original cloud: %d", (int)cloud->size());
+
 	    pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
 	    pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
+
+	    // Set up the segmentation to extract planes from the cloud using
+	    // RANSAC with the parameters specified using the launch file
 	    pcl::SACSegmentation<pcl::PointXYZRGB> seg;
 	    seg.setOptimizeCoefficients(true);
 	    seg.setModelType(pcl::SACMODEL_PLANE);
@@ -190,6 +196,15 @@ namespace objsearch {
 	    // cloud and then swapped into intermediateCloud
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr remainingPoints (new pcl::PointCloud<pcl::PointXYZRGB>);
 
+	    // create the directory for output if it has not already been created
+	    std::string outPath = SysUtil::combinePaths(outDir, dataSubDir);
+	    if (!SysUtil::makeDirs(outPath)){
+		std::cout << "Could not write point clouds to output directory." << std::endl;
+		perror("Error message");
+		exit(1);
+	    }
+
+	    pcl::PCDWriter writer;
 	    ROS_INFO("Starting plane extraction.");
 	    for (int i = 0; i < planesToExtract; i++) {
 		ROS_INFO("Extracting plane %d", i + 1);
@@ -201,35 +216,38 @@ namespace objsearch {
 		    break;
 		}
 
-
+		ROS_INFO("Size of intermediate cloud: %d", (int)intermediateCloud->size());
+		
 		// Extract the inliers
 		extract.setInputCloud(intermediateCloud);
 		extract.setIndices(inliers);
 		extract.setNegative(false); // Extract the points which are inliers
 		extract.filter(*extractedPlane);
+		ROS_INFO("Number of points on extracted plane: %d", (int)extractedPlane->size());
+		ROS_INFO("Number of points on all planes: %d", (int)allPlanes->size());
 		*allPlanes += *extractedPlane; // Add the extracted inliers to the cloud of all planes
-	
+		ROS_INFO("Number of points after adding new plane: %d", (int)allPlanes->size());
+
+		writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath) + "extractedPlane_" + std::to_string(i) +".pcd",
+					       *allPlanes, true);
 		// Extract non-inliers
 		extract.setNegative(true); // Extract the points which are not inliers
 		extract.filter(*remainingPoints);
 		intermediateCloud.swap(remainingPoints);
+		ROS_INFO("Intermediate cloud after swapping in non-inlier points: %d", (int)intermediateCloud->size());
 	    }
 
-	    // create the directory for output if it has not already been created
-	    std::string outPath = SysUtil::combinePaths(outDir, dataSubDir);
+	    ROS_INFO("All planes size after loop: %d", (int)allPlanes->size());
+	    ROS_INFO("Remaining points size after loop: %d", (int)intermediateCloud->size());
+	    
 	    std::cout << "Outputting results to: " << outPath << std::endl;
-	    if (SysUtil::makeDirs(outPath)){
-		pcl::PCDWriter writer;
-		// Write the extracted planes and the remaining points to separate files
-		writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath) + "allPlanes.pcd",
-					       *allPlanes, true);
-		writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath) + "nonPlanes.pcd",
-					       *remainingPoints, true);
-		std::cout << "Done." << std::endl;
-	    } else {
-		std::cout << "Could not write point clouds to output directory." << std::endl;
-		perror("Error message");
-	    }
+
+	    // Write the extracted planes and the remaining points to separate files
+	    writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath) + "allPlanes.pcd",
+					   *allPlanes, true);
+	    writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath) + "nonPlanes.pcd",
+					   *intermediateCloud, true);
+	    std::cout << "Done." << std::endl;
 
 	    // colour the inliers so we can tell them apart easily
 	    for (auto it = allPlanes->begin(); it != allPlanes->end(); it++) {
