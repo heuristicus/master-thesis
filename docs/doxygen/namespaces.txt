@@ -1,0 +1,19 @@
+/**
+   @namespace objsearch
+   @brief Project namespace
+*/
+
+/**
+   @namespace objsearch::preprocessing
+   @brief Code for preprocessing such as plane extraction.
+*/
+
+/**
+   @namespace ROSUtil
+   @brief Better interaction with the parameter server.
+*/
+
+/**
+   @namespace SysUtil
+   @brief Mostly code for dealing with directories.
+*/

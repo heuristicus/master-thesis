@@ -9,7 +9,9 @@
   <param name="/preprocess/planes_to_extract" value="$(arg planes_to_extract)" />
   <arg name="output" default="NULL"/>
   <param name="/preprocess/output_dir" value="$(arg output)" />
-
+  <arg name="cloud_file" />
+  <param name="/preprocess/cloud_file" value="$(arg cloud_file)" />
+  
   <!-- These values are used to further adjust the floor and ceiling z-value
        which is used to remove points which make up those parts of the cloud -->
   <arg name="ceiling_offset" default="0.2" />

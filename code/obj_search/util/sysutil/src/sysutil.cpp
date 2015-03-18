@@ -209,12 +209,15 @@ namespace SysUtil {
      * exist will be created.
      * 
      * @param path The path of the directory to create.
-     * 
      * @return True if all directories which did not exist were successfully
-     * created, false if the directory path already existed, or one or more of
-     * the directories that were supposed to be created were not.
+     * created, or if the directory path already existed, false if one or more
+     * of the directories that were supposed to be created were not.
      */
     bool makeDirs(std::string path){
+	if (isDir(path)) {
+	    return true;
+	}
+	
 	int trimNum = 0; // start off by trimming nothing
 	std::string tPath; // store a trimmed path here
 	std::vector<std::string> toCreate; // store the paths we need to create here
@@ -241,7 +244,7 @@ namespace SysUtil {
 	    int r = mkdir(toCreate.back().c_str(), S_IRWXU | S_IRWXG | S_IROTH);
 	    if (r == -1) {
 		std::cout << "Did not mkdir " << path << ": ";
-		perror("");
+		perror("Reason");
 		ret = false;
 	    }
 	    toCreate.pop_back();
