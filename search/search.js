@@ -7,22 +7,26 @@
 
 var indexSectionsWithContent =
 {
-  0: "bgmorst",
-  1: "r",
-  2: "mrt",
-  3: "gst",
-  4: "b",
-  5: "o"
+  0: "acdefghilmnoprst",
+  1: "p",
+  2: "orst",
+  3: "cmnprs",
+  4: "cefgilmprt",
+  5: "i",
+  6: "acdhp",
+  7: "o"
 };
 
 var indexSectionNames =
 {
   0: "all",
-  1: "namespaces",
-  2: "files",
-  3: "functions",
-  4: "groups",
-  5: "pages"
+  1: "classes",
+  2: "namespaces",
+  3: "files",
+  4: "functions",
+  5: "variables",
+  6: "defines",
+  7: "pages"
 };
 
 function convertToId(search)

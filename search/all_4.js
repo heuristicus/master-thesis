@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['rosutil',['ROSUtil',['../namespaceROSUtil.html',1,'']]],
-  ['rosutil_2ecpp',['rosutil.cpp',['../rosutil_8cpp.html',1,'']]],
-  ['rosutil_2ehpp',['rosutil.hpp',['../rosutil_8hpp.html',1,'']]]
+  ['fulldirpath',['fullDirPath',['../namespaceSysUtil.html#aacf311d2241b9b2d75f53299a5e413f6',1,'SysUtil']]]
 ];
