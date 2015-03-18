@@ -212,8 +212,8 @@ namespace testing {
 	}
 
 	TEST(sysutilTest, makeDirs_single_existing){
-	    ASSERT_FALSE(SysUtil::makeDirs("/tmp"));
-	    ASSERT_FALSE(SysUtil::makeDirs("/usr/lib"));
+	    ASSERT_TRUE(SysUtil::makeDirs("/tmp"));
+	    ASSERT_TRUE(SysUtil::makeDirs("/usr/lib"));
 	}
 
 	TEST(sysutilTest, makeDirs_multiple){

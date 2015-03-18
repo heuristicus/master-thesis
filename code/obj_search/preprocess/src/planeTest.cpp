@@ -4,8 +4,6 @@
  * @date   Mon Mar  9 14:06:36 2015
  * 
  * @brief  Some prototype code for doing preprocessing on point clouds.
- * 
- * 
  */
 #include "planeTest.hpp"
 
@@ -18,15 +16,15 @@ namespace objsearch {
 	 * Once the object has been constructed, it calls functions to process
 	 * the given point cloud.
 	 * 
-	 * @param argc 
-	 * @param argv 
+	 * @param argc Number of input arguments from main
+	 * @param argv Values of input arguments from main
 	 */
 	PreprocessRoom::PreprocessRoom(int argc, char* argv[]){
-	    ros::init(argc, argv, "planetest");
+	    ros::init(argc, argv, "preprocess");
 	    ros::NodeHandle handle;
 
 	    // Retrieve the directory containing the cloud to be processed
-	    ROSUtil::getParam(handle, "/rotationtest/cloud_dir", cloudDir);
+	    ROSUtil::getParam(handle, "/preprocess/cloud_dir", cloudDir);
 
 	    // Construct the filenames for the XML file containing data, and the
 	    // merged cloud
@@ -41,25 +39,28 @@ namespace objsearch {
 		dataSubDir = SysUtil::trimPath(std::string(roomCloud, dataPath.size()), 1);
 	    }
 
-	    ROSUtil::getParam(handle, "/planetest/output_dir", outDir);
+	    ROSUtil::getParam(handle, "/preprocess/output_dir", outDir);
 	    // If output is not specified, set the output directory to be the processed
 	    // data directory specified by the global parameters.
 	    if (std::string("NULL").compare(outDir) == 0) {
 		ROSUtil::getParam(handle, "/obj_search/processed_data_dir", outDir);
 	    }
 
-	    ROSUtil::getParam(handle, "/planetest/RANSAC_distance_threshold", ransacDistanceThresh);
-	    ROSUtil::getParam(handle, "/planetest/RANSAC_iterations", ransacIterations);
-	    ROSUtil::getParam(handle, "/planetest/planes_to_extract", planesToExtract);
-	    ROSUtil::getParam(handle, "/rotationtest/floor_offset", floorOffset);
-	    ROSUtil::getParam(handle, "/rotationtest/ceiling_offset", ceilingOffset);
+	    ROSUtil::getParam(handle, "/preprocess/RANSAC_distance_threshold", ransacDistanceThresh);
+	    ROSUtil::getParam(handle, "/preprocess/RANSAC_iterations", ransacIterations);
+	    ROSUtil::getParam(handle, "/preprocess/planes_to_extract", planesToExtract);
+	    ROSUtil::getParam(handle, "/preprocess/floor_offset", floorOffset);
+	    ROSUtil::getParam(handle, "/preprocess/ceiling_offset", ceilingOffset);
 	    ROSUtil::getParam(handle, "/obj_search/floor_z", floorZ);
 	    ROSUtil::getParam(handle, "/obj_search/ceiling_z", ceilingZ);
 
-	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr workingCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr workingCloud;
 	    tf::StampedTransform roomRotation;
 
+	    ROS_INFO("Starting load");
 	    loadRoom(workingCloud, roomRotation, roomXML);
+	    ROS_INFO("Finished load");
+	    ROS_INFO("Cloud size outside load %d", (int)workingCloud->points.size());
 	    transformAndRemoveFloorCeiling(workingCloud, roomRotation);
 	    extractPlanes(workingCloud);
 	}
@@ -77,13 +78,13 @@ namespace objsearch {
 	 * @param fileXMLPath Path to the XML file which holds information about
 	 * the room to process
 	 */
-	void PreprocessRoom::loadRoom(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
+	void PreprocessRoom::loadRoom(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud, // needs to be a reference to allow modification. Weird pointer type
 				      tf::StampedTransform& roomTransform,
 				      std::string fileXMLPath){
 	    SimpleXMLParser<pcl::PointXYZRGB> parser;
-	    ROS_INFO("Starting load");
+	    ROS_INFO("loadroom: Starting load");
 	    SimpleXMLParser<pcl::PointXYZRGB>::RoomData roomData = parser.loadRoomFromXML(fileXMLPath);
-	    ROS_INFO("Load complete.");
+	    ROS_INFO("loadroom: Load complete.");
 	    
 	    // if (pcl::io::loadPCDFile<pcl::PointXYZRGB>(roomCloud, *cloud) != -1){
 	    // 	std::cout << "Loaded cloud from " << roomCloud.c_str() << std::endl;
@@ -92,7 +93,8 @@ namespace objsearch {
 	    // 	exit(1);
 	    // }
 
-	    cloud = roomData.completeRoomCloud;
+	    cloud = roomData.completeRoomCloud->makeShared();
+	    ROS_INFO("loadroom: Cloud size %d", (int)cloud->points.size());
 	    roomTransform = roomData.vIntermediateRoomCloudTransforms[0];
 	}
 
@@ -105,17 +107,25 @@ namespace objsearch {
 	 * position, and then threshold the z-axis values according to the
 	 * height of the floor and ceiling (plus some offset) to remove points
 	 * which make up those structures.
-	 * 
+	 *
+	 * @param cloud Cloud to transform and remove the floor and ceiling
+	 * from.
+	 * @param roomTransform The transform needed to put the cloud into
+	 * its position relative to the global reference frame. Ideally
+	 * extracted from the XML data for the room and its intermediate clouds.
 	 */
-	void PreprocessRoom::transformAndRemoveFloorCeiling(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
-							    const tf::StampedTransform& roomRotation){
+	void PreprocessRoom::transformAndRemoveFloorCeiling(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
+							    const tf::StampedTransform& roomTransform){
 //	    tf::StampedTransform roomRotation = roomData.vIntermediateRoomCloudTransforms[0];
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformedCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 
 	    // This is the point at which the camera was while taking the images.
-	    tf::Vector3 origin = roomRotation.getOrigin();
+	    tf::Vector3 origin = roomTransform.getOrigin();
 	    std::cout << origin.getX() << ", " << origin.getY() << ", " << origin.getZ() << std::endl;
-	    pcl_ros::transformPointCloud(*cloud, *transformedCloud, roomRotation);
+	    // Transform the cloud according to the given transform. After this
+	    // point the x-y axis should be aligned with the floor, and the
+	    // z-axis should point upwards.
+	    pcl_ros::transformPointCloud(*cloud, *transformedCloud, roomTransform);
 
 	    // pcl::PointXYZRGB min;
 	    // pcl::PointXYZRGB max;
@@ -124,19 +134,26 @@ namespace objsearch {
 	    // ROS_INFO("min: %f, %f, %f", min.x, min.y, min.z);
 	    // ROS_INFO("max: %f, %f, %f", max.x, max.y, max.z);
 
-	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr trimmedCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+	    // Use a passthrough filter to remove points beyond a specific
+	    // threshold - the floor position plus an offset, and the ceiling
+	    // position minus an offset. Positive z points towards the ceiling.
+	    // The floor and ceiling heights are known, but we want to remove
+	    // the floors and ceilings, so a little bit is added to make sure that happens.
 	    pcl::PassThrough<pcl::PointXYZRGB> pass;
 	    pass.setInputCloud(transformedCloud);
 	    pass.setFilterFieldName("z");
+	    // a little bit above the floor, and a little below the ceiling are our limits
 	    pass.setFilterLimits(floorZ + floorOffset, ceilingZ - ceilingOffset);
-	    pass.filter(*trimmedCloud);
+	    // filter the values outside the thresholds and put the rest of the
+	    // points back into the cloud.
+	    pass.filter(*cloud); 
 
 	    pcl::PCDWriter writer;
 	    ROS_INFO("Writing transformed cloud...");
 	    writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(cloudDir) + "transformedRoom.pcd", *transformedCloud, true);
 	    ROS_INFO("Done");
 	    ROS_INFO("Writing trimmed cloud...");
-	    writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(cloudDir) + "trimmedRoom.pcd", *trimmedCloud, true);
+	    writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(cloudDir) + "trimmedRoom.pcd", *cloud, true);
 	    ROS_INFO("Done");
 	}
 
@@ -145,9 +162,11 @@ namespace objsearch {
 	 * other planes from the room. We aim to remove walls and other large
 	 * flat surfaces from which we do not want to extract features. This
 	 * process is done using a basic RANSAC procedure.
+	 *
+	 * @param cloud Pointer to the cloud from which planes are to be extracted.
 	 * 
 	 */
-	void PreprocessRoom::extractPlanes(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud){
+	void PreprocessRoom::extractPlanes(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud){
 	    pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
 	    pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
 	    pcl::SACSegmentation<pcl::PointXYZRGB> seg;
@@ -202,11 +221,14 @@ namespace objsearch {
 	    if (SysUtil::makeDirs(outPath)){
 		pcl::PCDWriter writer;
 		// Write the extracted planes and the remaining points to separate files
-		writer.writeBinary<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath) + "allPlanes.pcd", *allPlanes);
-		writer.writeBinary<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath) + "nonPlanes.pcd", *remainingPoints);
+		writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath) + "allPlanes.pcd",
+					       *allPlanes, true);
+		writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath) + "nonPlanes.pcd",
+					       *remainingPoints, true);
 		std::cout << "Done." << std::endl;
 	    } else {
 		std::cout << "Could not write point clouds to output directory." << std::endl;
+		perror("Error message");
 	    }
 
 	    // colour the inliers so we can tell them apart easily
@@ -220,12 +242,14 @@ namespace objsearch {
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr fullCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 	    *fullCloud = *allPlanes + *remainingPoints;
 
-	    boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer = boost::shared_ptr<pcl::visualization::PCLVisualizer>(new pcl::visualization::PCLVisualizer("Cloud viewer"));
+	    boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer =
+		boost::shared_ptr<pcl::visualization::PCLVisualizer>(new pcl::visualization::PCLVisualizer("Cloud viewer"));
 	    std::string cloudName("cloud");
 	    pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(fullCloud);
 	    viewer->setBackgroundColor(0,0,0);
 	    viewer->addPointCloud(fullCloud, rgb, cloudName.c_str());
-	    viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, cloudName.c_str());
+	    viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,
+						     2, cloudName.c_str());
 	    viewer->initCameraParameters();
     
 	    while (!viewer->wasStopped()) {
@@ -235,6 +259,8 @@ namespace objsearch {
 	}
     } // namespace preprocessing
 } // namespace objsearch
+
+
 
 int main(int argc, char *argv[]) {
     objsearch::preprocessing::PreprocessRoom rp(argc, argv);

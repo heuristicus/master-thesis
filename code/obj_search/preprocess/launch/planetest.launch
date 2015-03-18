@@ -1,0 +1,23 @@
+<launch>
+  <rosparam file="$(find objsearch_toplevel)/config/global_params.yaml" command="load" />
+  
+  <arg name="distance_threshold" default="0.04" />
+  <param name="/preprocess/RANSAC_distance_threshold" value="$(arg distance_threshold)" />
+  <arg name="iterations" default="100" />
+  <param name="/preprocess/RANSAC_iterations" value="$(arg iterations)" />
+  <arg name="planes_to_extract" default="5" />
+  <param name="/preprocess/planes_to_extract" value="$(arg planes_to_extract)" />
+  <arg name="output" default="NULL"/>
+  <param name="/preprocess/output_dir" value="$(arg output)" />
+
+  <!-- These values are used to further adjust the floor and ceiling z-value
+       which is used to remove points which make up those parts of the cloud -->
+  <arg name="ceiling_offset" default="0.2" />
+  <param name="/preprocess/ceiling_offset" value="$(arg ceiling_offset)" />
+  <arg name="floor_offset" default="0.2" />
+  <param name="/preprocess/floor_offset" value="$(arg floor_offset)" />
+  <arg name="cloud_dir" />
+  <param name="/preprocess/cloud_dir" value="$(arg cloud_dir)" />
+  
+  <node name="preprocess" pkg="preprocess" type="preprocess" output="screen" />
+</launch>
