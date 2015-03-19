@@ -1,0 +1,10 @@
+<launch>
+  <rosparam file="$(find objsearch_toplevel)/config/global_params.yaml" command="load" />
+  
+  <arg name="cloud" />
+  <param name="/feature_extraction/input_cloud" value="$(arg cloud)" />
+  <arg name="output" default="NULL"/>
+  <param name="/feature_extraction/output_dir" value="$(arg output)" />
+  
+  <node name="feature_extraction" pkg="feature_extraction" type="extract_features" output="screen" />
+</launch>

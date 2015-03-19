@@ -204,6 +204,16 @@ namespace testing {
 	    ASSERT_STREQ("/usr/share/texlive/usr/bin", result.c_str());
 	}
 
+	TEST(sysutilTest, combinePaths_empty) {
+	    std::string result = SysUtil::combinePaths("/usr/share/texlive/", "");
+	    ASSERT_STREQ("/usr/share/texlive/", result.c_str());
+	    result = SysUtil::combinePaths("", "/usr/share/texlive/");
+	    ASSERT_STREQ("/usr/share/texlive/", result.c_str());
+	    result = SysUtil::combinePaths("", "");
+	    ASSERT_STREQ("", result.c_str());
+	}
+	
+
 	TEST(sysutilTest, makeDirs_single){
 	    std::string testDir("/tmp/ob_search_testdir897913823");
 	    ASSERT_TRUE(SysUtil::makeDirs(testDir));

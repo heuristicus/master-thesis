@@ -32,9 +32,13 @@ namespace objsearch {
 	    roomCloud = std::string(SysUtil::fullDirPath(cloudDir)) + "complete_cloud.pcd";
     
 	    ROSUtil::getParam(handle, "/obj_search/raw_data_dir", dataPath);
-	    // If the given cloud file corresponds to a file in the raw data directory,
-	    // extract the remaining directories in the path of the file so that the
-	    // data can be put into the output directory with the same path.
+
+	    // If the given cloud file corresponds to a file in the raw data
+	    // directory, extract the remaining directories in the path of the
+	    // file so that the data can be put into the output directory with
+	    // the same path. e.g. if raw_data_dir is set to /home/user/data and
+	    // the input cloud is in /home/user/data/sets/set1/, then datasubdir
+	    // will be /sets/set1.
 	    if (roomCloud.compare(0, dataPath.size(), dataPath) == 0){
 		dataSubDir = SysUtil::trimPath(std::string(roomCloud, dataPath.size()), 1);
 	    }
@@ -45,6 +49,12 @@ namespace objsearch {
 	    if (std::string("NULL").compare(outDir) == 0) {
 		ROSUtil::getParam(handle, "/obj_search/processed_data_dir", outDir);
 	    }
+
+	    // The output path for processed clouds is the subdirectory combined
+	    // with the top level output directory. If dataSubDir is not
+	    // initialised, then clouds are simply output to the top level
+	    // output directory
+	    outPath = SysUtil::combinePaths(outDir, dataSubDir);
 
 	    ROSUtil::getParam(handle, "/preprocess/RANSAC_distance_threshold", ransacDistanceThresh);
 	    ROSUtil::getParam(handle, "/preprocess/RANSAC_iterations", ransacIterations);
@@ -197,7 +207,6 @@ namespace objsearch {
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr remainingPoints (new pcl::PointCloud<pcl::PointXYZRGB>);
 
 	    // create the directory for output if it has not already been created
-	    std::string outPath = SysUtil::combinePaths(outDir, dataSubDir);
 	    if (!SysUtil::makeDirs(outPath)){
 		std::cout << "Could not write point clouds to output directory." << std::endl;
 		perror("Error message");

@@ -258,12 +258,22 @@ namespace SysUtil {
      * that the path is a valid one by removing `~/`, `../` and `./` from the
      * front of the second string.
      * 
-     * @param a 
-     * @param b 
+     * @param a Start of the path
+     * @param b End of the path
      * 
-     * @return 
+     * @return Joined paths. If either of the strings is empty, the non-empty
+     * one is returned unchanged.
      */
     std::string combinePaths(std::string a, std::string b){
+	// don't bother doing anything if one of the strings is empty.
+	if (a.compare("") == 0 && b.compare("") == 0){
+	    return a;
+	} else if (a.compare("") == 0){
+	    return b;
+	} else if (b.compare("") == 0){
+	    return a;
+	}
+	
 	if (isFile(a)) { // need to remove the filename
 	    int lastDir = a.find_last_of('/');
 	    a = std::string(a, 0, lastDir);

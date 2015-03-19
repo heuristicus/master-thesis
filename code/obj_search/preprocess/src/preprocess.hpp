@@ -59,6 +59,8 @@ namespace objsearch {
 	    std::string dataPath; // top level directory which contains the data
 	    std::string dataSubDir; // sub directory within the data path containing the cloud we are interested in
 	    std::string outDir; // directory to which processed clouds will be output
+	    std::string outPath;
+	    
 	    float ransacDistanceThresh;
 	    int ransacIterations;
 	    int planesToExtract;
