@@ -17,6 +17,11 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 #include <pcl/features/usc.h>
+#include <pcl/features/shot.h>
+#include <pcl/kdtree/kdtree_flann.h>
+#include <pcl/search/flann_search.h>
+
+
 
 int main(int argc, char *argv[]) {
     ros::init(argc, argv, "feature_extraction");
@@ -98,8 +103,30 @@ int main(int argc, char *argv[]) {
     // Set the radius to compute the Local Reference Frame.
     usc.setLocalRadius(0.05);
 
+    pcl::PointCloud<pcl::SHOT352>::Ptr descriptorsshot(new pcl::PointCloud<pcl::SHOT352>());
     ROS_INFO("Computing descriptors.");
     usc.compute(*descriptors);
     ROS_INFO("Done.");
+
+    pcl::KdTreeFLANN<pcl::SHOT352> kdtree;
+    kdtree.setInputCloud(descriptorsshot);
+
+    // Features
+    pcl::PointCloud<pcl::SHOT352>::Ptr query, target;
+    // Fill query and target with calculated features...
+    // Instantiate search object with 4 randomized trees and 256 checks
+    pcl::search::FlannSearch<pcl::SHOT352, flann::L2<float> >::KdTreeMultiIndexCreator mic(4);
+    pcl::search::FlannSearch<pcl::SHOT352, flann::L2<float> >::FlannIndexCreatorPtr icp(mic);
+    pcl::search::FlannSearch<pcl::SHOT352, flann::L2<float> > search(true, icp);
+								     
+    pcl::search::FlannSearch<pcl::SHOT352, flann::L2<float> >::PointRepresentationPtr pr(new DefaultFeatureRepresentation<pcl::SHOT352>);
+    search.setPointRepresentation(pr);
+    search.setChecks(256);
+    search.setInputCloud(target);
+    // Do search
+    std::vector<std::vector<int> > k_indices;
+    std::vector<std::vector<float> > k_sqr_distances;
+    search.nearestKSearch(*query, std::vector<int>(), 2, k_indices, k_sqr_distances);
+    
     return 0;
 }
