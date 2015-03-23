@@ -13,6 +13,7 @@
 
 #include <string>
 #include <cmath>
+#include <vector>
 
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
@@ -20,6 +21,9 @@
 #include <pcl/features/shot.h>
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/search/flann_search.h>
+#include <pcl/search/impl/flann_search.hpp>
+#include <pcl/search/pcl_search.h>
+#include <pcl/point_representation.h>
 
 
 
@@ -111,22 +115,44 @@ int main(int argc, char *argv[]) {
     pcl::KdTreeFLANN<pcl::SHOT352> kdtree;
     kdtree.setInputCloud(descriptorsshot);
 
-    // Features
-    pcl::PointCloud<pcl::SHOT352>::Ptr query, target;
-    // Fill query and target with calculated features...
-    // Instantiate search object with 4 randomized trees and 256 checks
-    pcl::search::FlannSearch<pcl::SHOT352, flann::L2<float> >::KdTreeMultiIndexCreator mic(4);
-    pcl::search::FlannSearch<pcl::SHOT352, flann::L2<float> >::FlannIndexCreatorPtr icp(mic);
-    pcl::search::FlannSearch<pcl::SHOT352, flann::L2<float> > search(true, icp);
+    // // Features
+    // pcl::PointCloud<pcl::SHOT352>::Ptr query, target;
+    // // Fill query and target with calculated features...
+    // // Instantiate search object with 4 randomized trees and 256 checks
+    // pcl::search::FlannSearch<pcl::SHOT352, flann::L2<float> >::KdTreeMultiIndexCreator mic(4);
+    // pcl::search::FlannSearch<pcl::SHOT352, flann::L2<float> >::FlannIndexCreatorPtr icp(mic);
+    // pcl::search::FlannSearch<pcl::SHOT352, flann::L2<float> > search(true, icp);
 								     
-    pcl::search::FlannSearch<pcl::SHOT352, flann::L2<float> >::PointRepresentationPtr pr(new DefaultFeatureRepresentation<pcl::SHOT352>);
-    search.setPointRepresentation(pr);
-    search.setChecks(256);
-    search.setInputCloud(target);
-    // Do search
-    std::vector<std::vector<int> > k_indices;
-    std::vector<std::vector<float> > k_sqr_distances;
-    search.nearestKSearch(*query, std::vector<int>(), 2, k_indices, k_sqr_distances);
+    // pcl::search::FlannSearch<pcl::SHOT352, flann::L2<float> >::PointRepresentationPtr pr(new DefaultFeatureRepresentation<pcl::SHOT352>);
+    // search.setPointRepresentation(pr);
+    // search.setChecks(256);
+    // search.setInputCloud(target);
+    // // Do search
+    // std::vector<std::vector<int> > k_indices;
+    // std::vector<std::vector<float> > k_sqr_distances;
+    // search.nearestKSearch(*query, std::vector<int>(), 2, k_indices, k_sqr_distances);
+
+    typedef pcl::SHOT352 PointT;
+    typedef flann::L2<float> DistT;
+
+    typedef pcl::search::FlannSearch<PointT> SearchT;
+    PointT query;
+
+    SearchT search;
+    pcl::DefaultPointRepresentation<pcl::SHOT352>::ConstPtr shotRepr;
+    search.setPointRepresentation(shotRepr);
+    search.setInputCloud(descriptorsshot);
+
+    int k = 5;
+    std::vector<int> indices(k);
+    std::vector<float> square_dists(k);
+    search.nearestKSearch(query, k, indices, square_dists);
+    
+    // default search object does not have setpointrepresentation
+    //    pcl::search::Search<pcl::SHOT352>* FlannSearch = new pcl::search::FlannSearch<pcl::SHOT352>(new pcl::search::FlannSearch<pcl::SHOT352>::KdTreeIndexCreator);
+    // FlannSearch->setInputCloud(target);
+    // FlannSearch->setPointRepresentation(new pcl::DefaultPointRepresentation<pcl::SHOT352>::ConstPtr);
+    
     
     return 0;
 }
