@@ -15,6 +15,8 @@
 #include <cmath>
 #include <vector>
 
+#include <ros/console.h>
+
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 #include <pcl/features/usc.h>
@@ -67,92 +69,88 @@ int main(int argc, char *argv[]) {
 	exit(1);
     }
 
-    // The shape context uses xyz points, so need to convert the cloud into that format
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_xyz(new pcl::PointCloud<pcl::PointXYZ>);
+    // // The shape context uses xyz points, so need to convert the cloud into that format
+    // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_xyz(new pcl::PointCloud<pcl::PointXYZ>);
     
-    cloud_xyz->points.resize(cloud->size());
-    int added = 0;
+    // cloud_xyz->points.resize(cloud->size());
+    // int added = 0;
 
-    ROS_INFO("Cloud size: %d", (int)cloud->size());
-    // Some of the points in the cloud have nan or inf values, need to strip
-    // those to avoid errors. This is only true for the intermediate clouds
-    for (size_t i = 0; i < cloud->points.size(); i++) {
-	if (std::isnan(cloud->points[i].x) || std::isinf(cloud->points[i].x)
-	    || std::isnan(cloud->points[i].y) || std::isinf(cloud->points[i].y)
-	    || std::isnan(cloud->points[i].z) || std::isinf(cloud->points[i].z)){
-	    continue;
-	}
-	cloud_xyz->points[i].x = cloud->points[i].x;
-	cloud_xyz->points[i].y = cloud->points[i].y;
-	cloud_xyz->points[i].z = cloud->points[i].z;
-	added++;
-    }
-    ROS_INFO("Total invalid points: %d", ((int)cloud->size()) - added);
+    // ROS_INFO("Cloud size: %d", (int)cloud->size());
+    // // Some of the points in the cloud have nan or inf values, need to strip
+    // // those to avoid errors. This is only true for the intermediate clouds
+    // for (size_t i = 0; i < cloud->points.size(); i++) {
+    // 	if (std::isnan(cloud->points[i].x) || std::isinf(cloud->points[i].x)
+    // 	    || std::isnan(cloud->points[i].y) || std::isinf(cloud->points[i].y)
+    // 	    || std::isnan(cloud->points[i].z) || std::isinf(cloud->points[i].z)){
+    // 	    continue;
+    // 	}
+    // 	cloud_xyz->points[i].x = cloud->points[i].x;
+    // 	cloud_xyz->points[i].y = cloud->points[i].y;
+    // 	cloud_xyz->points[i].z = cloud->points[i].z;
+    // 	added++;
+    // }
+    // ROS_INFO("Total invalid points: %d", ((int)cloud->size()) - added);
     
-    cloud_xyz->points.resize(added);
-    
-    
-    pcl::PointCloud<pcl::ShapeContext1980>::Ptr descriptors(new pcl::PointCloud<pcl::ShapeContext1980>());
+    // cloud_xyz->points.resize(added);
+        
+    // pcl::PointCloud<pcl::ShapeContext1980>::Ptr descriptors(new pcl::PointCloud<pcl::ShapeContext1980>());
  
-    pcl::UniqueShapeContext<pcl::PointXYZ, pcl::ShapeContext1980, pcl::ReferenceFrame> usc;
-    usc.setInputCloud(cloud_xyz);
-    // Search radius, to look for neighbors. It will also be the radius of the support sphere.
-    usc.setRadiusSearch(0.05);
-    // The minimal radius value for the search sphere, to avoid being too sensitive
-    // in bins close to the center of the sphere.
-    usc.setMinimalRadius(0.05 / 10.0);
-    // Radius used to compute the local point density for the neighbors
-    // (the density is the number of points within that radius).
-    usc.setPointDensityRadius(0.05 / 5.0);
-    // Set the radius to compute the Local Reference Frame.
-    usc.setLocalRadius(0.05);
+    // pcl::UniqueShapeContext<pcl::PointXYZ, pcl::ShapeContext1980, pcl::ReferenceFrame> usc;
+    // usc.setInputCloud(cloud_xyz);
+    // // Search radius, to look for neighbors. It will also be the radius of the support sphere.
+    // usc.setRadiusSearch(0.05);
+    // // The minimal radius value for the search sphere, to avoid being too sensitive
+    // // in bins close to the center of the sphere.
+    // usc.setMinimalRadius(0.05 / 10.0);
+    // // Radius used to compute the local point density for the neighbors
+    // // (the density is the number of points within that radius).
+    // usc.setPointDensityRadius(0.05 / 5.0);
+    // // Set the radius to compute the Local Reference Frame.
+    // usc.setLocalRadius(0.05);
 
-    pcl::PointCloud<pcl::SHOT352>::Ptr descriptorsshot(new pcl::PointCloud<pcl::SHOT352>());
-    ROS_INFO("Computing descriptors.");
-    usc.compute(*descriptors);
-    ROS_INFO("Done.");
+    // pcl::PointCloud<pcl::SHOT352>::Ptr descriptorsshot(new pcl::PointCloud<pcl::SHOT352>());
+    // ROS_INFO("Computing descriptors.");
+    // usc.compute(*descriptors);
+    // ROS_INFO("Done.");
 
-    pcl::KdTreeFLANN<pcl::SHOT352> kdtree;
-    kdtree.setInputCloud(descriptorsshot);
+    ROS_INFO("Populating descriptors");
+    std::vector<pcl::SHOT352> desc(5);
+    for (int i = 0; i < 5; i++) {
+	for (int j = 0; j < 352; j++) {
+	    desc[i].descriptor[j] = j + i;
+	}
+    }
+    ROS_INFO("done");
 
-    // // Features
-    // pcl::PointCloud<pcl::SHOT352>::Ptr query, target;
-    // // Fill query and target with calculated features...
-    // // Instantiate search object with 4 randomized trees and 256 checks
-    // pcl::search::FlannSearch<pcl::SHOT352, flann::L2<float> >::KdTreeMultiIndexCreator mic(4);
-    // pcl::search::FlannSearch<pcl::SHOT352, flann::L2<float> >::FlannIndexCreatorPtr icp(mic);
-    // pcl::search::FlannSearch<pcl::SHOT352, flann::L2<float> > search(true, icp);
-								     
-    // pcl::search::FlannSearch<pcl::SHOT352, flann::L2<float> >::PointRepresentationPtr pr(new DefaultFeatureRepresentation<pcl::SHOT352>);
-    // search.setPointRepresentation(pr);
-    // search.setChecks(256);
-    // search.setInputCloud(target);
-    // // Do search
-    // std::vector<std::vector<int> > k_indices;
-    // std::vector<std::vector<float> > k_sqr_distances;
-    // search.nearestKSearch(*query, std::vector<int>(), 2, k_indices, k_sqr_distances);
+    ROS_INFO("Creating descriptor cloud");
+    pcl::SHOT352 query = desc[0];
+    pcl::PointCloud<pcl::SHOT352>::Ptr testdescriptors(new pcl::PointCloud<pcl::SHOT352>());
+    for (int i = 0; i < 4; i++) {
+	testdescriptors->push_back(desc[i+1]);
+    }
 
-    typedef pcl::SHOT352 PointT;
-    typedef flann::L2<float> DistT;
+    ROS_INFO("done");
 
-    typedef pcl::search::FlannSearch<PointT> SearchT;
-    PointT query;
+    ROS_INFO("Creating search object");
+    pcl::search::FlannSearch<pcl::SHOT352, flann::L2<float> > *search(new pcl::search::FlannSearch<pcl::SHOT352, flann::L2<float> >());
+    ROS_INFO("Object created");
+    pcl::DefaultPointRepresentation<pcl::SHOT352>::ConstPtr shotRepr(new pcl::DefaultPointRepresentation<pcl::SHOT352>());
+    ROS_INFO("setting representation");
+    search->setPointRepresentation(shotRepr);
+    ROS_INFO("done, setting cloud");
+    search->setInputCloud(testdescriptors);
+    ROS_INFO("Done");
 
-    SearchT search;
-    pcl::DefaultPointRepresentation<pcl::SHOT352>::ConstPtr shotRepr;
-    search.setPointRepresentation(shotRepr);
-    search.setInputCloud(descriptorsshot);
-
-    int k = 5;
+    ROS_INFO("Doing query");
+    int k = 4;
     std::vector<int> indices(k);
     std::vector<float> square_dists(k);
-    search.nearestKSearch(query, k, indices, square_dists);
-    
-    // default search object does not have setpointrepresentation
-    //    pcl::search::Search<pcl::SHOT352>* FlannSearch = new pcl::search::FlannSearch<pcl::SHOT352>(new pcl::search::FlannSearch<pcl::SHOT352>::KdTreeIndexCreator);
-    // FlannSearch->setInputCloud(target);
-    // FlannSearch->setPointRepresentation(new pcl::DefaultPointRepresentation<pcl::SHOT352>::ConstPtr);
-    
+    search->nearestKSearch(query, k, indices, square_dists);
+    ROS_INFO("Done");
+
+    for (int i = 0; i < k; i++) {
+	ROS_INFO("Index: %d, distance: %f", indices[i], square_dists[i]);
+    }
     
     return 0;
 }
