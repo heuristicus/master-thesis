@@ -17,15 +17,10 @@
 
 #include <ros/console.h>
 
-#include <pcl/io/pcd_io.h>
-#include <pcl/point_types.h>
-#include <pcl/features/usc.h>
 #include <pcl/features/shot.h>
-#include <pcl/kdtree/kdtree_flann.h>
-#include <pcl/search/flann_search.h>
-#include <pcl/search/impl/flann_search.hpp>
-#include <pcl/search/pcl_search.h>
+#include <pcl/io/pcd_io.h>
 #include <pcl/point_representation.h>
+#include <pcl/point_types.h>
 
 
 
@@ -132,10 +127,12 @@ int main(int argc, char *argv[]) {
 	}
     }
 
-    pcl::SHOT352 query = desc[0];
-    pcl::PointCloud<pcl::SHOT352>::Ptr testdescriptors(new pcl::PointCloud<pcl::SHOT352>());
+    pcl::PointCloud<pcl::SHOT352>::Ptr queryDescriptors(new pcl::PointCloud<pcl::SHOT352>());
+    queryDescriptors->push_back(desc[0]);
+
+    pcl::PointCloud<pcl::SHOT352>::Ptr targetDescriptors(new pcl::PointCloud<pcl::SHOT352>());
     for (int i = 0; i < 4; i++) {
-	testdescriptors->push_back(desc[i+1]);
+	targetDescriptors->push_back(desc[i+1]);
     }
 
     pcl::PCDWriter writer;
@@ -147,27 +144,8 @@ int main(int argc, char *argv[]) {
 	exit(1);
     }
     
-    writer.write<pcl::SHOT352>(SysUtil::fullDirPath(outPath) + "/features/fcloud.pcd", *testdescriptors, true);
-
-    pcl::PCDReader reader;
-    pcl::PointCloud<pcl::SHOT352>::Ptr readcloud(new pcl::PointCloud<pcl::SHOT352>());
-
-    reader.read(SysUtil::fullDirPath(outPath) + "/features/fcloud.pcd", *readcloud);
-    
-    
-    pcl::search::FlannSearch<pcl::SHOT352, flann::L2<float> > *search(new pcl::search::FlannSearch<pcl::SHOT352, flann::L2<float> >());
-    pcl::DefaultPointRepresentation<pcl::SHOT352>::ConstPtr shotRepr(new pcl::DefaultPointRepresentation<pcl::SHOT352>());
-    search->setPointRepresentation(shotRepr);
-    search->setInputCloud(readcloud);
-
-    int k = 4;
-    std::vector<int> indices(k);
-    std::vector<float> square_dists(k);
-    search->nearestKSearch(query, k, indices, square_dists);
-
-    for (int i = 0; i < k; i++) {
-	ROS_INFO("Index: %d, distance: %f", indices[i], square_dists[i]);
-    }
+    writer.write<pcl::SHOT352>(SysUtil::fullDirPath(outPath) + "/features/targetcloud.pcd", *targetDescriptors, true);
+    writer.write<pcl::SHOT352>(SysUtil::fullDirPath(outPath) + "/features/querycloud.pcd", *queryDescriptors, true);
     
     return 0;
 }

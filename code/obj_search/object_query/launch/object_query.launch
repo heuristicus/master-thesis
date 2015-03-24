@@ -1,0 +1,13 @@
+<launch>
+  <rosparam file="$(find objsearch_toplevel)/config/global_params.yaml" command="load" />
+  
+  <arg name="query" />
+  <param name="/object_query/query_features" value="$(arg query)" />
+  <arg name="target" />
+  <param name="/object_query/target_features" value="$(arg target)" />
+  
+  <arg name="output" default="NULL"/>
+  <param name="/object_query/output_dir" value="$(arg output)" />
+  
+  <node name="object_query" pkg="object_query" type="query_object" output="screen" />
+</launch>
