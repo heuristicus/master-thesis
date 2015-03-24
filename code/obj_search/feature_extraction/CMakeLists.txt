@@ -11,7 +11,10 @@ find_package(catkin REQUIRED COMPONENTS
   sysutil
 )
 
-find_package(PCL REQUIRED)
+find_package(PCL 1.7 REQUIRED)
+# to use this, add the location of the directory that pcl 1.7.2 was installed to
+# $CMAKE_PREFIX_PATH
+#find_package(PCL 1.7.2 REQUIRED)
 
 catkin_package(
 #  INCLUDE_DIRS include

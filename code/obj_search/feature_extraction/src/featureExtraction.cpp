@@ -69,6 +69,18 @@ int main(int argc, char *argv[]) {
 	exit(1);
     }
 
+    std::string featureType;
+    ROSUtil::getParam(handle, "/feature_extraction/feature_type", featureType);
+    
+    if (featureType.compare("SHOT") == 0) {
+	
+    } else {
+	ROS_ERROR("%s is not a valid feature type.", featureType.c_str());
+	exit(1);
+    }
+
+    
+
     // // The shape context uses xyz points, so need to convert the cloud into that format
     // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_xyz(new pcl::PointCloud<pcl::PointXYZ>);
     
@@ -113,40 +125,45 @@ int main(int argc, char *argv[]) {
     // usc.compute(*descriptors);
     // ROS_INFO("Done.");
 
-    ROS_INFO("Populating descriptors");
     std::vector<pcl::SHOT352> desc(5);
     for (int i = 0; i < 5; i++) {
 	for (int j = 0; j < 352; j++) {
 	    desc[i].descriptor[j] = j + i;
 	}
     }
-    ROS_INFO("done");
 
-    ROS_INFO("Creating descriptor cloud");
     pcl::SHOT352 query = desc[0];
     pcl::PointCloud<pcl::SHOT352>::Ptr testdescriptors(new pcl::PointCloud<pcl::SHOT352>());
     for (int i = 0; i < 4; i++) {
 	testdescriptors->push_back(desc[i+1]);
     }
 
-    ROS_INFO("done");
+    pcl::PCDWriter writer;
 
-    ROS_INFO("Creating search object");
+    // create the directory for output if it has not already been created
+    if (!SysUtil::makeDirs(outPath + "/features")){
+	std::cout << "Could not write point clouds to output directory." << std::endl;
+	perror("Error message");
+	exit(1);
+    }
+    
+    writer.write<pcl::SHOT352>(SysUtil::fullDirPath(outPath) + "/features/fcloud.pcd", *testdescriptors, true);
+
+    pcl::PCDReader reader;
+    pcl::PointCloud<pcl::SHOT352>::Ptr readcloud(new pcl::PointCloud<pcl::SHOT352>());
+
+    reader.read(SysUtil::fullDirPath(outPath) + "/features/fcloud.pcd", *readcloud);
+    
+    
     pcl::search::FlannSearch<pcl::SHOT352, flann::L2<float> > *search(new pcl::search::FlannSearch<pcl::SHOT352, flann::L2<float> >());
-    ROS_INFO("Object created");
     pcl::DefaultPointRepresentation<pcl::SHOT352>::ConstPtr shotRepr(new pcl::DefaultPointRepresentation<pcl::SHOT352>());
-    ROS_INFO("setting representation");
     search->setPointRepresentation(shotRepr);
-    ROS_INFO("done, setting cloud");
-    search->setInputCloud(testdescriptors);
-    ROS_INFO("Done");
+    search->setInputCloud(readcloud);
 
-    ROS_INFO("Doing query");
     int k = 4;
     std::vector<int> indices(k);
     std::vector<float> square_dists(k);
     search->nearestKSearch(query, k, indices, square_dists);
-    ROS_INFO("Done");
 
     for (int i = 0; i < k; i++) {
 	ROS_INFO("Index: %d, distance: %f", indices[i], square_dists[i]);

@@ -5,6 +5,8 @@
   <param name="/feature_extraction/input_cloud" value="$(arg cloud)" />
   <arg name="output" default="NULL"/>
   <param name="/feature_extraction/output_dir" value="$(arg output)" />
+  <arg name="feature" default="SHOT"/>
+  <param name="/feature_extraction/feature_type" value="$(arg feature)" />
   
   <node name="feature_extraction" pkg="feature_extraction" type="extract_features" output="screen" />
 </launch>
