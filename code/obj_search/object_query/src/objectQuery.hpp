@@ -36,6 +36,7 @@ namespace objsearch {
 	    std::string dataSubDir;
 	    std::string outDir;
 	    std::string outPath;
+	    int K; // number of nearest neighbours to find
 	};
 	
     } // namespace objectquery

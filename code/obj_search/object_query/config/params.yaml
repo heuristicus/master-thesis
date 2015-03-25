@@ -1,0 +1,5 @@
+obj_search : {
+  object_query: {
+    K : 5 # number of nearest neighbours to find for each query point
+  }
+}

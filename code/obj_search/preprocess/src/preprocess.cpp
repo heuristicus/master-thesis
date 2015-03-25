@@ -29,8 +29,24 @@ namespace objsearch {
 	    // Construct the filenames for the XML file containing data, and the
 	    // merged cloud
 	    roomXML = std::string(SysUtil::fullDirPath(cloudDir)) + "room.xml";
-	    roomCloud = std::string(SysUtil::fullDirPath(cloudDir)) + "complete_cloud.pcd";
-    
+
+	    // Can process either the whole room or intermediate clouds, if a
+	    // cloud number is provided.
+	    int cloudNum;
+	    ROSUtil::getParam(handle, "/preprocess/cloud_num", cloudNum);
+	    if (cloudNum == -1) { // no number was specified, use the complete cloud
+		ROS_INFO("Loading complete cloud");
+		roomCloud = std::string(SysUtil::fullDirPath(cloudDir)) + "complete_cloud.pcd";		
+	    } else {
+		ROS_INFO("Loading intermediate cloud %d", cloudNum);
+		// filenumbers are padded so that they are 4 digits long, create
+		// the string part accordingly
+		std::string numString(std::to_string(cloudNum));
+		numString = std::string(4 - numString.length(), '0') + numString;
+		roomCloud = std::string(SysUtil::fullDirPath(cloudDir)) + "intermediate_cloud" + numString + ".pcd";
+		ROS_INFO("Room cloud is %s", roomCloud.c_str());
+	    }
+	    
 	    ROSUtil::getParam(handle, "/obj_search/raw_data_dir", dataPath);
 
 	    // If the given cloud file corresponds to a file in the raw data
@@ -61,18 +77,26 @@ namespace objsearch {
 	    ROSUtil::getParam(handle, "/preprocess/planes_to_extract", planesToExtract);
 	    ROSUtil::getParam(handle, "/preprocess/floor_offset", floorOffset);
 	    ROSUtil::getParam(handle, "/preprocess/ceiling_offset", ceilingOffset);
+	    ROSUtil::getParam(handle, "/preprocess/normal_radius", normalRadius);
 	    ROSUtil::getParam(handle, "/obj_search/floor_z", floorZ);
 	    ROSUtil::getParam(handle, "/obj_search/ceiling_z", ceilingZ);
 
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr workingCloud;
-	    tf::StampedTransform roomRotation;
+	    tf::StampedTransform cloudRotation;
 
 	    ROS_INFO("Starting load");
-	    loadRoom(workingCloud, roomRotation, roomXML);
+	    loadCloud(workingCloud, cloudRotation, roomXML, cloudNum);
 	    ROS_INFO("Finished load");
 	    ROS_INFO("Cloud size outside load %d", (int)workingCloud->size());
-	    transformAndRemoveFloorCeiling(workingCloud, roomRotation);
+	    transformAndRemoveFloorCeiling(workingCloud, cloudRotation);
 	    extractPlanes(workingCloud);
+
+	    exit(1);
+	    pcl::PointCloud<pcl::Normal>::Ptr normals;
+	    computeNormals(workingCloud, normals, cloudRotation, normalRadius);
+
+	    pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloudWithNormals;
+	    pcl::concatenateFields(*workingCloud, *normals, *cloudWithNormals);
 	}
 
 	/** 
@@ -83,14 +107,15 @@ namespace objsearch {
 	 * 
 	 * @param cloud This pointer to a cloud will be populated with the
 	 * merged cloud representing the room.
-	 * @param roomTransform This object will be populated with the
+	 * @param cloudTransform This object will be populated with the
 	 * transformation from the global frame to the local cloud frame.
 	 * @param fileXMLPath Path to the XML file which holds information about
 	 * the room to process
 	 */
-	void PreprocessRoom::loadRoom(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud, // needs to be a reference to allow modification. Weird pointer type
-				      tf::StampedTransform& roomTransform,
-				      std::string fileXMLPath){
+	void PreprocessRoom::loadCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud, // needs to be a reference to allow modification. Weird pointer type
+				      tf::StampedTransform& cloudTransform,
+				      const std::string& fileXMLPath,
+				      const int cloudNum){
 	    SimpleXMLParser<pcl::PointXYZRGB> parser;
 	    ROS_INFO("loadroom: Starting load");
 	    SimpleXMLParser<pcl::PointXYZRGB>::RoomData roomData = parser.loadRoomFromXML(fileXMLPath);
@@ -103,9 +128,17 @@ namespace objsearch {
 	    // 	exit(1);
 	    // }
 
-	    cloud = roomData.completeRoomCloud->makeShared();
-	    ROS_INFO("loadroom: Cloud size %d", (int)cloud->size());
-	    roomTransform = roomData.vIntermediateRoomCloudTransforms[0];
+	    if (cloudNum < 0){ // no intermediate cloud specified - load the complete cloud
+		ROS_INFO("Getting complete cloud");
+		cloud = roomData.completeRoomCloud->makeShared();
+		ROS_INFO("loadroom: Cloud size %d", (int)cloud->size());
+		cloudTransform = roomData.vIntermediateRoomCloudTransforms[0];
+	    } else { // load an intermediate cloud
+		ROS_INFO("Getting intermediate cloud");
+		cloud = roomData.vIntermediateRoomClouds[cloudNum]->makeShared();
+		ROS_INFO("loadroom: Cloud size %d", (int)cloud->size());
+		cloudTransform = roomData.vIntermediateRoomCloudTransforms[cloudNum];
+	    }
 	}
 
 	/** 
@@ -120,22 +153,22 @@ namespace objsearch {
 	 *
 	 * @param cloud Cloud to transform and remove the floor and ceiling
 	 * from.
-	 * @param roomTransform The transform needed to put the cloud into
+	 * @param cloudTransform The transform needed to put the cloud into
 	 * its position relative to the global reference frame. Ideally
 	 * extracted from the XML data for the room and its intermediate clouds.
 	 */
 	void PreprocessRoom::transformAndRemoveFloorCeiling(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
-							    const tf::StampedTransform& roomTransform){
+							    const tf::StampedTransform& cloudTransform){
 //	    tf::StampedTransform roomRotation = roomData.vIntermediateRoomCloudTransforms[0];
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformedCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 
 	    // This is the point at which the camera was while taking the images.
-	    tf::Vector3 origin = roomTransform.getOrigin();
+	    tf::Vector3 origin = cloudTransform.getOrigin();
 	    std::cout << origin.getX() << ", " << origin.getY() << ", " << origin.getZ() << std::endl;
 	    // Transform the cloud according to the given transform. After this
 	    // point the x-y axis should be aligned with the floor, and the
 	    // z-axis should point upwards.
-	    pcl_ros::transformPointCloud(*cloud, *transformedCloud, roomTransform);
+	    pcl_ros::transformPointCloud(*cloud, *transformedCloud, cloudTransform);
 
 	    // pcl::PointXYZRGB min;
 	    // pcl::PointXYZRGB max;
@@ -284,8 +317,35 @@ namespace objsearch {
 		boost::this_thread::sleep(boost::posix_time::microseconds(100000));
 	    }
 	}
+
+	/** 
+	 * Compute surface normals for each point in the given cloud.
+	 * 
+	 * @param cloud Cloud from which to compute normals
+	 * @param normals This pointcloud will be populated with the normals
+	 * @param cloudTransform Use this to set the viewpoint, ensures
+	 * normals point in the direction of the viewpoint.
+	 * @param radius The radius in which to search for points to use to
+	 * compute the normals for a specific point
+	 */
+	void PreprocessRoom::computeNormals(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
+					    pcl::PointCloud<pcl::Normal>::Ptr& normals,
+					    const tf::StampedTransform& cloudTransform,
+					    const float radius){
+	    pcl::NormalEstimation<pcl::PointXYZRGB, pcl::Normal> ne;
+	    ne.setInputCloud(cloud);
+	    
+	    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>());
+	    // set the viewpoint using the origin of the room. This assumes that
+	    // the transform has already been applied to the cloud.
+	    ne.setViewPoint(cloudTransform.getOrigin().getX(), cloudTransform.getOrigin().getY(),
+			    cloudTransform.getOrigin().getZ());
+	    ne.setSearchMethod(tree);
+	    ne.setRadiusSearch(radius);
+	    ne.compute(*normals);
+	}
     } // namespace preprocessing
-} // namespace objsearch
+} // namespace obj_search
 
 
 

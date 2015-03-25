@@ -20,6 +20,7 @@
 
 #include <pcl/ModelCoefficients.h>
 #include <pcl/common/common.h>
+#include <pcl/features/normal_3d.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/passthrough.h>
 #include <pcl/io/io.h>
@@ -47,11 +48,16 @@ namespace objsearch {
 	class PreprocessRoom {
 	public:
 	    PreprocessRoom(int argc, char* argv[]);
-            void loadRoom(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
-	                  tf::StampedTransform& roomTransform, std::string fileXMLPath);
+            void loadCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
+			  tf::StampedTransform& cloudTransform, const std::string& fileXMLPath,
+			  const int cloudNum);
             void transformAndRemoveFloorCeiling(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
-				                const tf::StampedTransform& roomTransform);
+				                const tf::StampedTransform& cloudTransform);
 	    void extractPlanes(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud);
+	    void computeNormals(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
+				pcl::PointCloud<pcl::Normal>::Ptr& normals,
+				const tf::StampedTransform& cloudTransform,
+				const float radius);
 	private:
 	    std::string cloudDir; // directory containing the target cloud
 	    std::string roomXML; // xml file with information about the room and intermediate clouds
@@ -68,6 +74,7 @@ namespace objsearch {
 	    float ceilingOffset;
 	    float floorZ;
 	    float ceilingZ;
+	    float normalRadius;
 	};
     } // namespace preprocessing
 } // namespace objsearch

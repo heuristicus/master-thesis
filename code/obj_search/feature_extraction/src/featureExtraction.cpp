@@ -69,12 +69,12 @@ int main(int argc, char *argv[]) {
     
     if (featureType.compare("SHOT") == 0) {
 	
+    } else if (featureType.compare("USC") == 0) {
+	
     } else {
 	ROS_ERROR("%s is not a valid feature type.", featureType.c_str());
 	exit(1);
     }
-
-    
 
     // // The shape context uses xyz points, so need to convert the cloud into that format
     // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_xyz(new pcl::PointCloud<pcl::PointXYZ>);
