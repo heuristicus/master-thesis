@@ -62,6 +62,49 @@ namespace SysUtil {
 	return isType(path, S_IFREG);
     }
 
+    /** 
+     * Extract information about the files and directories on a given path
+     *
+     * @param path The path to list.
+     * 
+     * @return A struct containing vectors of directory and file names on the
+     * path. If something went wrong opening the path (e.g. \p path was not a directory,
+     * invalid permissions), then the returned struct will be empty
+     */
+    DirContents listDir(std::string path) {
+	DirContents c;
+	c.path = cleanDirPath(path);
+
+	if (!isDir(c.path)){
+	    std::cout << "Path " << path << " was not a directory." << std::endl;
+	    return c;
+	}
+	
+	DIR* dir;
+	struct dirent* ent;
+	if ((dir = opendir(path.c_str())) != NULL) {
+	    while ((ent = readdir(dir)) != NULL) {
+		// ignore current and parent dirs
+		if (strcmp(ent->d_name, ".") == 0 
+		    || strcmp(ent->d_name, "..") == 0){
+		    continue;
+		}
+		std::string fullPath = c.path + "/" + std::string(ent->d_name);
+		if (isFile(fullPath)) {
+		    c.files.push_back(fullPath);
+		} else if (isDir(fullPath)) {
+		    c.dirs.push_back(fullPath);
+		}
+	    }
+	} else {
+	    // Couldn't access directory
+	    perror("");
+	    std::cout << "Error processing " << path.c_str() << std::endl;
+	}
+
+	return c;
+    }
+
 
     /**
      * Removes the trailing slash from a directory path if there is one.

@@ -36,14 +36,53 @@ namespace objsearch {
 	    ROSUtil::getParam(handle, "/preprocess/cloud_num", cloudNum);
 	    if (cloudNum == -1) { // no number was specified, use the complete cloud
 		ROS_INFO("Loading complete cloud");
-		roomCloud = std::string(SysUtil::fullDirPath(cloudDir)) + "complete_cloud.pcd";		
+		roomCloud = std::string(SysUtil::fullDirPath(cloudDir)) + "complete_cloud.pcd";
+ 		if (!SysUtil::isFile(roomCloud)){
+		    ROS_ERROR("%s does not exist.", roomCloud.c_str());
+		    exit(1);
+		}
 	    } else {
 		ROS_INFO("Loading intermediate cloud %d", cloudNum);
 		// filenumbers are padded so that they are 4 digits long, create
 		// the string part accordingly
 		std::string numString(std::to_string(cloudNum));
-		numString = std::string(4 - numString.length(), '0') + numString;
-		roomCloud = std::string(SysUtil::fullDirPath(cloudDir)) + "intermediate_cloud" + numString + ".pcd";
+		std::string intCloudPrefix = "intermediate_cloud"; // prefix for intermediate clouds
+		std::string intCloudString = std::string(4 - numString.length(), '0') + numString;
+		// combine the various bits to make a full filename for the
+		// intermediate cloud we are interested in
+		std::string roomFileName = intCloudPrefix + intCloudString + ".pcd";
+		roomCloud = std::string(SysUtil::fullDirPath(cloudDir)) + roomFileName;
+		outPrefix = intCloudString + "_";
+		if (!SysUtil::isFile(roomCloud)){
+		    ROS_ERROR("%s does not exist.", roomCloud.c_str());
+		    exit(1);
+		}
+		// need to do additional work to ensure that cloudNum refers to
+		// the position of the requested file in a vector where clouds
+		// are pushed onto the back. If not all the intermediate cloud
+		// files are present in cloudDir, then the index of the cloud is
+		// likely to be different from the number of the cloud in the
+		// filename.
+		std::vector<std::string> files = SysUtil::listDir(cloudDir).files;
+		// listing is unsorted, need things in order to get the correct index
+		std::sort(files.begin(), files.end());
+		cloudNum = 0; // reset the cloud number to fill with the correct index
+
+		for (auto it = files.begin(); it != files.end(); ++it) {
+		    // check that the file we are looking at is an intermediate
+		    // cloud. The files have their whole path - trim them so we
+		    // only look at the filename itself
+		    std::string fname = SysUtil::trimPath(*it, -1);
+		    if (fname.compare(0, intCloudPrefix.length(), intCloudPrefix) == 0){
+			if (fname.compare(roomFileName) == 0){
+			    // if the entire filename matches, then we have the desired index, so break
+			    break;
+			}
+			// otherwise, increment the index
+			cloudNum++;
+		    }
+		}
+		
 		ROS_INFO("Room cloud is %s", roomCloud.c_str());
 	    }
 	    
@@ -84,11 +123,11 @@ namespace objsearch {
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr workingCloud;
 	    tf::StampedTransform cloudRotation;
 
-	    ROS_INFO("Starting load");
+	    ROS_INFO("Loading cloud");
 	    loadCloud(workingCloud, cloudRotation, roomXML, cloudNum);
-	    ROS_INFO("Finished load");
-	    ROS_INFO("Cloud size outside load %d", (int)workingCloud->size());
+	    ROS_INFO("Transforming and trimming cloud");
 	    transformAndRemoveFloorCeiling(workingCloud, cloudRotation);
+	    ROS_INFO("Extracting planes.");
 	    extractPlanes(workingCloud);
 
 	    exit(1);
@@ -117,26 +156,17 @@ namespace objsearch {
 				      const std::string& fileXMLPath,
 				      const int cloudNum){
 	    SimpleXMLParser<pcl::PointXYZRGB> parser;
-	    ROS_INFO("loadroom: Starting load");
+	    ROS_INFO("Parsing room XML.");
 	    SimpleXMLParser<pcl::PointXYZRGB>::RoomData roomData = parser.loadRoomFromXML(fileXMLPath);
-	    ROS_INFO("loadroom: Load complete.");
+	    ROS_INFO("Parse complete.");
 	    
-	    // if (pcl::io::loadPCDFile<pcl::PointXYZRGB>(roomCloud, *cloud) != -1){
-	    // 	std::cout << "Loaded cloud from " << roomCloud.c_str() << std::endl;
-	    // } else {
-	    // 	std::cout << "Could not load cloud from " << roomCloud.c_str() << std::endl;
-	    // 	exit(1);
-	    // }
-
 	    if (cloudNum < 0){ // no intermediate cloud specified - load the complete cloud
 		ROS_INFO("Getting complete cloud");
 		cloud = roomData.completeRoomCloud->makeShared();
-		ROS_INFO("loadroom: Cloud size %d", (int)cloud->size());
 		cloudTransform = roomData.vIntermediateRoomCloudTransforms[0];
 	    } else { // load an intermediate cloud
 		ROS_INFO("Getting intermediate cloud");
 		cloud = roomData.vIntermediateRoomClouds[cloudNum]->makeShared();
-		ROS_INFO("loadroom: Cloud size %d", (int)cloud->size());
 		cloudTransform = roomData.vIntermediateRoomCloudTransforms[cloudNum];
 	    }
 	}
@@ -163,8 +193,8 @@ namespace objsearch {
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformedCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 
 	    // This is the point at which the camera was while taking the images.
-	    tf::Vector3 origin = cloudTransform.getOrigin();
-	    std::cout << origin.getX() << ", " << origin.getY() << ", " << origin.getZ() << std::endl;
+	    // tf::Vector3 origin = cloudTransform.getOrigin();
+	    // std::cout << origin.getX() << ", " << origin.getY() << ", " << origin.getZ() << std::endl;
 	    // Transform the cloud according to the given transform. After this
 	    // point the x-y axis should be aligned with the floor, and the
 	    // z-axis should point upwards.
@@ -193,10 +223,12 @@ namespace objsearch {
 
 	    pcl::PCDWriter writer;
 	    ROS_INFO("Writing transformed cloud...");
-	    writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(cloudDir) + "transformedRoom.pcd", *transformedCloud, true);
+	    writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(cloudDir) + outPrefix
+					   + "transformedRoom.pcd", *transformedCloud, true);
 	    ROS_INFO("Done");
 	    ROS_INFO("Writing trimmed cloud...");
-	    writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(cloudDir) + "trimmedRoom.pcd", *cloud, true);
+	    writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(cloudDir) + outPrefix
+					   + "trimmedRoom.pcd", *cloud, true);
 	    ROS_INFO("Done");
 	}
 
@@ -228,16 +260,16 @@ namespace objsearch {
 	    pcl::ExtractIndices<pcl::PointXYZRGB> extract;
 	    // Points will be removed from this cloud - at the end of the process it
 	    // will contain all the points which were not extracted by the segmentation
-	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr intermediateCloud (cloud);
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr intermediateCloud(cloud);
 	    // At each stage, the inliers of the plane model will be extracted to this
 	    // cloud
-	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr extractedPlane (new pcl::PointCloud<pcl::PointXYZRGB>);
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr extractedPlane(new pcl::PointCloud<pcl::PointXYZRGB>);
 	    // All of the points that are extracted throughout the process will end up
 	    // in this cloud
-	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr allPlanes (new pcl::PointCloud<pcl::PointXYZRGB>);
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr allPlanes(new pcl::PointCloud<pcl::PointXYZRGB>);
 	    // The points which are not inliers to the plane will be placed into this
 	    // cloud and then swapped into intermediateCloud
-	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr remainingPoints (new pcl::PointCloud<pcl::PointXYZRGB>);
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr remainingPoints(new pcl::PointCloud<pcl::PointXYZRGB>);
 
 	    // create the directory for output if it has not already been created
 	    if (!SysUtil::makeDirs(outPath)){
@@ -265,29 +297,39 @@ namespace objsearch {
 		extract.setIndices(inliers);
 		extract.setNegative(false); // Extract the points which are inliers
 		extract.filter(*extractedPlane);
-		ROS_INFO("Number of points on extracted plane: %d", (int)extractedPlane->size());
-		ROS_INFO("Number of points on all planes: %d", (int)allPlanes->size());
-		*allPlanes += *extractedPlane; // Add the extracted inliers to the cloud of all planes
-		ROS_INFO("Number of points after adding new plane: %d", (int)allPlanes->size());
+		ROS_INFO("Number of points on extracted plane: %d",
+			 (int)extractedPlane->size());
+		ROS_INFO("Number of points on all planes: %d",
+			 (int)allPlanes->size());
+		// Add the extracted inliers to the cloud of all planes
+		*allPlanes += *extractedPlane; 
+		ROS_INFO("Number of points after adding new plane: %d",
+			 (int)allPlanes->size());
 
-		writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath) + "extractedPlane_" + std::to_string(i) +".pcd",
+		writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath)
+					       + outPrefix + "extractedPlane_"
+					       + std::to_string(i) +".pcd",
 					       *allPlanes, true);
 		// Extract non-inliers
 		extract.setNegative(true); // Extract the points which are not inliers
 		extract.filter(*remainingPoints);
 		intermediateCloud.swap(remainingPoints);
-		ROS_INFO("Intermediate cloud after swapping in non-inlier points: %d", (int)intermediateCloud->size());
+		ROS_INFO("Intermediate cloud after swapping in non-inlier points: %d",
+			 (int)intermediateCloud->size());
 	    }
 
 	    ROS_INFO("All planes size after loop: %d", (int)allPlanes->size());
-	    ROS_INFO("Remaining points size after loop: %d", (int)intermediateCloud->size());
+	    ROS_INFO("Remaining points size after loop: %d",
+		     (int)intermediateCloud->size());
 	    
 	    std::cout << "Outputting results to: " << outPath << std::endl;
 
 	    // Write the extracted planes and the remaining points to separate files
-	    writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath) + "allPlanes.pcd",
+	    writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath)
+					   + outPrefix + "allPlanes.pcd",
 					   *allPlanes, true);
-	    writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath) + "nonPlanes.pcd",
+	    writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath)
+					   + outPrefix + "nonPlanes.pcd",
 					   *intermediateCloud, true);
 	    std::cout << "Done." << std::endl;
 
@@ -338,7 +380,8 @@ namespace objsearch {
 	    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>());
 	    // set the viewpoint using the origin of the room. This assumes that
 	    // the transform has already been applied to the cloud.
-	    ne.setViewPoint(cloudTransform.getOrigin().getX(), cloudTransform.getOrigin().getY(),
+	    ne.setViewPoint(cloudTransform.getOrigin().getX(),
+			    cloudTransform.getOrigin().getY(),
 			    cloudTransform.getOrigin().getZ());
 	    ne.setSearchMethod(tree);
 	    ne.setRadiusSearch(radius);

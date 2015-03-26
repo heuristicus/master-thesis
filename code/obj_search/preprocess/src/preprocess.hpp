@@ -14,6 +14,7 @@
 #include "rosutil/rosutil.hpp"
 #include "sysutil/sysutil.hpp"
 
+#include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <string>
@@ -65,6 +66,7 @@ namespace objsearch {
 	    std::string dataPath; // top level directory which contains the data
 	    std::string dataSubDir; // sub directory within the data path containing the cloud we are interested in
 	    std::string outDir; // directory to which processed clouds will be output
+	    std::string outPrefix; // prefix for the output filename, used for intermediate clouds
 	    std::string outPath;
 	    
 	    float ransacDistanceThresh;
