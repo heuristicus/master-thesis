@@ -10,6 +10,9 @@
 namespace objsearch {
     namespace preprocessing {
 
+	const std::string PreprocessRoom::intermediatePrefix = "intermediate_cloud";
+	const std::string PreprocessRoom::completeCloudName = "complete_cloud.pcd";
+
 	/** 
 	 * Constructor for the preprocessing node class. Uses parameters
 	 * received from the parameter server to set up internal attributes.
@@ -23,40 +26,35 @@ namespace objsearch {
 	    ros::init(argc, argv, "preprocess");
 	    ros::NodeHandle handle;
 
-	    // Retrieve the directory containing the cloud to be processed
-	    ROSUtil::getParam(handle, "/preprocess/cloud_dir", cloudDir);
+	    // Retrieve the path to the cloud to be processed
+	    ROSUtil::getParam(handle, "/preprocess/cloud", cloudPath);
+	    if (!SysUtil::isFile(cloudPath)){
+		ROS_ERROR("%s does not exist.", cloudPath.c_str());
+		exit(1);
+	    }
+	    
+	    // remove the filename from the end of the path to get the directory
+	    cloudDir = SysUtil::trimPath(cloudPath, 1);
+	    // remove the front of the path to get just the filename
+	    cloudFile = SysUtil::trimPath(cloudPath, -1);
+	    
+	    // Construct the filenames for the XML file containing data
+	    roomXML = SysUtil::fullDirPath(cloudDir) + "room.xml";
 
-	    // Construct the filenames for the XML file containing data, and the
-	    // merged cloud
-	    roomXML = std::string(SysUtil::fullDirPath(cloudDir)) + "room.xml";
-
-	    // Can process either the whole room or intermediate clouds, if a
-	    // cloud number is provided.
-	    int cloudNum;
-	    ROSUtil::getParam(handle, "/preprocess/cloud_num", cloudNum);
-	    if (cloudNum == -1) { // no number was specified, use the complete cloud
-		ROS_INFO("Loading complete cloud");
-		roomCloud = std::string(SysUtil::fullDirPath(cloudDir)) + "complete_cloud.pcd";
- 		if (!SysUtil::isFile(roomCloud)){
-		    ROS_ERROR("%s does not exist.", roomCloud.c_str());
-		    exit(1);
-		}
-	    } else {
-		ROS_INFO("Loading intermediate cloud %d", cloudNum);
-		// filenumbers are padded so that they are 4 digits long, create
-		// the string part accordingly
-		std::string numString(std::to_string(cloudNum));
-		std::string intCloudPrefix = "intermediate_cloud"; // prefix for intermediate clouds
-		std::string intCloudString = std::string(4 - numString.length(), '0') + numString;
-		// combine the various bits to make a full filename for the
-		// intermediate cloud we are interested in
-		std::string roomFileName = intCloudPrefix + intCloudString + ".pcd";
-		roomCloud = std::string(SysUtil::fullDirPath(cloudDir)) + roomFileName;
-		outPrefix = intCloudString + "_";
-		if (!SysUtil::isFile(roomCloud)){
-		    ROS_ERROR("%s does not exist.", roomCloud.c_str());
-		    exit(1);
-		}
+	    if (cloudFile.compare(completeCloudName) == 0) {
+		type = CloudType::FULL;
+		// trivial case
+	    } else if (cloudFile.find(intermediatePrefix) == 0) {
+		type = CloudType::INTERMEDIATE;
+		// the filename stars with the expected prefix for an
+		// intermediate cloud
+		// prefix the output by the number of the cloud. The files are
+		// all in a standard format: intermediate_cloudxxxx.pcd, where
+		// xxxx is a padded integer
+		std::string cloudNumStr(cloudFile, intermediatePrefix.length(), 4);
+		outPrefix = cloudNumStr + "_";
+		cloudNum = std::stoi(cloudNumStr);
+		
 		// need to do additional work to ensure that cloudNum refers to
 		// the position of the requested file in a vector where clouds
 		// are pushed onto the back. If not all the intermediate cloud
@@ -67,14 +65,13 @@ namespace objsearch {
 		// listing is unsorted, need things in order to get the correct index
 		std::sort(files.begin(), files.end());
 		cloudNum = 0; // reset the cloud number to fill with the correct index
-
 		for (auto it = files.begin(); it != files.end(); ++it) {
 		    // check that the file we are looking at is an intermediate
 		    // cloud. The files have their whole path - trim them so we
 		    // only look at the filename itself
 		    std::string fname = SysUtil::trimPath(*it, -1);
-		    if (fname.compare(0, intCloudPrefix.length(), intCloudPrefix) == 0){
-			if (fname.compare(roomFileName) == 0){
+		    if (fname.find(intermediatePrefix) == 0){
+			if (fname.compare(cloudFile) == 0){
 			    // if the entire filename matches, then we have the desired index, so break
 			    break;
 			}
@@ -82,8 +79,8 @@ namespace objsearch {
 			cloudNum++;
 		    }
 		}
-		
-		ROS_INFO("Room cloud is %s", roomCloud.c_str());
+	    } else {
+		type = CloudType::OTHER;
 	    }
 	    
 	    ROSUtil::getParam(handle, "/obj_search/raw_data_dir", dataPath);
@@ -94,8 +91,11 @@ namespace objsearch {
 	    // the same path. e.g. if raw_data_dir is set to /home/user/data and
 	    // the input cloud is in /home/user/data/sets/set1/, then datasubdir
 	    // will be /sets/set1.
-	    if (roomCloud.compare(0, dataPath.size(), dataPath) == 0){
-		dataSubDir = SysUtil::trimPath(std::string(roomCloud, dataPath.size()), 1);
+	    if (cloudPath.compare(0, dataPath.size(), dataPath) == 0){
+		dataSubDir = std::string(cloudDir, dataPath.size());
+	    } else {
+		// if not in raw data, just output to the input directory
+		dataSubDir = SysUtil::trimPath(cloudDir, -1);
 	    }
 
 	    ROSUtil::getParam(handle, "/preprocess/output_dir", outDir);
@@ -119,55 +119,73 @@ namespace objsearch {
 	    ROSUtil::getParam(handle, "/preprocess/normal_radius", normalRadius);
 	    ROSUtil::getParam(handle, "/obj_search/floor_z", floorZ);
 	    ROSUtil::getParam(handle, "/obj_search/ceiling_z", ceilingZ);
+	    ROS_INFO("Initialisation completed.");
 
-	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr workingCloud;
+	    doProcessing();
+	}
+
+	/** 
+	 * Start the processing of the point cloud.
+	 */
+	void PreprocessRoom::doProcessing() {
+	    ROS_INFO("Start processing");
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr workingCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
 	    tf::StampedTransform cloudRotation;
 
-	    ROS_INFO("Loading cloud");
-	    loadCloud(workingCloud, cloudRotation, roomXML, cloudNum);
-	    ROS_INFO("Transforming and trimming cloud");
-	    transformAndRemoveFloorCeiling(workingCloud, cloudRotation);
+
+	    loadCloud(workingCloud, cloudRotation);
+
+	    // non-dataset clouds have no transform information, so skip that step
+	    if (type != CloudType::OTHER) {
+		ROS_INFO("Transforming and trimming cloud");
+		transformAndRemoveFloorCeiling(workingCloud, cloudRotation);
+	    }
+	    
 	    ROS_INFO("Extracting planes.");
 	    extractPlanes(workingCloud);
 
 	    exit(1);
 	    pcl::PointCloud<pcl::Normal>::Ptr normals;
-	    computeNormals(workingCloud, normals, cloudRotation, normalRadius);
+	    computeNormals(workingCloud, normals, cloudRotation);
 
 	    pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloudWithNormals;
 	    pcl::concatenateFields(*workingCloud, *normals, *cloudWithNormals);
 	}
 
 	/** 
-	 * Load a room from the directory of interest, using the given XML file
-	 * to extract information about the rotation of the room. The cloud data
-	 * is loaded into the cloud pointer passed to the function, the
-	 * transformation data is put into the StampedTransform given.
+	 * Load a pointcloud from the directory of interest, using the given XML
+	 * file to extract information about the rotation of the room, if the
+	 * cloud has an associated XML file. The cloud data is loaded into the
+	 * cloud pointer passed to the function. Transformation data is put into
+	 * the StampedTransform given; if there is none, it remains as it was.
 	 * 
 	 * @param cloud This pointer to a cloud will be populated with the
 	 * merged cloud representing the room.
 	 * @param cloudTransform This object will be populated with the
-	 * transformation from the global frame to the local cloud frame.
-	 * @param fileXMLPath Path to the XML file which holds information about
-	 * the room to process
+	 * transformation from the global frame to the local cloud frame, or
+	 * left empty if there is no transform data.
 	 */
 	void PreprocessRoom::loadCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud, // needs to be a reference to allow modification. Weird pointer type
-				      tf::StampedTransform& cloudTransform,
-				      const std::string& fileXMLPath,
-				      const int cloudNum){
-	    SimpleXMLParser<pcl::PointXYZRGB> parser;
-	    ROS_INFO("Parsing room XML.");
-	    SimpleXMLParser<pcl::PointXYZRGB>::RoomData roomData = parser.loadRoomFromXML(fileXMLPath);
-	    ROS_INFO("Parse complete.");
-	    
-	    if (cloudNum < 0){ // no intermediate cloud specified - load the complete cloud
-		ROS_INFO("Getting complete cloud");
-		cloud = roomData.completeRoomCloud->makeShared();
-		cloudTransform = roomData.vIntermediateRoomCloudTransforms[0];
-	    } else { // load an intermediate cloud
-		ROS_INFO("Getting intermediate cloud");
-		cloud = roomData.vIntermediateRoomClouds[cloudNum]->makeShared();
-		cloudTransform = roomData.vIntermediateRoomCloudTransforms[cloudNum];
+				       tf::StampedTransform& cloudTransform) {
+
+	    if (type == CloudType::OTHER){
+		ROS_INFO("Reading cloud");
+		pcl::PCDReader reader;
+		reader.read(cloudPath, *cloud);
+	    } else {
+		SimpleXMLParser<pcl::PointXYZRGB> parser;
+		ROS_INFO("Parsing room XML.");
+		SimpleXMLParser<pcl::PointXYZRGB>::RoomData roomData = parser.loadRoomFromXML(roomXML);
+		ROS_INFO("Parse complete.");
+		if (type == CloudType::FULL) {
+		    ROS_INFO("Getting complete cloud");
+		    cloud = roomData.completeRoomCloud->makeShared();
+		    cloudTransform = roomData.vIntermediateRoomCloudTransforms[0];
+		} else {
+		    ROS_INFO("Getting intermediate cloud");
+		    cloud = roomData.vIntermediateRoomClouds[cloudNum]->makeShared();
+		    cloudTransform = roomData.vIntermediateRoomCloudTransforms[cloudNum];
+		}
 	    }
 	}
 
@@ -372,8 +390,7 @@ namespace objsearch {
 	 */
 	void PreprocessRoom::computeNormals(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 					    pcl::PointCloud<pcl::Normal>::Ptr& normals,
-					    const tf::StampedTransform& cloudTransform,
-					    const float radius){
+					    const tf::StampedTransform& cloudTransform)	{
 	    pcl::NormalEstimation<pcl::PointXYZRGB, pcl::Normal> ne;
 	    ne.setInputCloud(cloud);
 	    
@@ -384,7 +401,7 @@ namespace objsearch {
 			    cloudTransform.getOrigin().getY(),
 			    cloudTransform.getOrigin().getZ());
 	    ne.setSearchMethod(tree);
-	    ne.setRadiusSearch(radius);
+	    ne.setRadiusSearch(normalRadius);
 	    ne.compute(*normals);
 	}
     } // namespace preprocessing
@@ -394,4 +411,5 @@ namespace objsearch {
 
 int main(int argc, char *argv[]) {
     objsearch::preprocessing::PreprocessRoom rp(argc, argv);
+//    rp.doProcessing();
 }

@@ -18,12 +18,8 @@
   <param name="/preprocess/floor_offset" value="$(arg floor_offset)" />
   <arg name="normal_radius" default="0.03" />
   <param name="/preprocess/normal_radius" value="$(arg normal_radius)" />
-  <arg name="cloud_dir" />
-  <param name="/preprocess/cloud_dir" value="$(arg cloud_dir)" />
-  <!-- Can also process intermediate clouds if desired. Need to specify the
-       number of the cloud -->
-  <arg name="cloud_num" default="-1" />
-  <param name="/preprocess/cloud_num" value="$(arg cloud_num)" />
-  
+  <arg name="cloud" />
+  <param name="/preprocess/cloud" value="$(arg cloud)" />
+
   <node name="preprocess" pkg="preprocess" type="preprocess" output="screen" />
 </launch>

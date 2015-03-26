@@ -16,8 +16,9 @@ void createPlaneSegment(const int npoints, const pcl::Normal& normal){
 }
 
 void createBox(const int npoints, const pcl::PointXYZ& centre,
-	    const pcl::PointXYZ& dimRange){
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>());
+	       const pcl::PointXYZ& dimRange,
+	       int r = -1, int g = -1, int b = -1){
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
     std::default_random_engine generator;
     // one random generator for each dimension, between 0 and the maximum range
     // of that dimension
@@ -26,6 +27,14 @@ void createBox(const int npoints, const pcl::PointXYZ& centre,
     std::uniform_real_distribution<float> zdist(-dimRange.z, dimRange.z);
     std::bernoulli_distribution invert(0.5);
     std::uniform_int_distribution<int> clip(0,2);
+    std::uniform_int_distribution<int> rgb(0,255);
+
+    // if RGB values are not given, generate some to use.
+    if (r == -1 || g == -1 || b == -1){
+	r = rgb(generator);
+	g = rgb(generator);
+	b = rgb(generator);
+    }
 
     // store the generated values in a vector so that they can be indexed
     std::vector<float> point(3);
@@ -57,12 +66,20 @@ void createBox(const int npoints, const pcl::PointXYZ& centre,
 	if (invert(generator)){ point[0] = -point[0]; }
 	if (invert(generator)){ point[1] = -point[1]; }
 	if (invert(generator)){ point[2] = -point[2]; }
+
+	pcl::PointXYZRGB p;
+	p.x = point[0];
+	p.y = point[1];
+	p.z = point[2];
+	p.r = r;
+	p.g = g;
+	p.b = b;
 	
-	cloud->push_back(pcl::PointXYZ(point[0], point[1], point[2]));
+	cloud->push_back(p);
     }
 
     pcl::PCDWriter writer;
-    writer.write<pcl::PointXYZ>("/home/michal/Dropbox/study/university/kth/thesis/data/test/box.pcd", *cloud, true);
+    writer.write<pcl::PointXYZRGB>("/home/michal/Dropbox/study/university/kth/thesis/data/test/box.pcd", *cloud, true);
 }
 
 int main(int argc, char *argv[]) {

@@ -49,29 +49,42 @@ namespace objsearch {
 	class PreprocessRoom {
 	public:
 	    PreprocessRoom(int argc, char* argv[]);
+            void doProcessing();
             void loadCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
-			  tf::StampedTransform& cloudTransform, const std::string& fileXMLPath,
-			  const int cloudNum);
+			   tf::StampedTransform& cloudTransform);
             void transformAndRemoveFloorCeiling(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 				                const tf::StampedTransform& cloudTransform);
 	    void extractPlanes(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud);
 	    void computeNormals(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 				pcl::PointCloud<pcl::Normal>::Ptr& normals,
-				const tf::StampedTransform& cloudTransform,
-				const float radius);
+				const tf::StampedTransform& cloudTransform);
+
+	    // some constants to use when dealing with filenames and what needs
+	    // to be done to properly process it
+	    static const std::string intermediatePrefix;
+	    static const std::string completeCloudName;
 	private:
-	    std::string cloudDir; // directory containing the target cloud
+	    enum class CloudType {
+		INTERMEDIATE, FULL, OTHER
+	    };
+	    
+	    std::string cloudPath; // path of the target cloud
+	    std::string cloudDir;
+	    std::string cloudFile; // path to the target cloud
 	    std::string roomXML; // xml file with information about the room and intermediate clouds
-	    std::string roomCloud; // the file containing the merged cloud
 	    std::string dataPath; // top level directory which contains the data
 	    std::string dataSubDir; // sub directory within the data path containing the cloud we are interested in
 	    std::string outDir; // directory to which processed clouds will be output
 	    std::string outPrefix; // prefix for the output filename, used for intermediate clouds
 	    std::string outPath;
+	    // a string to determine what sort of cloud is being passed in; a
+	    // full cloud, intermediate cloud, or some other random cloud
+	    CloudType type;
 	    
 	    float ransacDistanceThresh;
 	    int ransacIterations;
 	    int planesToExtract;
+	    int cloudNum; // the number of the intermediate cloud (or -1 if not working on an intermediate)
 	    float floorOffset;
 	    float ceilingOffset;
 	    float floorZ;
