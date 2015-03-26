@@ -117,6 +117,8 @@ namespace objsearch {
 	    ROSUtil::getParam(handle, "/preprocess/floor_offset", floorOffset);
 	    ROSUtil::getParam(handle, "/preprocess/ceiling_offset", ceilingOffset);
 	    ROSUtil::getParam(handle, "/preprocess/normal_radius", normalRadius);
+	    ROSUtil::getParam(handle, "/preprocess/extract_planes", doExtractPlanes);
+	    ROSUtil::getParam(handle, "/preprocess/trim_cloud", doTrimCloud);
 	    ROSUtil::getParam(handle, "/obj_search/floor_z", floorZ);
 	    ROSUtil::getParam(handle, "/obj_search/ceiling_z", ceilingZ);
 	    ROS_INFO("Initialisation completed.");
@@ -136,20 +138,42 @@ namespace objsearch {
 	    loadCloud(workingCloud, cloudRotation);
 
 	    // non-dataset clouds have no transform information, so skip that step
-	    if (type != CloudType::OTHER) {
+	    if (type != CloudType::OTHER && doTrimCloud) {
 		ROS_INFO("Transforming and trimming cloud");
 		transformAndRemoveFloorCeiling(workingCloud, cloudRotation);
 	    }
-	    
-	    ROS_INFO("Extracting planes.");
-	    extractPlanes(workingCloud);
 
-	    exit(1);
-	    pcl::PointCloud<pcl::Normal>::Ptr normals;
+	    if (doExtractPlanes) {
+		ROS_INFO("Extracting planes.");
+		extractPlanes(workingCloud);
+	    }
+
+	    ROS_INFO("Computing normals");
+	    pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>());
 	    computeNormals(workingCloud, normals, cloudRotation);
 
-	    pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloudWithNormals;
+	    pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloudWithNormals(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
 	    pcl::concatenateFields(*workingCloud, *normals, *cloudWithNormals);
+
+	    pcl::PCDWriter writer;
+	    ROS_INFO("Outputting normals to %s", std::string(SysUtil::fullDirPath(outPath) + "normCloud.pcd").c_str());
+	    writer.write<pcl::PointXYZRGBNormal>(SysUtil::fullDirPath(outPath) + "normCloud.pcd",
+						 *cloudWithNormals, true);
+
+
+	    boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer ("3D Viewer"));
+	    viewer->setBackgroundColor(0, 0, 0);
+	    pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(workingCloud);
+	    viewer->addPointCloud<pcl::PointXYZRGB>(workingCloud, rgb, "sample cloud");
+	    viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "sample cloud");
+	    viewer->addPointCloudNormals<pcl::PointXYZRGB, pcl::Normal>(workingCloud, normals, 10, 0.05, "normals");
+	    viewer->initCameraParameters();
+	    
+	    while (!viewer->wasStopped())
+	    {
+		viewer->spinOnce(100);
+		boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+	    }
 	}
 
 	/** 
@@ -362,20 +386,20 @@ namespace objsearch {
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr fullCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 	    *fullCloud = *allPlanes + *remainingPoints;
 
-	    boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer =
-		boost::shared_ptr<pcl::visualization::PCLVisualizer>(new pcl::visualization::PCLVisualizer("Cloud viewer"));
-	    std::string cloudName("cloud");
-	    pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(fullCloud);
-	    viewer->setBackgroundColor(0,0,0);
-	    viewer->addPointCloud(fullCloud, rgb, cloudName.c_str());
-	    viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,
-						     2, cloudName.c_str());
-	    viewer->initCameraParameters();
+	    // boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer =
+	    // 	boost::shared_ptr<pcl::visualization::PCLVisualizer>(new pcl::visualization::PCLVisualizer("Cloud viewer"));
+	    // std::string cloudName("cloud");
+	    // pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(fullCloud);
+	    // viewer->setBackgroundColor(0,0,0);
+	    // viewer->addPointCloud(fullCloud, rgb, cloudName.c_str());
+	    // viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,
+	    // 					     2, cloudName.c_str());
+	    // viewer->initCameraParameters();
     
-	    while (!viewer->wasStopped()) {
-		viewer->spinOnce(100);
-		boost::this_thread::sleep(boost::posix_time::microseconds(100000));
-	    }
+	    // while (!viewer->wasStopped()) {
+	    // 	viewer->spinOnce(100);
+	    // 	boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+	    // }
 	}
 
 	/** 
@@ -393,7 +417,7 @@ namespace objsearch {
 					    const tf::StampedTransform& cloudTransform)	{
 	    pcl::NormalEstimation<pcl::PointXYZRGB, pcl::Normal> ne;
 	    ne.setInputCloud(cloud);
-	    
+	   	    
 	    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>());
 	    // set the viewpoint using the origin of the room. This assumes that
 	    // the transform has already been applied to the cloud.

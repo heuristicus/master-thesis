@@ -80,6 +80,10 @@ namespace objsearch {
 	    // a string to determine what sort of cloud is being passed in; a
 	    // full cloud, intermediate cloud, or some other random cloud
 	    CloudType type;
+
+	    // flags for executing different parts of preprocessing
+	    bool doExtractPlanes;
+	    bool doTrimCloud;
 	    
 	    float ransacDistanceThresh;
 	    int ransacIterations;

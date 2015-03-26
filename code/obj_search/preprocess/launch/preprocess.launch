@@ -21,5 +21,12 @@
   <arg name="cloud" />
   <param name="/preprocess/cloud" value="$(arg cloud)" />
 
+  <!-- Parameters to define whether or not some parts of the preprocessing are
+       carried out -->
+  <arg name="planes" default="true"/>
+  <param name="/preprocess/extract_planes" value="$(arg planes)" />
+  <arg name="trim" default="true"/>
+  <param name="/preprocess/trim_cloud" value="$(arg trim)" />
+
   <node name="preprocess" pkg="preprocess" type="preprocess" output="screen" />
 </launch>
