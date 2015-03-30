@@ -6,22 +6,28 @@
 \usepackage{subfig}
 \usepackage{graphicx}
 \usepackage{hyperref}
+\usepackage{moreverb}
 \defaultfontfeatures{Mapping=tex-text}
 \setromanfont[Ligatures={Common},Numbers={Lining}]{Linux Libertine}
 
 \bibliography{report.bib}
 
 \author{Michal Staniaszek}
-\title{Some title here}
+\title{Object Query for Point Clouds}
 
 \begin{document}
 \maketitle
 \begin{abstract}
-  this is the abstract
+  Brief description of the aim of the project, the data used, some of the
+  techniques used, some experimental results.
 \end{abstract}
 \tableofcontents
 \chapter{Introduction}
+Basic introduction to the idea of point clouds and how they are useful, as well
+as something about images and querying them
 \chapter{Background}
+More detailed description of certain things, from the literature study.
+\begin{comment}
 \section{Segmentation}
 Popularised by Comaniciu~\cite{comaniciu2002mean} for use in image segmentation,
 mean shift was first introduced by Fukunaga~\cite{fukunaga1975estimation} in
@@ -498,7 +504,51 @@ point pair features to improve recognition performance. Kim et al. use the RGB
 image and corresponding point cloud to improve the hypotheses for segmentation
 \cite{kim2013accurate}. \cite{mueller2013recognition} uses a growing neural gas
 to characterise the shape of parts of objects.
+\end{comment}
+
+\chapter{System Development}
+Talk about how different parts of the system were developed, why they are
+required, what benefits they provide, how they work, and so on.
+\section{Preprocessing}
+Basic description of what segmentation is, discussion about whether or not it is
+necessary
+\subsection{Room Rotation and Trimming}
+How the data is gathered, what is done to it at the beginning to remove some points
+\subsection{Normal Extraction}
+Normal and plane extraction section order depends partly on the order in which
+it is done. Talk about how normal extraction can help with plane extraction, if
+I do that.
+\subsection{Plane Extraction}
+Basic description of RANSAC or whichever of its extensions I end up using.
+\section{Feature Extraction}
+Talk specifically about each of the features used and their good/bad points, and
+how the features extraction is done (not particularly complex, probably)
+\section{Object Query}
+Query methods, how the database and query object are compared.
+
+\chapter{Implementation}
+Description of any parts of the implementation which are non standard or worth a
+mention. Perhaps talk about PCL and version control, as well as documentation
+and some other general software approaches to the system?
+\chapter{Experimental Results}
+Description of experiments and experimental results with different
+configurations of the system.
+\section{Segmentation}
+Apply different segmentation methods/parts of the segmentation method, and see
+how they affect the overall system performance, as well as the time taken to
+complete the segmentation.
+\section{Feature Extraction}
+Same as above, but for feature extraction. Try different features and see which
+give best performance. Consider normal extraction cost for those features which
+require it.
+\section{Object Query}
+This is evaluated in the previous two sections, but maybe there is more than one
+method of finding the query object. Multi-index tree vs single index tree, for
+example.
+\chapter{Conclusion and Further Work}
+Describe what the project was about, what was achieved, summarise the
+experiments, describe what can be improved.
 
 
-\printbibliography
+%\printbibliography
 \end{document}
