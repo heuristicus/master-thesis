@@ -20,13 +20,19 @@
   <param name="/preprocess/normal_radius" value="$(arg normal_radius)" />
   <arg name="cloud" />
   <param name="/preprocess/cloud" value="$(arg cloud)" />
+  <arg name="downsample_leafsize" default="0.01"/>
+  <param name="/preprocess/downsample_leafsize" value="$(arg downsample_leafsize)" />
 
   <!-- Parameters to define whether or not some parts of the preprocessing are
        carried out -->
+  <arg name="downsample" default="true"/>
+  <param name="/preprocess/downsample" value="$(arg downsample)" />
   <arg name="planes" default="true"/>
   <param name="/preprocess/extract_planes" value="$(arg planes)" />
   <arg name="trim" default="true"/>
   <param name="/preprocess/trim_cloud" value="$(arg trim)" />
+  <arg name="normals" default="true"/>
+  <param name="/preprocess/compute_normals" value="$(arg normals)" />
 
   <node name="preprocess" pkg="preprocess" type="preprocess" output="screen" />
 </launch>

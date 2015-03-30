@@ -10,6 +10,7 @@
 namespace objsearch {
     namespace preprocessing {
 
+	// Declare static members of the class
 	const std::string PreprocessRoom::intermediatePrefix = "intermediate_cloud";
 	const std::string PreprocessRoom::completeCloudName = "complete_cloud.pcd";
 
@@ -117,56 +118,88 @@ namespace objsearch {
 	    ROSUtil::getParam(handle, "/preprocess/floor_offset", floorOffset);
 	    ROSUtil::getParam(handle, "/preprocess/ceiling_offset", ceilingOffset);
 	    ROSUtil::getParam(handle, "/preprocess/normal_radius", normalRadius);
+	    ROSUtil::getParam(handle, "/preprocess/downsample_leafsize", downsampleLeafSize);
+	    ROSUtil::getParam(handle, "/preprocess/downsample", doDownsample);
 	    ROSUtil::getParam(handle, "/preprocess/extract_planes", doExtractPlanes);
 	    ROSUtil::getParam(handle, "/preprocess/trim_cloud", doTrimCloud);
+	    ROSUtil::getParam(handle, "/preprocess/compute_normals", doComputeNormals);
 	    ROSUtil::getParam(handle, "/obj_search/floor_z", floorZ);
 	    ROSUtil::getParam(handle, "/obj_search/ceiling_z", ceilingZ);
 	    ROS_INFO("Initialisation completed.");
 
-	    doProcessing();
+	    preprocessCloud();
 	}
 
 	/** 
 	 * Start the processing of the point cloud.
 	 */
-	void PreprocessRoom::doProcessing() {
+	void PreprocessRoom::preprocessCloud() {
 	    ROS_INFO("Start processing");
-	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr workingCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr originalCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
 	    tf::StampedTransform cloudRotation;
 
+	    loadCloud(originalCloud, cloudRotation);
+	    // We don't actually care about translating the room, just rotating
+	    // it, so zero the origin
+	    // cloudRotation.getOrigin().setX(0);
+	    // cloudRotation.getOrigin().setY(0);
+	    // cloudRotation.getOrigin().setZ(0);
 
-	    loadCloud(workingCloud, cloudRotation);
 
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr workingCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
+	    if (doDownsample) {
+		ROS_INFO("Points before downsample: %d", (int)originalCloud->size());
+		pcl::VoxelGrid<pcl::PointXYZRGB> sor;
+		sor.setInputCloud(originalCloud);
+		sor.setLeafSize(downsampleLeafSize, downsampleLeafSize, downsampleLeafSize);
+		sor.filter(*workingCloud);
+		ROS_INFO("Points after downsample: %d", (int)workingCloud->size());
+	    } else {
+		workingCloud = originalCloud;
+	    }
+	    ROS_INFO("workingCloud points: %d", (int)workingCloud->size());
+	    
 	    // non-dataset clouds have no transform information, so skip that step
 	    if (type != CloudType::OTHER && doTrimCloud) {
 		ROS_INFO("Transforming and trimming cloud");
 		transformAndRemoveFloorCeiling(workingCloud, cloudRotation);
+		ROS_INFO("Cloud size after trim: %d", (int)workingCloud->size());
 	    }
 
+
+
+	    pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>());
+	    pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloudWithNormals(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
+	    if (doComputeNormals) {
+		ROS_INFO("Computing normals");
+		computeNormals(workingCloud, normals, cloudRotation);
+		
+		pcl::concatenateFields(*workingCloud, *normals, *cloudWithNormals);
+
+		pcl::PCDWriter writer;
+		ROS_INFO("Outputting normals to %s", std::string(SysUtil::fullDirPath(outPath) + "normCloud.pcd").c_str());
+		writer.write<pcl::PointXYZRGBNormal>(SysUtil::fullDirPath(outPath) + "normCloud.pcd",
+						     *cloudWithNormals, true);
+	    }
+	    
 	    if (doExtractPlanes) {
 		ROS_INFO("Extracting planes.");
-		extractPlanes(workingCloud);
+		extractPlanes(workingCloud, normals);
+		ROS_INFO("Cloud size after plane extraction: %d", (int)workingCloud->size());
+		ROS_INFO("Normals size after plane extraction: %d", (int)normals->size());		
 	    }
-
-	    ROS_INFO("Computing normals");
-	    pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>());
-	    computeNormals(workingCloud, normals, cloudRotation);
-
-	    pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloudWithNormals(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
-	    pcl::concatenateFields(*workingCloud, *normals, *cloudWithNormals);
-
-	    pcl::PCDWriter writer;
-	    ROS_INFO("Outputting normals to %s", std::string(SysUtil::fullDirPath(outPath) + "normCloud.pcd").c_str());
-	    writer.write<pcl::PointXYZRGBNormal>(SysUtil::fullDirPath(outPath) + "normCloud.pcd",
-						 *cloudWithNormals, true);
 
 
 	    boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer ("3D Viewer"));
 	    viewer->setBackgroundColor(0, 0, 0);
+	    viewer->addCoordinateSystem(1, cloudRotation.getOrigin().getX(), cloudRotation.getOrigin().getY(), cloudRotation.getOrigin().getZ());
 	    pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(workingCloud);
 	    viewer->addPointCloud<pcl::PointXYZRGB>(workingCloud, rgb, "sample cloud");
 	    viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "sample cloud");
-	    viewer->addPointCloudNormals<pcl::PointXYZRGB, pcl::Normal>(workingCloud, normals, 10, 0.05, "normals");
+	    if (doComputeNormals) {
+		viewer->addPointCloudNormals<pcl::PointXYZRGB, pcl::Normal>(workingCloud, normals, 10, 0.05, "normals");
+	    }
+	    
 	    viewer->initCameraParameters();
 	    
 	    while (!viewer->wasStopped())
@@ -261,7 +294,7 @@ namespace objsearch {
 	    pass.setFilterLimits(floorZ + floorOffset, ceilingZ - ceilingOffset);
 	    // filter the values outside the thresholds and put the rest of the
 	    // points back into the cloud.
-	    pass.filter(*cloud); 
+	    pass.filter(*cloud);
 
 	    pcl::PCDWriter writer;
 	    ROS_INFO("Writing transformed cloud...");
@@ -283,23 +316,46 @@ namespace objsearch {
 	 * @param cloud Pointer to the cloud from which planes are to be extracted.
 	 * 
 	 */
-	void PreprocessRoom::extractPlanes(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud){
+	void PreprocessRoom::extractPlanes(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
+					   pcl::PointCloud<pcl::Normal>::Ptr& normals){
+	    if (doComputeNormals){
+		pcl::SACSegmentationFromNormals<pcl::PointXYZRGB, pcl::Normal> seg;
+		seg.setModelType(pcl::SACMODEL_NORMAL_PLANE);
+		seg.setInputNormals(normals);
+		seg.setNormalDistanceWeight(0.5);
+		extractPlanes(seg, cloud, normals);
+	    } else {
+		pcl::SACSegmentation<pcl::PointXYZRGB> seg;
+		seg.setModelType(pcl::SACMODEL_PLANE);
+		extractPlanes(seg, cloud, normals);
+	    }
+	}
+	
+	template<typename SegmentationType>
+	void PreprocessRoom::extractPlanes(SegmentationType& seg,
+					   pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
+					   pcl::PointCloud<pcl::Normal>::Ptr& normals){
 	    ROS_INFO("Extracting planes.");
 	    ROS_INFO("Number of points in original cloud: %d", (int)cloud->size());
+	    ROS_INFO("Number of normals in original cloud: %d", (int)normals->size());
 
 	    pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
 	    pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
 
 	    // Set up the segmentation to extract planes from the cloud using
 	    // RANSAC with the parameters specified using the launch file
-	    pcl::SACSegmentation<pcl::PointXYZRGB> seg;
 	    seg.setOptimizeCoefficients(true);
-	    seg.setModelType(pcl::SACMODEL_PLANE);
 	    seg.setMethodType(pcl::SAC_RANSAC);
 	    seg.setDistanceThreshold(ransacDistanceThresh);
 	    seg.setMaxIterations(ransacIterations);
 
 	    pcl::ExtractIndices<pcl::PointXYZRGB> extract;
+	    // if just using the standard segmentation, this will be empty and
+	    // nothing will happen within the loop
+	    pcl::ExtractIndices<pcl::Normal> extractNormal;
+	    extractNormal.setInputCloud(normals); // always using the same reference
+	    extractNormal.setNegative(true);
+	    
 	    // Points will be removed from this cloud - at the end of the process it
 	    // will contain all the points which were not extracted by the segmentation
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr intermediateCloud(cloud);
@@ -352,6 +408,16 @@ namespace objsearch {
 					       + outPrefix + "extractedPlane_"
 					       + std::to_string(i) +".pcd",
 					       *allPlanes, true);
+
+		// also need to extract inlier indices from the normals, if they
+		// were computed, so that the normals and points are consistent
+		// with each other.
+		if (doComputeNormals){
+		    extractNormal.setIndices(inliers);
+		    extractNormal.filter(*normals);
+		    ROS_INFO("Number of normals after filtering: %d", (int)normals->size());
+		}
+
 		// Extract non-inliers
 		extract.setNegative(true); // Extract the points which are not inliers
 		extract.filter(*remainingPoints);
@@ -363,6 +429,10 @@ namespace objsearch {
 	    ROS_INFO("All planes size after loop: %d", (int)allPlanes->size());
 	    ROS_INFO("Remaining points size after loop: %d",
 		     (int)intermediateCloud->size());
+
+	    // Make sure to swap out the fully filtered intermediate cloud into
+	    // the cloud that will be visible outside
+	    cloud.swap(intermediateCloud);
 	    
 	    std::cout << "Outputting results to: " << outPath << std::endl;
 
@@ -386,20 +456,20 @@ namespace objsearch {
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr fullCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 	    *fullCloud = *allPlanes + *remainingPoints;
 
-	    // boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer =
-	    // 	boost::shared_ptr<pcl::visualization::PCLVisualizer>(new pcl::visualization::PCLVisualizer("Cloud viewer"));
-	    // std::string cloudName("cloud");
-	    // pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(fullCloud);
-	    // viewer->setBackgroundColor(0,0,0);
-	    // viewer->addPointCloud(fullCloud, rgb, cloudName.c_str());
-	    // viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,
-	    // 					     2, cloudName.c_str());
-	    // viewer->initCameraParameters();
+	    boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer =
+	    	boost::shared_ptr<pcl::visualization::PCLVisualizer>(new pcl::visualization::PCLVisualizer("Cloud viewer"));
+	    std::string cloudName("cloud");
+	    pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(fullCloud);
+	    viewer->setBackgroundColor(0,0,0);
+	    viewer->addPointCloud(fullCloud, rgb, cloudName.c_str());
+	    viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,
+	    					     2, cloudName.c_str());
+	    viewer->initCameraParameters();
     
-	    // while (!viewer->wasStopped()) {
-	    // 	viewer->spinOnce(100);
-	    // 	boost::this_thread::sleep(boost::posix_time::microseconds(100000));
-	    // }
+	    while (!viewer->wasStopped()) {
+	    	viewer->spinOnce(100);
+	    	boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+	    }
 	}
 
 	/** 
@@ -415,7 +485,8 @@ namespace objsearch {
 	void PreprocessRoom::computeNormals(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 					    pcl::PointCloud<pcl::Normal>::Ptr& normals,
 					    const tf::StampedTransform& cloudTransform)	{
-	    pcl::NormalEstimation<pcl::PointXYZRGB, pcl::Normal> ne;
+	    pcl::NormalEstimationOMP<pcl::PointXYZRGB, pcl::Normal> ne;
+	    
 	    ne.setInputCloud(cloud);
 	   	    
 	    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>());

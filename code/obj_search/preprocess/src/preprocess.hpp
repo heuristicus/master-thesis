@@ -18,12 +18,15 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include <cmath>
 
 #include <pcl/ModelCoefficients.h>
 #include <pcl/common/common.h>
 #include <pcl/features/normal_3d.h>
+#include <pcl/features/normal_3d_omp.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/passthrough.h>
+#include <pcl/filters/voxel_grid.h>
 #include <pcl/io/io.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_cloud.h>
@@ -49,12 +52,17 @@ namespace objsearch {
 	class PreprocessRoom {
 	public:
 	    PreprocessRoom(int argc, char* argv[]);
-            void doProcessing();
+            void preprocessCloud();
             void loadCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 			   tf::StampedTransform& cloudTransform);
             void transformAndRemoveFloorCeiling(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 				                const tf::StampedTransform& cloudTransform);
-	    void extractPlanes(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud);
+	    void extractPlanes(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
+			       pcl::PointCloud<pcl::Normal>::Ptr& normals);
+	    template<typename SegmentationType>
+	    void extractPlanes(SegmentationType& seg,
+			       pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
+			       pcl::PointCloud<pcl::Normal>::Ptr& normals);
 	    void computeNormals(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 				pcl::PointCloud<pcl::Normal>::Ptr& normals,
 				const tf::StampedTransform& cloudTransform);
@@ -84,6 +92,8 @@ namespace objsearch {
 	    // flags for executing different parts of preprocessing
 	    bool doExtractPlanes;
 	    bool doTrimCloud;
+	    bool doComputeNormals;
+	    bool doDownsample;
 	    
 	    float ransacDistanceThresh;
 	    int ransacIterations;
@@ -94,6 +104,7 @@ namespace objsearch {
 	    float floorZ;
 	    float ceilingZ;
 	    float normalRadius;
+	    float downsampleLeafSize;
 	};
     } // namespace preprocessing
 } // namespace objsearch
