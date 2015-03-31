@@ -21,7 +21,8 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_representation.h>
 #include <pcl/point_types.h>
-
+#include <pcl/features/usc.h>
+#include <pcl/filters/voxel_grid.h>
 
 
 int main(int argc, char *argv[]) {
@@ -32,14 +33,14 @@ int main(int argc, char *argv[]) {
     // Retrieve the directory containing the cloud to be processed
     ROSUtil::getParam(handle, "/feature_extraction/input_cloud", cloudFile);
 
-    std::string dataPath;
-    ROSUtil::getParam(handle, "/obj_search/raw_data_dir", dataPath);
-    // If the given cloud file corresponds to a file in the raw data directory,
+    std::string processedDir;
+    ROSUtil::getParam(handle, "/obj_search/processed_data_dir", processedDir);
+    // If the given cloud file corresponds to a file in the processed data directory,
     // extract the remaining directories in the path of the file so that the
     // data can be put into the output directory with the same path.
     std::string dataSubDir;
-    if (cloudFile.compare(0, dataPath.size(), dataPath) == 0){
-	dataSubDir = SysUtil::trimPath(std::string(cloudFile, dataPath.size()), 1);
+    if (cloudFile.compare(0, processedDir.size(), processedDir) == 0){
+	dataSubDir = SysUtil::trimPath(std::string(cloudFile, processedDir.size()), 1);
     }
 
     std::string outDir;
@@ -47,7 +48,7 @@ int main(int argc, char *argv[]) {
     // If output is not specified, set the output directory to be the processed
     // data directory specified by the global parameters.
     if (std::string("NULL").compare(outDir) == 0) {
-	ROSUtil::getParam(handle, "/obj_search/processed_data_dir", outDir);
+	outDir = processedDir;
     }
 
     // The output path for processed clouds is the subdirectory combined
@@ -70,82 +71,98 @@ int main(int argc, char *argv[]) {
     if (featureType.compare("SHOT") == 0) {
 	
     } else if (featureType.compare("USC") == 0) {
+	// The shape context uses xyz points, so need to convert the cloud into that format
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_xyz(new pcl::PointCloud<pcl::PointXYZ>);
+    
+	cloud_xyz->points.resize(cloud->size());
+	int added = 0;
+
+	ROS_INFO("Cloud size: %d", (int)cloud->size());
+	// Some of the points in the cloud have nan or inf values, need to strip
+	// those to avoid errors. This is only true for the intermediate clouds
+	for (size_t i = 0; i < cloud->points.size(); i++) {
+	    if (std::isnan(cloud->points[i].x) || std::isinf(cloud->points[i].x)
+		|| std::isnan(cloud->points[i].y) || std::isinf(cloud->points[i].y)
+		|| std::isnan(cloud->points[i].z) || std::isinf(cloud->points[i].z)){
+		continue;
+	    }
+	    cloud_xyz->points[i].x = cloud->points[i].x;
+	    cloud_xyz->points[i].y = cloud->points[i].y;
+	    cloud_xyz->points[i].z = cloud->points[i].z;
+	    added++;
+	}
+	ROS_INFO("Total invalid points: %d", ((int)cloud->size()) - added);
+    
+	cloud_xyz->points.resize(added);
+        
+	pcl::PointCloud<pcl::ShapeContext1980>::Ptr descriptors(new pcl::PointCloud<pcl::ShapeContext1980>());
+
+ 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_downsampled(new pcl::PointCloud<pcl::PointXYZ>);
+
+	pcl::VoxelGrid<pcl::PointXYZ> sor;
+	sor.setInputCloud(cloud_xyz);
+	sor.setLeafSize(0.05, 0.05, 0.05);
+	sor.filter(*cloud_downsampled);
+
+	ROS_INFO("Downsampled size: %d", (int)cloud_downsampled->size());
+	
+	pcl::UniqueShapeContext<pcl::PointXYZ, pcl::ShapeContext1980, pcl::ReferenceFrame> usc;
+	usc.setInputCloud(cloud_downsampled);
+	// Search radius, to look for neighbors. It will also be the radius of the support sphere.
+	usc.setRadiusSearch(0.05);
+	// The minimal radius value for the search sphere, to avoid being too sensitive
+	// in bins close to the center of the sphere.
+	usc.setMinimalRadius(0.05 / 10.0);
+	// Radius used to compute the local point density for the neighbors
+	// (the density is the number of points within that radius).
+	usc.setPointDensityRadius(0.05 / 5.0);
+	// Set the radius to compute the Local Reference Frame.
+	usc.setLocalRadius(0.05);
+
+	ROS_INFO("Computing descriptors.");
+	usc.compute(*descriptors);
+	ROS_INFO("Done.");
+	pcl::PCDWriter writer;
+	std::string outFile = SysUtil::cleanDirPath(outPath) + "/features/usc.pcd";
+	ROS_INFO("Writing to %s", outFile.c_str());
+	writer.write<pcl::ShapeContext1980>(outFile, *descriptors, true);
+	for (int i = 0 ; i < 9; i++) {
+	    ROS_INFO("item %f", descriptors->points[1].rf[i]);
+	}
+
 	
     } else {
 	ROS_ERROR("%s is not a valid feature type.", featureType.c_str());
 	exit(1);
     }
 
-    // // The shape context uses xyz points, so need to convert the cloud into that format
-    // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_xyz(new pcl::PointCloud<pcl::PointXYZ>);
-    
-    // cloud_xyz->points.resize(cloud->size());
-    // int added = 0;
-
-    // ROS_INFO("Cloud size: %d", (int)cloud->size());
-    // // Some of the points in the cloud have nan or inf values, need to strip
-    // // those to avoid errors. This is only true for the intermediate clouds
-    // for (size_t i = 0; i < cloud->points.size(); i++) {
-    // 	if (std::isnan(cloud->points[i].x) || std::isinf(cloud->points[i].x)
-    // 	    || std::isnan(cloud->points[i].y) || std::isinf(cloud->points[i].y)
-    // 	    || std::isnan(cloud->points[i].z) || std::isinf(cloud->points[i].z)){
-    // 	    continue;
+    //pcl::PointCloud<pcl::SHOT352>::Ptr descriptorsshot(new pcl::PointCloud<pcl::SHOT352>());
+    // std::vector<pcl::SHOT352> desc(5);
+    // for (int i = 0; i < 5; i++) {
+    // 	for (int j = 0; j < 352; j++) {
+    // 	    desc[i].descriptor[j] = j + i;
     // 	}
-    // 	cloud_xyz->points[i].x = cloud->points[i].x;
-    // 	cloud_xyz->points[i].y = cloud->points[i].y;
-    // 	cloud_xyz->points[i].z = cloud->points[i].z;
-    // 	added++;
     // }
-    // ROS_INFO("Total invalid points: %d", ((int)cloud->size()) - added);
+
+    // pcl::PointCloud<pcl::SHOT352>::Ptr queryDescriptors(new pcl::PointCloud<pcl::SHOT352>());
+    // queryDescriptors->push_back(desc[0]);
+
+    // pcl::PointCloud<pcl::SHOT352>::Ptr targetDescriptors(new pcl::PointCloud<pcl::SHOT352>());
+    // for (int i = 0; i < 4; i++) {
+    // 	targetDescriptors->push_back(desc[i+1]);
+    // }
+
+    // pcl::PCDWriter writer;
+
+    // // create the directory for output if it has not already been created
+    // if (!SysUtil::makeDirs(outPath + "/features")){
+    // 	std::cout << "Could not write point clouds to output directory." << std::endl;
+    // 	perror("Error message");
+    // 	exit(1);
+    // }
     
-    // cloud_xyz->points.resize(added);
-        
-    // pcl::PointCloud<pcl::ShapeContext1980>::Ptr descriptors(new pcl::PointCloud<pcl::ShapeContext1980>());
- 
-    // pcl::UniqueShapeContext<pcl::PointXYZ, pcl::ShapeContext1980, pcl::ReferenceFrame> usc;
-    // usc.setInputCloud(cloud_xyz);
-    // // Search radius, to look for neighbors. It will also be the radius of the support sphere.
-    // usc.setRadiusSearch(0.05);
-    // // The minimal radius value for the search sphere, to avoid being too sensitive
-    // // in bins close to the center of the sphere.
-    // usc.setMinimalRadius(0.05 / 10.0);
-    // // Radius used to compute the local point density for the neighbors
-    // // (the density is the number of points within that radius).
-    // usc.setPointDensityRadius(0.05 / 5.0);
-    // // Set the radius to compute the Local Reference Frame.
-    // usc.setLocalRadius(0.05);
-
-    // pcl::PointCloud<pcl::SHOT352>::Ptr descriptorsshot(new pcl::PointCloud<pcl::SHOT352>());
-    // ROS_INFO("Computing descriptors.");
-    // usc.compute(*descriptors);
-    // ROS_INFO("Done.");
-
-    std::vector<pcl::SHOT352> desc(5);
-    for (int i = 0; i < 5; i++) {
-	for (int j = 0; j < 352; j++) {
-	    desc[i].descriptor[j] = j + i;
-	}
-    }
-
-    pcl::PointCloud<pcl::SHOT352>::Ptr queryDescriptors(new pcl::PointCloud<pcl::SHOT352>());
-    queryDescriptors->push_back(desc[0]);
-
-    pcl::PointCloud<pcl::SHOT352>::Ptr targetDescriptors(new pcl::PointCloud<pcl::SHOT352>());
-    for (int i = 0; i < 4; i++) {
-	targetDescriptors->push_back(desc[i+1]);
-    }
-
-    pcl::PCDWriter writer;
-
-    // create the directory for output if it has not already been created
-    if (!SysUtil::makeDirs(outPath + "/features")){
-	std::cout << "Could not write point clouds to output directory." << std::endl;
-	perror("Error message");
-	exit(1);
-    }
-    
-    writer.write<pcl::SHOT352>(SysUtil::fullDirPath(outPath) + "/features/targetcloud.pcd", *targetDescriptors, true);
-    writer.write<pcl::SHOT352>(SysUtil::fullDirPath(outPath) + "/features/querycloud.pcd", *queryDescriptors, true);
+    // writer.write<pcl::SHOT352>(SysUtil::fullDirPath(outPath) + "/features/targetcloud.pcd", *targetDescriptors, true);
+    // writer.write<pcl::SHOT352>(SysUtil::fullDirPath(outPath) + "/features/querycloud.pcd", *queryDescriptors, true);
     
     return 0;
-}
+	}
