@@ -27,3 +27,7 @@ add_definitions(${PCL_DEFINITIONS})
 add_executable(create_cloud src/cloudCreator.cpp)
 target_link_libraries(create_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES} sysutil)
 add_dependencies(create_cloud ${catkin_EXPORTED_TARGETS})
+
+add_executable(view_cloud src/cloudViewer.cpp)
+target_link_libraries(view_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+add_dependencies(view_cloud ${catkin_EXPORTED_TARGETS})
