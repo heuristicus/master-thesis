@@ -89,22 +89,31 @@ namespace objsearch {
 	    // full cloud, intermediate cloud, or some other random cloud
 	    CloudType type;
 
+	    int cloudNum; // the number of the intermediate cloud (or -1 if not working on an intermediate)
+	    
 	    // flags for executing different parts of preprocessing
 	    bool doExtractPlanes;
 	    bool doTrimCloud;
 	    bool doComputeNormals;
 	    bool doDownsample;
-	    
+
+	    // plane extraction parameters
 	    float ransacDistanceThresh;
+	    float minPlaneProp;
 	    int ransacIterations;
 	    int planesToExtract;
-	    int cloudNum; // the number of the intermediate cloud (or -1 if not working on an intermediate)
+	    int planeSkipLimit;
+	    int minPlanePoints;
+
+	    // trimming parameters
 	    float floorOffset;
 	    float ceilingOffset;
 	    float floorZ;
 	    float ceilingZ;
+
 	    float normalRadius;
 	    float downsampleLeafSize;
+	    
 	};
     } // namespace preprocessing
 } // namespace objsearch

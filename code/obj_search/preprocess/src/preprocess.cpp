@@ -112,19 +112,26 @@ namespace objsearch {
 	    // output directory
 	    outPath = SysUtil::combinePaths(outDir, dataSubDir);
 
+	    ROSUtil::getParam(handle, "/preprocess/extract_planes", doExtractPlanes);
 	    ROSUtil::getParam(handle, "/preprocess/RANSAC_distance_threshold", ransacDistanceThresh);
 	    ROSUtil::getParam(handle, "/preprocess/RANSAC_iterations", ransacIterations);
 	    ROSUtil::getParam(handle, "/preprocess/planes_to_extract", planesToExtract);
+	    ROSUtil::getParam(handle, "/preprocess/min_plane_prop", minPlaneProp);
+	    ROSUtil::getParam(handle, "/preprocess/min_plane_points", minPlanePoints);
+	    ROSUtil::getParam(handle, "/preprocess/plane_skip_limit", planeSkipLimit);
+
+	    ROSUtil::getParam(handle, "/preprocess/trim_cloud", doTrimCloud);
 	    ROSUtil::getParam(handle, "/preprocess/floor_offset", floorOffset);
 	    ROSUtil::getParam(handle, "/preprocess/ceiling_offset", ceilingOffset);
-	    ROSUtil::getParam(handle, "/preprocess/normal_radius", normalRadius);
-	    ROSUtil::getParam(handle, "/preprocess/downsample_leafsize", downsampleLeafSize);
-	    ROSUtil::getParam(handle, "/preprocess/downsample", doDownsample);
-	    ROSUtil::getParam(handle, "/preprocess/extract_planes", doExtractPlanes);
-	    ROSUtil::getParam(handle, "/preprocess/trim_cloud", doTrimCloud);
-	    ROSUtil::getParam(handle, "/preprocess/compute_normals", doComputeNormals);
 	    ROSUtil::getParam(handle, "/obj_search/floor_z", floorZ);
 	    ROSUtil::getParam(handle, "/obj_search/ceiling_z", ceilingZ);
+
+	    ROSUtil::getParam(handle, "/preprocess/compute_normals", doComputeNormals);
+	    ROSUtil::getParam(handle, "/preprocess/normal_radius", normalRadius);
+	    
+	    ROSUtil::getParam(handle, "/preprocess/downsample", doDownsample);
+	    ROSUtil::getParam(handle, "/preprocess/downsample_leafsize", downsampleLeafSize);
+
 	    ROS_INFO("Initialisation completed.");
 
 	    preprocessCloud();
@@ -322,7 +329,7 @@ namespace objsearch {
 		pcl::SACSegmentationFromNormals<pcl::PointXYZRGB, pcl::Normal> seg;
 		seg.setModelType(pcl::SACMODEL_NORMAL_PLANE);
 		seg.setInputNormals(normals);
-		seg.setNormalDistanceWeight(0.5);
+		seg.setEpsAngle(0.25);
 		extractPlanes(seg, cloud, normals);
 	    } else {
 		pcl::SACSegmentation<pcl::PointXYZRGB> seg;
@@ -378,15 +385,31 @@ namespace objsearch {
 
 	    pcl::PCDWriter writer;
 	    ROS_INFO("Starting plane extraction.");
-	    for (int i = 0; i < planesToExtract; i++) {
+	    // Choose the larger of a specified number of points, or a
+	    // proportion of the cloud size. This should mitigate fluctuating
+	    // cloud sizes somewhat
+	    int minPoints = std::max((int)(intermediateCloud->size() * minPlaneProp), minPlanePoints);
+	    int skipped = 0;
+	    ROS_INFO("Minimum points per plane: %d", minPoints);
+	    // keep going until the requested number of planes have been
+	    // extracted, or the maximum number of skips in a row have occurred.
+	    for (int i = 0; i < planesToExtract && skipped < planeSkipLimit; i++) {
 		ROS_INFO("Extracting plane %d", i + 1);
 		seg.setInputCloud(intermediateCloud);
 		seg.segment(*inliers, *coefficients);
 
-		if (inliers->indices.size () == 0) {
-		    std::cerr << "Could not estimate a planar model for the given dataset." << std::endl;
+		if (inliers->indices.size() == 0) {
+		    ROS_WARN("Could not estimate a planar model for the given dataset");
 		    break;
+		} else if (inliers->indices.size() < minPoints) {
+		    ROS_INFO("Plane only had %d points, less than the specified minimum of %d - skipping extraction",
+			     (int)inliers->indices.size(), minPoints);
+		    skipped++;
+		    continue;
 		}
+		
+		// reset the number of skipped planes
+		skipped = 0;
 
 		ROS_INFO("Size of intermediate cloud: %d", (int)intermediateCloud->size());
 		
@@ -415,7 +438,6 @@ namespace objsearch {
 		if (doComputeNormals){
 		    extractNormal.setIndices(inliers);
 		    extractNormal.filter(*normals);
-		    ROS_INFO("Number of normals after filtering: %d", (int)normals->size());
 		}
 
 		// Extract non-inliers
@@ -434,7 +456,7 @@ namespace objsearch {
 	    // the cloud that will be visible outside
 	    cloud.swap(intermediateCloud);
 	    
-	    std::cout << "Outputting results to: " << outPath << std::endl;
+	    ROS_INFO("Outputting results to: %s", outPath.c_str());
 
 	    // Write the extracted planes and the remaining points to separate files
 	    writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath)
@@ -443,7 +465,7 @@ namespace objsearch {
 	    writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath)
 					   + outPrefix + "nonPlanes.pcd",
 					   *intermediateCloud, true);
-	    std::cout << "Done." << std::endl;
+	    ROS_INFO("Done");
 
 	    // colour the inliers so we can tell them apart easily
 	    for (auto it = allPlanes->begin(); it != allPlanes->end(); it++) {

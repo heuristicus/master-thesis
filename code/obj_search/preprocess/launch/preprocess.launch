@@ -1,14 +1,36 @@
 <launch>
   <rosparam file="$(find objsearch_toplevel)/config/global_params.yaml" command="load" />
-  
-  <arg name="distance_threshold" default="0.04" />
-  <param name="/preprocess/RANSAC_distance_threshold" value="$(arg distance_threshold)" />
-  <arg name="iterations" default="100" />
-  <param name="/preprocess/RANSAC_iterations" value="$(arg iterations)" />
-  <arg name="planes_to_extract" default="5" />
-  <param name="/preprocess/planes_to_extract" value="$(arg planes_to_extract)" />
+
+  <!-- Input/output parameters -->
   <arg name="output" default="NULL"/>
   <param name="/preprocess/output_dir" value="$(arg output)" />
+  <arg name="cloud" />
+  <param name="/preprocess/cloud" value="$(arg cloud)" />
+
+  <!-- Parameters defining the behaviour of RANSAC and plane extraction -->
+  <arg name="distance_threshold" default="0.07" />
+  <param name="/preprocess/RANSAC_distance_threshold" value="$(arg distance_threshold)" />
+  <arg name="iterations" default="300" />
+  <param name="/preprocess/RANSAC_iterations" value="$(arg iterations)" />
+  <!-- The maximum number of planes to extract. Depending on the cloud structure
+       and min_plane_prop, a smaller number may be extracted. -->
+  <arg name="planes_to_extract" default="10" />
+  <param name="/preprocess/planes_to_extract" value="$(arg planes_to_extract)" />
+  <!-- A plane must have at least cloud.npoints * min_plane_prop points in it to
+       be considered. The full room clouds have about 13,000,000 points when not
+       downsampled. With downsampling of 0.01 leaf size, this is reduced to
+       around 10% of that -->
+  <arg name="min_plane_prop" default="0.02" />
+  <param name="/preprocess/min_plane_prop" value="$(arg min_plane_prop)" />
+  <!-- Additional minimum limit on the number of points in an extracted plane.
+       The final minimum is the larger value of this and min_plane_prop *
+       cloud.size -->
+  <arg name="min_plane_points" default="20000" />
+  <param name="/preprocess/min_plane_points" value="$(arg min_plane_points)" />
+  <!-- The maximum number of times in a row that plane extraction can be skipped
+       before it is abandoned -->
+  <arg name="plane_skip_limit" default="2" />
+  <param name="/preprocess/plane_skip_limit" value="$(arg plane_skip_limit)" />
   
   <!-- These values are used to further adjust the floor and ceiling z-value
        which is used to remove points which make up those parts of the cloud -->
@@ -16,10 +38,13 @@
   <param name="/preprocess/ceiling_offset" value="$(arg ceiling_offset)" />
   <arg name="floor_offset" default="0.2" />
   <param name="/preprocess/floor_offset" value="$(arg floor_offset)" />
-  <arg name="normal_radius" default="0.03" />
+
+  <!-- Normal computation parameters. A larger radius means that regions with
+       high rate of change of the normal are likely to be smoothed over-->
+  <arg name="normal_radius" default="0.08" />
   <param name="/preprocess/normal_radius" value="$(arg normal_radius)" />
-  <arg name="cloud" />
-  <param name="/preprocess/cloud" value="$(arg cloud)" />
+
+  <!-- Downsampling parameters -->
   <arg name="downsample_leafsize" default="0.01"/>
   <param name="/preprocess/downsample_leafsize" value="$(arg downsample_leafsize)" />
 
