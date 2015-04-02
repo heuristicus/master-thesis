@@ -66,6 +66,8 @@ namespace objsearch {
 	    // instantiate a different template for the search function
 	    if (queryField.compare("shot") == 0) {
 		doSearch<pcl::SHOT352>();
+	    } else if (queryField.compare("shape_context") == 0) {
+		doSearch<pcl::ShapeContext1980>();
 	    } else {
 		ROS_ERROR("Unknown descriptor field specifier: %s", queryField.c_str());
                 exit(1);
@@ -74,22 +76,35 @@ namespace objsearch {
 
 	template<typename DescType>
 	void ObjectQuery::doSearch() {
+	    ROS_INFO("Starting descriptor search.");
+	    
 	    pcl::PCDReader reader;
-    
+
+	    // Read the input clouds for the target and query descriptors. We
+	    // want to find descriptors in targetCloud which are close to those
+	    // in queryCloud. Need to use typename here because of dependent
+	    // scope - what it is depends on the instantiation of the template
+	    // argument
 	    typename pcl::PointCloud<DescType>::Ptr targetCloud(new pcl::PointCloud<DescType>());
 	    typename pcl::PointCloud<DescType>::Ptr queryCloud(new pcl::PointCloud<DescType>());
 	    std::cout << reader.read(targetFile, *targetCloud) << std::endl;
 	    std::cout << reader.read(queryFile, *queryCloud) << std::endl;
 
+	    // Create a flannsearch object to use to do the NN search
 	    typename pcl::search::FlannSearch<DescType, flann::L2<float> > *search(new pcl::search::FlannSearch<DescType, flann::L2<float> >());
-	    typename pcl::DefaultPointRepresentation<DescType>::ConstPtr shotRepr(new pcl::DefaultPointRepresentation<DescType>());
-	    search->setPointRepresentation(shotRepr);
+	    // Flann needs to know the point representation so that it can
+	    // convert it to its internal format
+	    typename pcl::DefaultPointRepresentation<DescType>::ConstPtr descRepr(new pcl::DefaultPointRepresentation<DescType>());
+	    search->setPointRepresentation(descRepr);
 	    search->setInputCloud(targetCloud);
-	
+
+	    // Initialise vectors to store the closest K points to the query point.
 	    std::vector<int> indices(K);
 	    std::vector<float> square_dists(K);
 	    search->nearestKSearch(queryCloud->points[0], K, indices, square_dists);
 
+	    ROS_INFO("Search complete");
+	    
 	    for (int i = 0; i < K; i++) {
 		ROS_INFO("Index: %d, distance: %f", indices[i], square_dists[i]);
 	    }
