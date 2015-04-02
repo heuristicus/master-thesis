@@ -133,6 +133,7 @@ namespace objsearch {
 	    
 	    ROSUtil::getParam(handle, "/preprocess/downsample", doDownsample);
 	    ROSUtil::getParam(handle, "/preprocess/downsample_leafsize", downsampleLeafSize);
+	    ROSUtil::getParam(handle, "/preprocess/downsample_increment", downsampleIncrement);
 
 	    ROS_INFO("Initialisation completed.");
 
@@ -162,6 +163,18 @@ namespace objsearch {
 		sor.setInputCloud(originalCloud);
 		sor.setLeafSize(downsampleLeafSize, downsampleLeafSize, downsampleLeafSize);
 		sor.filter(*workingCloud);
+
+		// Workaround to avoid issues with the "Leaf size is too small
+		// for the input dataset. Integer indices would overflow."
+		// warning which results in no downsampling. Try increasing the
+		// leaf size until the downsampling works correctly.
+		while (workingCloud->size() == originalCloud->size()) {
+		    downsampleLeafSize += downsampleIncrement; // increase by 0.5mm each loop
+		    ROS_INFO("Retrying with leaf size %f", downsampleLeafSize);
+		    sor.setLeafSize(downsampleLeafSize, downsampleLeafSize, downsampleLeafSize);
+		    sor.filter(*workingCloud);
+		}
+		
 		ROS_INFO("Points after downsample: %d", (int)workingCloud->size());
 	    } else {
 		workingCloud = originalCloud;
@@ -174,9 +187,7 @@ namespace objsearch {
 		transformAndRemoveFloorCeiling(workingCloud, cloudTransform);
 		ROS_INFO("Cloud size after trim: %d", (int)workingCloud->size());
 	    }
-
-
-
+	    
 	    pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>());
 	    pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloudWithNormals(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
 	    // need to compute normals before extracting planes

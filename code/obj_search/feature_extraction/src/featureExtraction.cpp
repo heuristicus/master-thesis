@@ -43,6 +43,7 @@ namespace objsearch {
 	    outPath = SysUtil::combinePaths(outDir, dataSubDir);
 
 	    ROSUtil::getParam(handle, "/feature_extraction/feature_type", featureType);
+	    extractFeatures();
 	}
 
 	void FeatureExtractor::extractFeatures(){
@@ -169,7 +170,5 @@ namespace objsearch {
 
 int main(int argc, char *argv[]) {
     objsearch::featureExtraction::FeatureExtractor fe(argc, argv);
-    fe.extractFeatures();
-    
     return 0;
 }

@@ -115,6 +115,7 @@ namespace objsearch {
 
 	    float normalRadius;
 	    float downsampleLeafSize;
+	    float downsampleIncrement;
 	    
 	};
     } // namespace preprocessing

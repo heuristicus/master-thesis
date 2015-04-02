@@ -49,8 +49,14 @@
   <param name="/preprocess/normal_radius" value="$(arg normal_radius)" />
 
   <!-- Downsampling parameters -->
+  <!-- Size to use for all dimensions in the voxel grid -->
   <arg name="downsample_leafsize" default="0.01"/>
   <param name="/preprocess/downsample_leafsize" value="$(arg downsample_leafsize)" />
+  <!-- Sometimes the voxel grid downsampling doesn't work due to an overflow
+       (PCL 1.7.1). Still need to downsample, so mitigate this by trying again
+       and increasing the leafsize by this amount until it actually works. -->
+  <arg name="downsample_increment" default="0.005"/>
+  <param name="/preprocess/downsample_increment" value="$(arg downsample_increment)" />
 
   <!-- Parameters to define whether or not some parts of the preprocessing are
        carried out -->
