@@ -99,11 +99,13 @@ namespace objsearch {
 
 	    // plane extraction parameters
 	    float ransacDistanceThresh;
-	    float minPlaneProp;
+	    float minPlanePropComplete;
+	    float minPlanePropIntermediate;
 	    int ransacIterations;
 	    int planesToExtract;
 	    int planeSkipLimit;
-	    int minPlanePoints;
+	    int minPlanePointsComplete;
+	    int minPlanePointsIntermediate;
 
 	    // trimming parameters
 	    float floorOffset;

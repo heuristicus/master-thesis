@@ -116,8 +116,10 @@ namespace objsearch {
 	    ROSUtil::getParam(handle, "/preprocess/RANSAC_distance_threshold", ransacDistanceThresh);
 	    ROSUtil::getParam(handle, "/preprocess/RANSAC_iterations", ransacIterations);
 	    ROSUtil::getParam(handle, "/preprocess/planes_to_extract", planesToExtract);
-	    ROSUtil::getParam(handle, "/preprocess/min_plane_prop", minPlaneProp);
-	    ROSUtil::getParam(handle, "/preprocess/min_plane_points", minPlanePoints);
+	    ROSUtil::getParam(handle, "/preprocess/min_plane_prop_complete", minPlanePropComplete);
+	    ROSUtil::getParam(handle, "/preprocess/min_plane_prop_intermediate", minPlanePropIntermediate);
+	    ROSUtil::getParam(handle, "/preprocess/min_plane_points_complete", minPlanePointsComplete);
+	    ROSUtil::getParam(handle, "/preprocess/min_plane_points_intermediate", minPlanePointsIntermediate);
 	    ROSUtil::getParam(handle, "/preprocess/plane_skip_limit", planeSkipLimit);
 
 	    ROSUtil::getParam(handle, "/preprocess/trim_cloud", doTrimCloud);
@@ -200,7 +202,7 @@ namespace objsearch {
 	    // Only save the normals cloud once it has also been pruned by the plane extraction
 	    if (doComputeNormals){
 		pcl::PCDWriter writer;
-		std::string outFile = SysUtil::fullDirPath(outPath) + "normCloud.pcd";
+		std::string outFile = SysUtil::fullDirPath(outPath) + outPrefix + "normCloud.pcd";
 		ROS_INFO("Outputting normals to %s", outFile.c_str());
 		writer.write<pcl::Normal>(outFile, *normals, true);
 	    }
@@ -379,7 +381,13 @@ namespace objsearch {
 	    // Choose the larger of a specified number of points, or a
 	    // proportion of the cloud size. This should mitigate fluctuating
 	    // cloud sizes somewhat
-	    int minPoints = std::max((int)(intermediateCloud->size() * minPlaneProp), minPlanePoints);
+	    int minPoints = 2000;
+	    if (type == CloudType::INTERMEDIATE) {
+		minPoints = std::max((int)(intermediateCloud->size() * minPlanePropIntermediate), minPlanePointsIntermediate);
+	    } else if (type == CloudType::FULL) {
+		minPoints = std::max((int)(intermediateCloud->size() * minPlanePropComplete), minPlanePointsComplete);
+	    }
+	    
 	    int skipped = 0;
 	    ROS_INFO("Minimum points per plane: %d", minPoints);
 	    // keep going until the requested number of planes have been

@@ -20,13 +20,17 @@
        be considered. The full room clouds have about 13,000,000 points when not
        downsampled. With downsampling of 0.01 leaf size, this is reduced to
        around 10% of that -->
-  <arg name="min_plane_prop" default="0.02" />
-  <param name="/preprocess/min_plane_prop" value="$(arg min_plane_prop)" />
+  <arg name="min_plane_prop_complete" default="0.02" />
+  <param name="/preprocess/min_plane_prop_complete" value="$(arg min_plane_prop_complete)" />
+    <arg name="min_plane_prop_intermediate" default="0.05" />
+  <param name="/preprocess/min_plane_prop_intermediate" value="$(arg min_plane_prop_intermediate)" />
   <!-- Additional minimum limit on the number of points in an extracted plane.
        The final minimum is the larger value of this and min_plane_prop *
        cloud.size -->
-  <arg name="min_plane_points" default="20000" />
-  <param name="/preprocess/min_plane_points" value="$(arg min_plane_points)" />
+  <arg name="min_plane_points_complete" default="20000" />
+  <param name="/preprocess/min_plane_points_complete" value="$(arg min_plane_points_complete)" />
+  <arg name="min_plane_points_intermediate" default="3000" />
+  <param name="/preprocess/min_plane_points_intermediate" value="$(arg min_plane_points_intermediate)" />
   <!-- The maximum number of times in a row that plane extraction can be skipped
        before it is abandoned -->
   <arg name="plane_skip_limit" default="2" />
