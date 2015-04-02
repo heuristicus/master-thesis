@@ -143,6 +143,11 @@ namespace testing {
 			 SysUtil::trimPath("./hello/this/is/my", 0).c_str());
 	}
 
+	TEST(sysutilTest, trimPath_edge_single) {
+	    ASSERT_STREQ("usr",
+			 SysUtil::trimPath("/usr", -1).c_str());
+	}
+
 	TEST(sysutilTest, trimPath_edge_toofar) {
 	    ASSERT_STREQ("",
 			 SysUtil::trimPath("./hello/this/is/my", 10).c_str());
@@ -157,6 +162,21 @@ namespace testing {
 	    ASSERT_STREQ("/hello/this/is/my",
 			 SysUtil::trimPath("/hello/this/is/my", -10, true).c_str());
 
+	}
+
+	TEST(sysutilTest, removeExtension_basic) {
+	    ASSERT_STREQ("testfile",
+			 SysUtil::removeExtension("testfile.txt").c_str());
+	}
+
+	TEST(sysutilTest, removeExtension_path) {
+	    ASSERT_STREQ("testfile",
+			 SysUtil::removeExtension("/some/random/path/testfile.txt").c_str());
+	}
+
+	TEST(sysutilTest, removeExtension_edge_noextension) {
+	    ASSERT_STREQ("testfile",
+			 SysUtil::removeExtension("/some/random/path/testfile").c_str());
 	}
 
 	TEST(sysutilTest, removePathBase_directory) {

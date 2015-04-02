@@ -226,6 +226,20 @@ namespace SysUtil {
 
 	return path;
     }
+
+    /** 
+     * Remove the extension from a filename. Assumes that the only . in the
+     * filename is that which preceeds the extension. If the filename given is a
+     * path, then it will be trimmed first to remove preceding directories.
+     * 
+     * @param filename The filename to trim.
+     * 
+     * @return Filename without the extension.
+     */
+    std::string removeExtension(std::string filename) {
+	filename = trimPath(filename, -1); // leave only the filename if filename is a path.
+	return std::string(filename, 0, filename.find_last_of('.'));
+    }
     
     /**
      * Removes the base of a path, leaving either the directory or the file
