@@ -21,12 +21,14 @@
 
 #include <ros/console.h>
 
-#include <pcl/features/shot.h>
+#include <pcl/common/common.h>
+#include <pcl/features/shot_omp.h>
+#include <pcl/features/usc.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl/filters/voxel_grid.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_representation.h>
 #include <pcl/point_types.h>
-#include <pcl/features/usc.h>
-#include <pcl/filters/voxel_grid.h>
 
 namespace objsearch {
     namespace featureExtraction {
@@ -35,16 +37,33 @@ namespace objsearch {
 	    FeatureExtractor(int argc, char *argv[]);
 
 	    void extractFeatures();
+	    template<typename DescType, typename PointType>
+	    void writeData(const typename pcl::PointCloud<DescType>::Ptr& descriptors,
+			   const typename pcl::PointCloud<PointType>::Ptr& points);
 
 	    // strings to store information about directories and the like for
 	    // saving and retrieving data.
-	    std::string dataSubDir;
-	    std::string outDir;
-	    std::string rawDir;
-	    std::string processedDir;
-	    std::string cloudFile;
-	    std::string outPath;
-	    std::string featureType;
+	    std::string dataSubDir_;
+	    std::string outDir_;
+	    std::string rawDir_;
+	    std::string processedDir_;
+	    std::string cloudFile_;
+	    std::string outPath_;
+	    std::string featureType_;
+	    std::string featureSelection_;
+
+	    float downsampleLeafSize_;
+
+	    // Standard SHOT parameters
+	    float shotRadius_;
+
+	    // SHOTCOLOR parameters
+
+	    // USC parameters
+	    float uscRadius_;
+	    float uscMinRadius_;
+	    float uscDensityRadius_;
+	    float uscLocalRadius_;
 	};
 
     } // namespace feature_extraction

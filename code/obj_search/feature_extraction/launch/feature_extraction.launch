@@ -5,9 +5,40 @@
   <param name="/feature_extraction/input_cloud" value="$(arg cloud)" />
   <arg name="output" default="NULL"/>
   <param name="/feature_extraction/output_dir" value="$(arg output)" />
-  
+
+  <!-- Defines the type of descriptor to use. Options are shot, usc -->
   <arg name="feature" default="SHOT"/>
   <param name="/feature_extraction/feature_type" value="$(arg feature)" />
+
+  <!-- Defines which method is used to find the points at which descriptors will
+       be computed. Options are uniform-->
+  <arg name="feature_selection" default="uniform"/>
+  <param name="/feature_extraction/feature_selection" value="$(arg feature_selection)" />
+  
+  <!-- If the uniform feature selection method is used, the main cloud is
+       downsampled using a voxel grid with the leaf size specified here. -->
+  <arg name="downsample_leaf_size" default="0.05"/>
+  <param name="/feature_extraction/downsample_leaf_size" value="$(arg downsample_leaf_size)" />
+
+  <!-- Options for the SHOT descriptor -->
+  <arg name="shot_radius" default="0.05"/>
+  <param name="/feature_extraction/shot_radius" value="$(arg shot_radius)" />
+
+  <!-- Options for the USC descriptor -->
+  <!-- Radius within which the descriptors looks for neighbours -->
+  <arg name="usc_radius" default="0.05"/>
+  <param name="/feature_extraction/usc_radius" value="$(arg usc_radius)" />
+  <!-- Radius within which points will be ignored. Stops the descriptor being
+       too sensitive in regions close to the centre of the sphere-->
+  <arg name="usc_minimal_radius" default="0.005"/>
+  <param name="/feature_extraction/usc_minimal_radius" value="$(arg usc_minimal_radius)" />
+  <!-- Radius to use to compute the local point density - number of points within this radius -->
+  <arg name="usc_density_radius" default="0.01"/>
+  <param name="/feature_extraction/usc_density_radius" value="$(arg usc_density_radius)" />
+  <!-- Local reference frame is computed using this radius -->
+  <arg name="usc_local_radius" default="0.05"/>
+  <param name="/feature_extraction/usc_local_radius" value="$(arg usc_local_radius)" />
+  
   
   <node name="feature_extraction" pkg="feature_extraction" type="extract_features" output="screen" />
 </launch>
