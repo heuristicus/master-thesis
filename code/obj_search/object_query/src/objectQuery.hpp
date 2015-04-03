@@ -30,13 +30,13 @@ namespace objsearch {
 	    template<typename DescType>
 	    void doSearch();
 	private:
-	    std::string queryFile;
-	    std::string targetFile;
-	    std::string dataPath;
-	    std::string dataSubDir;
-	    std::string outDir;
-	    std::string outPath;
-	    int K; // number of nearest neighbours to find
+	    std::string queryFile_;
+	    std::string targetFile_;
+	    std::string dataPath_;
+	    std::string dataSubDir_;
+	    std::string outDir_;
+	    std::string outPath_;
+	    int K_; // number of nearest neighbours to find
 	};
 	
     } // namespace objectquery

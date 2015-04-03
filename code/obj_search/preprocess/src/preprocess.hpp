@@ -76,46 +76,46 @@ namespace objsearch {
 		INTERMEDIATE, FULL, OTHER
 	    };
 	    
-	    std::string cloudPath; // path of the target cloud
-	    std::string cloudDir;
-	    std::string cloudFile; // path to the target cloud
-	    std::string roomXML; // xml file with information about the room and intermediate clouds
-	    std::string dataPath; // top level directory which contains the data
-	    std::string dataSubDir; // sub directory within the data path containing the cloud we are interested in
-	    std::string outDir; // directory to which processed clouds will be output
-	    std::string outPrefix; // prefix for the output filename, used for intermediate clouds
-	    std::string outPath;
+	    std::string cloudPath_; // path of the target cloud
+	    std::string cloudDir_;
+	    std::string cloudFile_; // path to the target cloud
+	    std::string roomXML_; // xml file with information about the room and intermediate clouds
+	    std::string dataPath_; // top level directory which contains the data
+	    std::string dataSubDir_; // sub directory within the data path containing the cloud we are interested in
+	    std::string outDir_; // directory to which processed clouds will be output
+	    std::string outPrefix_; // prefix for the output filename, used for intermediate clouds
+	    std::string outPath_;
 	    // a string to determine what sort of cloud is being passed in; a
 	    // full cloud, intermediate cloud, or some other random cloud
-	    CloudType type;
+	    CloudType type_;
 
-	    int cloudNum; // the number of the intermediate cloud (or -1 if not working on an intermediate)
+	    int cloudNum_; // the number of the intermediate cloud (or -1 if not working on an intermediate)
 	    
 	    // flags for executing different parts of preprocessing
-	    bool doExtractPlanes;
-	    bool doTrimCloud;
-	    bool doComputeNormals;
-	    bool doDownsample;
+	    bool doExtractPlanes_;
+	    bool doTrimCloud_;
+	    bool doComputeNormals_;
+	    bool doDownsample_;
 
 	    // plane extraction parameters
-	    float ransacDistanceThresh;
-	    float minPlanePropComplete;
-	    float minPlanePropIntermediate;
-	    int ransacIterations;
-	    int planesToExtract;
-	    int planeSkipLimit;
-	    int minPlanePointsComplete;
-	    int minPlanePointsIntermediate;
+	    float ransacDistanceThresh_;
+	    float minPlanePropComplete_;
+	    float minPlanePropIntermediate_;
+	    int ransacIterations_;
+	    int planesToExtract_;
+	    int planeSkipLimit_;
+	    int minPlanePointsComplete_;
+	    int minPlanePointsIntermediate_;
 
 	    // trimming parameters
-	    float floorOffset;
-	    float ceilingOffset;
-	    float floorZ;
-	    float ceilingZ;
+	    float floorOffset_;
+	    float ceilingOffset_;
+	    float floorZ_;
+	    float ceilingZ_;
 
-	    float normalRadius;
-	    float downsampleLeafSize;
-	    float downsampleIncrement;
+	    float normalRadius_;
+	    float downsampleLeafSize_;
+	    float downsampleIncrement_;
 	    
 	};
     } // namespace preprocessing
