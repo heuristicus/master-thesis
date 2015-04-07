@@ -93,9 +93,9 @@ namespace objsearch {
 		// load the cloud of normals. Should find a better way of
 		// distinguishing between intermediate and complete clouds
 		std::string normFile = SysUtil::trimPath(cloudFile_, 1) + '/';
-		if (cloudFile_[0] == '0') { // intermediate clouds start with zero
+		if (SysUtil::trimPath(cloudFile_, -1)[0] == '0') { // intermediate clouds start with zero
 		    // intermediate has 4 digits followed by underscore
-		    normFile += std::string(cloudFile_, 0, 5) + "normCloud.pcd";
+		    normFile += std::string(SysUtil::trimPath(cloudFile_, -1), 0, 5) + "normCloud.pcd";
 		} else {
 		    normFile += "normCloud.pcd";
 		}
