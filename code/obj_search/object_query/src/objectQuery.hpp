@@ -7,7 +7,9 @@
 #include <cmath>
 #include <string>
 #include <typeinfo>
+#include <utility>
 #include <vector>
+
 
 #include <ros/console.h>
 
@@ -32,6 +34,8 @@ namespace objsearch {
 	private:
 	    std::string queryFile_;
 	    std::string targetFile_;
+	    std::string queryPointFile_;
+	    std::string targetPointFile_;
 	    std::string dataPath_;
 	    std::string dataSubDir_;
 	    std::string outDir_;
