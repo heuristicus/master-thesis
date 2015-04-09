@@ -41,6 +41,8 @@ namespace objsearch {
 	    std::string outDir_;
 	    std::string outPath_;
 	    int K_; // number of nearest neighbours to find
+
+	    bool outputRegions_;
 	};
 	
     } // namespace objectquery

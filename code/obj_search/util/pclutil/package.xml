@@ -18,5 +18,7 @@
   <run_depend>pcl_ros</run_depend>
   <build_depend>sysutil</build_depend>
   <run_depend>sysutil</run_depend>
+  <build_depend>metaroom_xml_parser</build_depend>
+  <run_depend>metaroom_xml_parser</run_depend>
   
 </package>

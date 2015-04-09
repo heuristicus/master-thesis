@@ -14,6 +14,9 @@
   <param name="/object_query/output_dir" value="$(arg output)" />
   <arg name="K" default="-1"/>
   <param name="/object_query/K" value="$(arg K)" />
+
+  <arg name="regions" default="false"/>
+  <param name="/object_query/output_regions" value="$(arg regions)" />
   
   <node name="object_query" pkg="object_query" type="query_object" output="screen" />
 </launch>

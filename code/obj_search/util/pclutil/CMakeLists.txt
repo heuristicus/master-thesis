@@ -6,12 +6,16 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++1y -Wall")
 find_package(catkin REQUIRED COMPONENTS
   pcl_ros
   sysutil
+  metaroom_xml_parser
 )
 
 find_package(PCL 1.7 REQUIRED)
 # to use this, add the location of the directory that pcl 1.7.2 was installed to
 # $CMAKE_PREFIX_PATH
 #find_package(PCL 1.7.2 REQUIRED)
+
+# needed for metaroom xml
+rosbuild_prepare_qt4(QtCore QtXml)
 
 catkin_package(
 #  INCLUDE_DIRS include
@@ -31,3 +35,7 @@ add_dependencies(create_cloud ${catkin_EXPORTED_TARGETS})
 add_executable(view_cloud src/cloudViewer.cpp)
 target_link_libraries(view_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 add_dependencies(view_cloud ${catkin_EXPORTED_TARGETS})
+
+add_executable(merge_cloud src/cloudMerger.cpp)
+target_link_libraries(merge_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES} metaroom_xml_parser sysutil)
+add_dependencies(merge_cloud ${catkin_EXPORTED_TARGETS})
