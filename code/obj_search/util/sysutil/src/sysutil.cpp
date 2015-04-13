@@ -8,7 +8,6 @@
  * 
  */
 #include "sysutil.hpp"
-#include <iostream>
 
 /**
  * @namespace SysUtil Namespace for system utilities like directory interaction
@@ -105,6 +104,52 @@ namespace SysUtil {
 	return c;
     }
 
+    /** 
+     * List 
+     *
+     * @param path The path to list.
+     * @param r Regex to use to search the file/directory names.
+     * 
+     * @return A vector of filenames on \p path which contain \p s.
+     */
+    std::vector<std::string> listFilesWithString(std::string path, std::regex r) {
+	DirContents d = listDir(path); // get the contents of the directory
+
+	std::vector<std::string> matches;
+	// go through the directories, checking for the string
+	for (size_t i = 0; i < d.dirs.size(); i++) {
+	    // the directories are listed with their full path, so extract just
+	    // the last part of the path to get the directory
+	    if (std::regex_match(trimPath(d.dirs[i], -1), r)){
+		matches.push_back(d.dirs[i]);
+	    }
+	}
+
+	// same for the files
+	for (size_t i = 0; i < d.files.size(); i++) {
+	    // extract the last part of the path for the comparison to check
+	    // just the filename
+	    if (std::regex_match(trimPath(d.files[i], -1), r)){
+		matches.push_back(d.files[i]);
+	    }
+	}
+
+	return matches;
+    }
+    
+    /** 
+     * List 
+     *
+     * @param path The path to list.
+     * @param s String to search for inside the file/directory names.
+     * 
+     * @return A vector of filenames on \p path which contain \p s.
+     */
+    std::vector<std::string> listFilesWithString(std::string path, std::string s) {
+	// convert the string to a regex and pass it to the main function
+	std::regex r = std::regex(std::string(".*" + s + ".*"));
+	return listFilesWithString(path, r);
+    }
 
     /**
      * Removes the trailing slash from a directory path if there is one.

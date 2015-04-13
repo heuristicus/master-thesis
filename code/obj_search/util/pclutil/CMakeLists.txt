@@ -24,7 +24,8 @@ CATKIN_DEPENDS pcl_ros sysutil
 #  DEPENDS system_lib
 )
 
-include_directories(include ${PCL_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+include_directories(include ${PCL_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME})
+
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
@@ -39,3 +40,9 @@ add_dependencies(view_cloud ${catkin_EXPORTED_TARGETS})
 add_executable(merge_cloud src/cloudMerger.cpp)
 target_link_libraries(merge_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES} metaroom_xml_parser sysutil)
 add_dependencies(merge_cloud ${catkin_EXPORTED_TARGETS})
+
+add_executable(extract_annotation src/annotationExtract.cpp)
+target_link_libraries(extract_annotation ${catkin_LIBRARIES} ${PCL_LIBRARIES} metaroom_xml_parser sysutil)
+add_dependencies(extract_annotation ${catkin_EXPORTED_TARGETS})
+
+add_library(pclutil src/annotationExtract.cpp)

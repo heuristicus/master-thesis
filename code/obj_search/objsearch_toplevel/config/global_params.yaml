@@ -1,6 +1,6 @@
 obj_search : {
-  raw_data_dir : "/home/michal/Dropbox/study/university/kth/thesis/data/raw/",
-  processed_data_dir : "/home/michal/Dropbox/study/university/kth/thesis/data/processed/",
+  raw_data_dir : "/home/michal/Downloads/pcddata/raw/",
+  processed_data_dir : "/home/michal/Downloads/pcddata/processed/",
   floor_z: 0,
   camera_z: 1.7,
   ceiling_z: 2.27

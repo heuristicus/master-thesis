@@ -11,6 +11,8 @@
 #include <cstdio>
 #include <cstring>
 #include <dirent.h>
+#include <iostream>
+#include <regex>
 #include <string>
 #include <sys/stat.h>
 #include <vector>
@@ -36,6 +38,8 @@ namespace SysUtil {
     bool isDir(const std::string& path);
     bool isFile(const std::string& path);
     DirContents listDir(std::string path);
+    std::vector<std::string> listFilesWithString(std::string path, std::regex r);
+    std::vector<std::string> listFilesWithString(std::string path, std::string s);
     std::string cleanDirPath(std::string path);
     std::string fullDirPath(std::string path);
     std::string removePathBase(std::string path);
