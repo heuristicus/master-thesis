@@ -7,6 +7,10 @@
  * 
  * 
  */
+
+#ifndef SYSUTIL_H
+#define SYSUTIL_H
+
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
@@ -48,3 +52,5 @@ namespace SysUtil {
     bool makeDirs(std::string path);
     std::string combinePaths(std::string a, std::string b);
 } // namespace SysUtil
+
+#endif // SYSUTIL_H

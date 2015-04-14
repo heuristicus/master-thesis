@@ -18,10 +18,8 @@ find_package(PCL 1.7 REQUIRED)
 rosbuild_prepare_qt4(QtCore QtXml)
 
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES 
-CATKIN_DEPENDS pcl_ros sysutil
-#  DEPENDS system_lib
+  CATKIN_DEPENDS pcl_ros sysutil
+  INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 include_directories(include ${PCL_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME})

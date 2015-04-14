@@ -110,7 +110,7 @@ namespace objsearch {
 
 		pcl::PointIndices::Ptr nanIndices(new pcl::PointIndices());
 		
-		for (int i = 0; i < normals->size(); i++) {
+		for (size_t i = 0; i < normals->size(); i++) {
 		    if (std::isnan(normals->points[i].data_c[0])
 			|| std::isnan(normals->points[i].data_c[1])
 			|| std::isnan(normals->points[i].data_c[2])
@@ -217,6 +217,9 @@ namespace objsearch {
 	template<typename DescType, typename PointType>
 	void FeatureExtractor::writeData(const typename pcl::PointCloud<DescType>::Ptr& descriptors,
 					 const typename pcl::PointCloud<PointType>::Ptr& points){
+	    if (!SysUtil::makeDirs(SysUtil::cleanDirPath(outPath_) + "/features/")){
+		ROS_INFO("Could not create output directory.");
+	    }
 	    pcl::PCDWriter writer;
 	    std::string featureOutFile = SysUtil::cleanDirPath(outPath_) + "/features/"
 		+ SysUtil::removeExtension(cloudFile_) + "_shot.pcd";

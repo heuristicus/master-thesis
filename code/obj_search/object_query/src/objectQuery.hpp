@@ -3,9 +3,11 @@
 
 #include "sysutil/sysutil.hpp"
 #include "rosutil/rosutil.hpp"
+#include "pclutil/annotationExtract.hpp"
 
 #include <cmath>
 #include <string>
+#include <limits>
 #include <typeinfo>
 #include <utility>
 #include <vector>
@@ -31,6 +33,7 @@ namespace objsearch {
 	    
 	    template<typename DescType>
 	    void doSearch();
+	    std::pair<float, std::string> nearestAnnotationDistance(pcl::PointXYZRGB point);
 	private:
 	    std::string queryFile_;
 	    std::string targetFile_;

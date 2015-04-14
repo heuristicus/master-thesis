@@ -109,6 +109,49 @@ namespace objsearch {
 	}
 
 	/** 
+	 * Find the annotated object closest to the given point.
+	 * 
+	 * @param point Point to check.
+	 * 
+	 * @return A pair containing the distance to the object and the label of
+	 * the object.
+	 */
+	std::pair<float, std::string> ObjectQuery::nearestAnnotationDistance(pcl::PointXYZRGB point) {
+	    // the location of the annotated objects is in the raw directory.
+	    // The query and target files contain the path, so use those to find
+	    // the location.
+	    std::string rawDir = SysUtil::trimPath(queryFile_, 2); // remove filename and feature directory
+	    // replace "processed" with "raw" in the path
+	    rawDir = rawDir.replace(rawDir.find("processed"),
+				    std::string("processed").size(), "raw");
+	    
+	    std::vector<pclutil::AnnotatedCloud<pcl::PointXYZRGB> > annotations
+		= pclutil::getAnnotatedClouds<pcl::PointXYZRGB>(rawDir);
+
+	    pcl::KdTreeFLANN<pcl::PointXYZRGB> searchTree;
+	    // want to find the minimum distance and the corresponding index.
+	    int minInd = 0;
+	    float minDist = std::numeric_limits<float>::max();
+	    std::vector<int> nn(1); // index of nearest point
+	    std::vector<float> pointDistance(1); // distances of point
+	    // look through all the annotated object clouds and find the nearest
+	    // neighbour to the point received.
+	    for (size_t i = 0; i < annotations.size(); i++) {
+		searchTree.setInputCloud(annotations[i].cloud);
+		searchTree.nearestKSearch(point, 1, nn, pointDistance);
+		ROS_INFO("Distance to %s: %f", annotations[i].label.c_str(),
+			 pointDistance[0]);
+		if (pointDistance[0] < minDist){
+		    minInd = i;
+		    minDist = pointDistance[0];
+		}
+	    }
+
+	    return std::pair<float, std::string>(minDist,
+						 annotations[minInd].label);
+	}
+
+	/** 
 	 * Do a nearest neighbour search for the features in the query cloud in
 	 * the target cloud. 
 	 * 
@@ -131,12 +174,25 @@ namespace objsearch {
 	    
 
 	    // Create a flannsearch object to use to do the NN search
-	    typename pcl::search::FlannSearch<DescType, flann::L2_Simple<float> > *search(new pcl::search::FlannSearch<DescType, flann::L2_Simple<float> >());
+	    typename pcl::search::FlannSearch<DescType, flann::L2_Simple<float> >
+		*search(new pcl::search::FlannSearch<DescType, flann::L2_Simple<float> >());
 	    // Flann needs to know the point representation so that it can
 	    // convert it to its internal format
-	    typename pcl::DefaultPointRepresentation<DescType>::ConstPtr descRepr(new pcl::DefaultPointRepresentation<DescType>());
+	    typename pcl::DefaultPointRepresentation<DescType>::ConstPtr
+		descRepr(new pcl::DefaultPointRepresentation<DescType>());
 	    search->setPointRepresentation(descRepr);
 	    search->setInputCloud(targetCloud);
+	    
+	    // Use these to find the xyz position of the features in the clouds
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr targetPoints(new pcl::PointCloud<pcl::PointXYZRGB>());
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr queryPoints(new pcl::PointCloud<pcl::PointXYZRGB>());
+	    reader.read(targetPointFile_, *targetPoints);
+	    reader.read(queryPointFile_, *queryPoints);
+
+	    nearestAnnotationDistance(targetPoints->points[0]);
+
+	    exit(1);
+
 
 	    ROS_INFO("Starting search");
 	    // Loop over all points in the query cloud
@@ -150,15 +206,10 @@ namespace objsearch {
 		// Search for the closest K points to the query point
 		search->nearestKSearch(queryCloud->points[0], K_, indices, square_dists);
 
+		
 		nearest.push_back(indices);
 
 		if (outputRegions_) {
-		    // Use these to find the xyz position of the features in the clouds
-		    pcl::PointCloud<pcl::PointXYZRGB>::Ptr targetPoints(new pcl::PointCloud<pcl::PointXYZRGB>());
-		    pcl::PointCloud<pcl::PointXYZRGB>::Ptr queryPoints(new pcl::PointCloud<pcl::PointXYZRGB>());
-
-		    reader.read(targetPointFile_, *targetPoints);
-		    reader.read(queryPointFile_, *queryPoints);
 		    pcl::PCDWriter writer;
 
 		    // create kd trees to use to find points within a given radius of a
@@ -192,6 +243,8 @@ namespace objsearch {
 	    
 		    ROS_INFO("Query point (%f, %f, %f)", queryPoints->points[0].x,
 			     queryPoints->points[0].y, queryPoints->points[0].z);
+
+		    // Loop over all the nearest neighbours and create regions for them as well.
 		    for (int i = 0; i < K_; i++) {
 			ROS_INFO("Index: %d, descriptor distance: %f", indices[i],
 				 square_dists[i]);
@@ -205,9 +258,12 @@ namespace objsearch {
 						  radius, nn, pointRadiusSquaredDistance);
 			ROS_INFO("%d points within radius %f of matched target point.",
 				 (int)nn.size(), radius);
+			// push all points from the radius search into the new cloud
 			for (int j = 0; j < nn.size(); j++) {
 			    regionPoints->push_back(targetPoints->points[nn[j]]);
 			}
+
+			// output the region cloud
 			std::string targetRegionOut = outPath_ + "nn" + std::to_string(i) + ".pcd";
 			ROS_INFO("Outputting target point region to %s", targetRegionOut.c_str());
 			writer.write<pcl::PointXYZRGB>(targetRegionOut, *regionPoints, true);

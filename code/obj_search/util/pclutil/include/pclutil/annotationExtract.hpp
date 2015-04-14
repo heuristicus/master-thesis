@@ -1,3 +1,6 @@
+#ifndef ANNOTATION_EXTRACT_H
+#define ANNOTATION_EXTRACT_H
+
 #include <algorithm>
 #include <fstream>
 #include <iostream>
@@ -13,17 +16,21 @@
 
 #include <pcl_ros/transforms.h>
 
-#include <load_utilities.h>
-
 #include "sysutil/sysutil.hpp"
 
-template <typename PointT>
-struct AnnotatedCloud {
-    AnnotatedCloud(std::string _label, typename pcl::PointCloud<PointT>::Ptr _cloud)
-	: label(_label), cloud(_cloud) {}
-    std::string label;
-    typename pcl::PointCloud<PointT>::Ptr cloud;
-};
+namespace objsearch {
+    namespace pclutil {
+	template <typename PointT>
+	struct AnnotatedCloud {
+	    AnnotatedCloud(std::string _label, typename pcl::PointCloud<PointT>::Ptr _cloud)
+		: label(_label), cloud(_cloud) {}
+	    std::string label;
+	    typename pcl::PointCloud<PointT>::Ptr cloud;
+	};
 
-template <typename PointT>
-std::vector<AnnotatedCloud<PointT> > getAnnotatedClouds(std::string filePath);
+	template <typename PointT>
+	std::vector<AnnotatedCloud<PointT> > getAnnotatedClouds(std::string filePath);
+    } // namespace pclutil
+} // namespace objsearch
+
+#endif // ANNOTATION_EXTRACT_H

@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_ros
   rosutil
   sysutil
+  pclutil
 )
 
 find_package(PCL REQUIRED)
@@ -16,7 +17,7 @@ find_package(PCL REQUIRED)
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES 
-  CATKIN_DEPENDS roscpp std_msgs pcl_ros rosutil sysutil
+  CATKIN_DEPENDS roscpp std_msgs pcl_ros rosutil sysutil pclutil
 #  DEPENDS system_lib
 )
 
@@ -25,5 +26,5 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 add_executable(query_object src/objectQuery.cpp)
-target_link_libraries(query_object ${catkin_LIBRARIES} ${PCL_LIBRARIES} rosutil sysutil)
+target_link_libraries(query_object ${catkin_LIBRARIES} ${PCL_LIBRARIES} rosutil sysutil pclutil)
 add_dependencies(query_object ${catkin_EXPORTED_TARGETS})
