@@ -109,46 +109,74 @@ namespace objsearch {
 	}
 
 	/** 
-	 * Find the annotated object closest to the given point.
+	 * Annotate points in a cloud loaded from a certain directory based on
+	 * the annotations which are assumed to be in a corresponding directory
+	 * with the "raw" directory as a prefix. For example, if given the
+	 * directory /home/user/items/processed/cloud/room1, the corresponding
+	 * raw directory would be /home/user/items/raw/cloud/room1. Points in
+	 * the given cloud will be compared to the annotated objects, and
+	 * labelled with the label of the nearest object, but only if the point
+	 * is within a euclidean distance of maxDist of the object.
 	 * 
-	 * @param point Point to check.
-	 * 
-	 * @return A pair containing the distance to the object and the label of
-	 * the object.
+	 * @param dir The top level room directory containing the cloud of
+	 * interest. The corresponding raw directory will be deduced.
+	 * @param cloud The cloud containing points to annotate.
+	 * @param indices This vector will be populated with the indices of the
+	 * points which have been labelled
+	 * @param labels Will be populated with the labels of the points
+	 * @param distances Will be populated with the minimum distance of the point to its object
+	 * @param maxDist The maximum distance from an object a point can be to
+	 * still be considered part of the object
 	 */
-	std::pair<float, std::string> ObjectQuery::nearestAnnotationDistance(pcl::PointXYZRGB point) {
+	void ObjectQuery::annotatePoints(std::string dir, const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
+					 std::vector<int>& indices, std::vector<std::string>& labels,
+					 std::vector<float>& distances, float maxDist) {
 	    // the location of the annotated objects is in the raw directory.
-	    // The query and target files contain the path, so use those to find
-	    // the location.
-	    std::string rawDir = SysUtil::trimPath(queryFile_, 2); // remove filename and feature directory
-	    // replace "processed" with "raw" in the path
-	    rawDir = rawDir.replace(rawDir.find("processed"),
-				    std::string("processed").size(), "raw");
-	    
+	    // replace "processed" with "raw" in the path. This should work OK
+	    // if the directory received is a raw directory.
+	    std::string rawDir = dir.replace(dir.find("processed"),
+					     std::string("processed").size(), "raw");
+
+	    // extract the annotated clouds from the raw directory along with their labels
 	    std::vector<pclutil::AnnotatedCloud<pcl::PointXYZRGB> > annotations
 		= pclutil::getAnnotatedClouds<pcl::PointXYZRGB>(rawDir);
 
 	    pcl::KdTreeFLANN<pcl::PointXYZRGB> searchTree;
 	    // want to find the minimum distance and the corresponding index.
-	    int minInd = 0;
-	    float minDist = std::numeric_limits<float>::max();
-	    std::vector<int> nn(1); // index of nearest point
-	    std::vector<float> pointDistance(1); // distances of point
-	    // look through all the annotated object clouds and find the nearest
-	    // neighbour to the point received.
-	    for (size_t i = 0; i < annotations.size(); i++) {
-		searchTree.setInputCloud(annotations[i].cloud);
-		searchTree.nearestKSearch(point, 1, nn, pointDistance);
-		ROS_INFO("Distance to %s: %f", annotations[i].label.c_str(),
-			 pointDistance[0]);
-		if (pointDistance[0] < minDist){
-		    minInd = i;
-		    minDist = pointDistance[0];
+
+	    pcl::PointXYZRGB point;
+	    int minInd = 0; // index of the point closest to the current object
+	    float minDist = std::numeric_limits<float>::max(); // minimum distance from the point to an object
+	    std::vector<int> nn(1); // index of nearest point on annotated object
+	    std::vector<float> pointDistance(1); // distance of point from annotated object
+
+	    // look through all the points in the cloud to be annotated
+	    for (size_t i = 0; i < cloud->size(); i++) {
+		point = cloud->points[i];
+
+		// reset the min index and distance for the new point
+		minInd = 0;
+		minDist = std::numeric_limits<float>::max();
+		// look through all the annotated object clouds and find the nearest
+		// neighbour to the point received.
+		for (size_t j = 0; j < annotations.size(); j++) {
+		    searchTree.setInputCloud(annotations[j].cloud);
+		    searchTree.nearestKSearch(point, 1, nn, pointDistance); // search for 1-nn
+		    // update index and minimum distance to the object
+		    if (pointDistance[0] < minDist){
+			minInd = j;
+			minDist = pointDistance[0];
+		    }
+		}
+
+		// if the point is within the requested distance of the object,
+		// push information about the point onto the vectors
+		if (minDist < maxDist){
+		    indices.push_back(i);
+		    labels.push_back(annotations[minInd].label);
+		    distances.push_back(minDist);
 		}
 	    }
-
-	    return std::pair<float, std::string>(minDist,
-						 annotations[minInd].label);
 	}
 
 	/** 
@@ -189,10 +217,15 @@ namespace objsearch {
 	    reader.read(targetPointFile_, *targetPoints);
 	    reader.read(queryPointFile_, *queryPoints);
 
-	    nearestAnnotationDistance(targetPoints->points[0]);
+	    std::vector<int> indices;
+	    std::vector<std::string> labels;
+	    std::vector<float> distances;
+	    
+	    annotatePoints(SysUtil::trimPath(queryPointFile_, 2), queryPoints, indices, labels, distances, 0.4);
 
+	    ROS_INFO("%d annotated points of %d total", (int)indices.size(), (int)queryPoints->size());
+	    
 	    exit(1);
-
 
 	    ROS_INFO("Starting search");
 	    // Loop over all points in the query cloud
@@ -204,9 +237,8 @@ namespace objsearch {
 		std::vector<float> square_dists(K_);
 	    
 		// Search for the closest K points to the query point
-		search->nearestKSearch(queryCloud->points[0], K_, indices, square_dists);
+		search->nearestKSearch(queryCloud->points[i], K_, indices, square_dists);
 
-		
 		nearest.push_back(indices);
 
 		if (outputRegions_) {

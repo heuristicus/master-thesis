@@ -33,7 +33,10 @@ namespace objsearch {
 	    
 	    template<typename DescType>
 	    void doSearch();
-	    std::pair<float, std::string> nearestAnnotationDistance(pcl::PointXYZRGB point);
+	    void annotatePoints(std::string dir,
+				const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
+				std::vector<int>& indices, std::vector<std::string>& labels,
+				std::vector<float>& distances, float maxDist);
 	private:
 	    std::string queryFile_;
 	    std::string targetFile_;
