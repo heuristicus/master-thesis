@@ -12,7 +12,6 @@
 #include <utility>
 #include <vector>
 
-
 #include <ros/console.h>
 
 #include <pcl/features/shot.h>

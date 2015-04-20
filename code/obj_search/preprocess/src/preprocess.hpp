@@ -13,6 +13,7 @@
 
 #include "rosutil/rosutil.hpp"
 #include "sysutil/sysutil.hpp"
+#include "pclutil/annotationExtract.hpp"
 
 #include <algorithm>
 #include <cstdlib>
@@ -94,6 +95,7 @@ namespace objsearch {
 	    // flags for executing different parts of preprocessing
 	    bool doExtractPlanes_;
 	    bool doTrimCloud_;
+	    bool doRotateAnnotations_;
 	    bool doComputeNormals_;
 	    bool doDownsample_;
 

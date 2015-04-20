@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_ros
   rosutil
   sysutil
+  pclutil
   metaroom_xml_parser
 )
 
@@ -19,7 +20,7 @@ find_package(PCL REQUIRED)
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES 
-  CATKIN_DEPENDS roscpp std_msgs pcl_ros rosutil sysutil
+  CATKIN_DEPENDS roscpp std_msgs pcl_ros rosutil sysutil pclutil
 #  DEPENDS system_lib
 )
 
@@ -28,5 +29,5 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 add_executable(preprocess src/preprocess.cpp)
-target_link_libraries(preprocess ${catkin_LIBRARIES} ${PCL_LIBRARIES} rosutil sysutil metaroom_xml_parser)
+target_link_libraries(preprocess ${catkin_LIBRARIES} ${PCL_LIBRARIES} rosutil sysutil pclutil metaroom_xml_parser)
 add_dependencies(preprocess ${catkin_EXPORTED_TARGETS})

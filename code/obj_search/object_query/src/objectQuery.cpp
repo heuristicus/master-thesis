@@ -110,16 +110,13 @@ namespace objsearch {
 
 	/** 
 	 * Annotate points in a cloud loaded from a certain directory based on
-	 * the annotations which are assumed to be in a corresponding directory
-	 * with the "raw" directory as a prefix. For example, if given the
-	 * directory /home/user/items/processed/cloud/room1, the corresponding
-	 * raw directory would be /home/user/items/raw/cloud/room1. Points in
-	 * the given cloud will be compared to the annotated objects, and
-	 * labelled with the label of the nearest object, but only if the point
-	 * is within a euclidean distance of maxDist of the object.
+	 * the annotations. Points in the given cloud will be compared to the
+	 * annotated objects, and labelled with the label of the nearest object,
+	 * but only if the point is within a euclidean distance of maxDist of
+	 * the object.
 	 * 
 	 * @param dir The top level room directory containing the cloud of
-	 * interest. The corresponding raw directory will be deduced.
+	 * interest.
 	 * @param cloud The cloud containing points to annotate.
 	 * @param indices This vector will be populated with the indices of the
 	 * points which have been labelled
@@ -131,15 +128,10 @@ namespace objsearch {
 	void ObjectQuery::annotatePoints(std::string dir, const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 					 std::vector<int>& indices, std::vector<std::string>& labels,
 					 std::vector<float>& distances, float maxDist) {
-	    // the location of the annotated objects is in the raw directory.
-	    // replace "processed" with "raw" in the path. This should work OK
-	    // if the directory received is a raw directory.
-	    std::string rawDir = dir.replace(dir.find("processed"),
-					     std::string("processed").size(), "raw");
 
 	    // extract the annotated clouds from the raw directory along with their labels
 	    std::vector<pclutil::AnnotatedCloud<pcl::PointXYZRGB> > annotations
-		= pclutil::getAnnotatedClouds<pcl::PointXYZRGB>(rawDir);
+		= pclutil::getProcessedAnnotatedClouds<pcl::PointXYZRGB>(dir);
 
 	    pcl::KdTreeFLANN<pcl::PointXYZRGB> searchTree;
 	    // want to find the minimum distance and the corresponding index.

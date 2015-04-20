@@ -66,6 +66,8 @@
   <param name="/preprocess/extract_planes" value="$(arg planes)" />
   <arg name="trim" default="true"/>
   <param name="/preprocess/trim_cloud" value="$(arg trim)" />
+  <arg name="annotations" default="true"/>
+  <param name="/preprocess/rotate_annotations" value="$(arg annotations)" />
   <arg name="normals" default="true"/>
   <param name="/preprocess/compute_normals" value="$(arg normals)" />
 

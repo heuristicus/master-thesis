@@ -123,6 +123,7 @@ namespace objsearch {
 	    ROSUtil::getParam(handle, "/preprocess/plane_skip_limit", planeSkipLimit_);
 
 	    ROSUtil::getParam(handle, "/preprocess/trim_cloud", doTrimCloud_);
+	    ROSUtil::getParam(handle, "/preprocess/rotate_annotations", doRotateAnnotations_);
 	    ROSUtil::getParam(handle, "/preprocess/floor_offset", floorOffset_);
 	    ROSUtil::getParam(handle, "/preprocess/ceiling_offset", ceilingOffset_);
 	    ROSUtil::getParam(handle, "/obj_search/floor_z", floorZ_);
@@ -155,6 +156,12 @@ namespace objsearch {
 	    // cloudTransform.getOrigin().setY(0);
 	    // cloudTransform.getOrigin().setZ(0);
 
+	    // create the directory for output if it has not already been created
+	    if (!SysUtil::makeDirs(outPath_)){
+		ROS_INFO("Could not create output directory %s.", outPath_.c_str());
+		perror("Error message");
+		exit(1);
+	    }
 
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr workingCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
 	    if (doDownsample_) {
@@ -187,6 +194,8 @@ namespace objsearch {
 		transformAndRemoveFloorCeiling(workingCloud, cloudTransform);
 		ROS_INFO("Cloud size after trim: %d", (int)workingCloud->size());
 	    }
+
+	    exit(1);
 	    
 	    pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>());
 	    pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloudWithNormals(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
@@ -315,6 +324,31 @@ namespace objsearch {
 	    ROS_INFO("Writing trimmed cloud...");
 	    writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(cloudDir_) + outPrefix_
 					   + "trimmedRoom.pcd", *cloud, true);
+
+	    if (doRotateAnnotations_){
+		std::vector<pclutil::AnnotatedCloud<pcl::PointXYZRGB> > annotations
+		    = pclutil::getRawAnnotatedClouds<pcl::PointXYZRGB>(cloudDir_);
+		
+		for (size_t i = 0; i < annotations.size(); i++) {
+		    pcl_ros::transformPointCloud(*(annotations[i].cloud), *transformedCloud,
+						 cloudTransform);
+
+		    // get the file name
+		    std::string nameRoot = SysUtil::trimPath(annotations[i].fname, -1);
+		    // remove the extension and another bit of the annotation
+		    // string preceding the label number to make the base string
+		    // on top of which the actual label will be placed.
+		    std::string base = std::string(nameRoot.begin(),
+						   nameRoot.begin() + nameRoot.find_last_of('_'));
+
+		    // no prefix for the annotations, they are the same whether
+		    // the cloud input is intermediate or the complete cloud
+		    writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath_) + 
+						   base + "_" + annotations[i].label + ".pcd",
+						   *(transformedCloud), true);
+		}
+	    }
+	    
 	    ROS_INFO("Done");
 	}
 
@@ -379,13 +413,6 @@ namespace objsearch {
 	    // The points which are not inliers to the plane will be placed into this
 	    // cloud and then swapped into intermediateCloud
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr remainingPoints(new pcl::PointCloud<pcl::PointXYZRGB>);
-
-	    // create the directory for output if it has not already been created
-	    if (!SysUtil::makeDirs(outPath_)){
-		std::cout << "Could not write point clouds to output directory." << std::endl;
-		perror("Error message");
-		exit(1);
-	    }
 
 	    pcl::PCDWriter writer;
 	    ROS_INFO("Starting plane extraction.");
