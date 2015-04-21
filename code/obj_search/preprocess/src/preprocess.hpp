@@ -54,10 +54,10 @@ namespace objsearch {
 	public:
 	    PreprocessRoom(int argc, char* argv[]);
             void preprocessCloud();
-            void loadCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
+	    void loadCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 			   tf::StampedTransform& cloudTransform);
-            void transformAndRemoveFloorCeiling(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
-				                const tf::StampedTransform& cloudTransform);
+	    void transformAndRemoveFloorCeiling(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
+						const tf::StampedTransform& cloudTransform);
 	    void extractPlanes(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 			       pcl::PointCloud<pcl::Normal>::Ptr& normals);
 	    template<typename SegmentationType>

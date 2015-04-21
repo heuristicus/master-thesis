@@ -146,15 +146,11 @@ namespace objsearch {
 	 */
 	void PreprocessRoom::preprocessCloud() {
 	    ROS_INFO("Start processing");
-	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr originalCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr
+		originalCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
 	    tf::StampedTransform cloudTransform;
 
 	    loadCloud(originalCloud, cloudTransform);
-	    // We don't actually care about translating the room, just rotating
-	    // it, so zero the origin
-	    // cloudTransform.getOrigin().setX(0);
-	    // cloudTransform.getOrigin().setY(0);
-	    // cloudTransform.getOrigin().setZ(0);
 
 	    // create the directory for output if it has not already been created
 	    if (!SysUtil::makeDirs(outPath_)){
@@ -168,7 +164,8 @@ namespace objsearch {
 		ROS_INFO("Points before downsample: %d", (int)originalCloud->size());
 		pcl::VoxelGrid<pcl::PointXYZRGB> sor;
 		sor.setInputCloud(originalCloud);
-		sor.setLeafSize(downsampleLeafSize_, downsampleLeafSize_, downsampleLeafSize_);
+		sor.setLeafSize(downsampleLeafSize_, downsampleLeafSize_,
+				downsampleLeafSize_);
 		sor.filter(*workingCloud);
 
 		// Workaround to avoid issues with the "Leaf size is too small
@@ -178,7 +175,8 @@ namespace objsearch {
 		while (workingCloud->size() == originalCloud->size()) {
 		    downsampleLeafSize_ += downsampleIncrement_; // increase by 0.5mm each loop
 		    ROS_INFO("Retrying with leaf size %f", downsampleLeafSize_);
-		    sor.setLeafSize(downsampleLeafSize_, downsampleLeafSize_, downsampleLeafSize_);
+		    sor.setLeafSize(downsampleLeafSize_, downsampleLeafSize_,
+				    downsampleLeafSize_);
 		    sor.filter(*workingCloud);
 		}
 		
@@ -244,7 +242,6 @@ namespace objsearch {
 	 */
 	void PreprocessRoom::loadCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud, // needs to be a reference to allow modification. Weird pointer type
 				       tf::StampedTransform& cloudTransform) {
-
 	    if (type_ == CloudType::OTHER){
 		ROS_INFO("Reading cloud");
 		pcl::PCDReader reader;
@@ -284,7 +281,6 @@ namespace objsearch {
 	 */
 	void PreprocessRoom::transformAndRemoveFloorCeiling(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 							    const tf::StampedTransform& cloudTransform){
-//	    tf::StampedTransform roomRotation = roomData.vIntermediateRoomCloudTransforms[0];
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformedCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 
 	    // This is the point at which the camera was while taking the images.
@@ -325,13 +321,15 @@ namespace objsearch {
 	    writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(cloudDir_) + outPrefix_
 					   + "trimmedRoom.pcd", *cloud, true);
 
-	    if (doRotateAnnotations_){
+	    if (doRotateAnnotations_ && type_ == CloudType::FULL){ // only put the annotations into the full cloud reference frame
 		std::vector<pclutil::AnnotatedCloud<pcl::PointXYZRGB> > annotations
 		    = pclutil::getRawAnnotatedClouds<pcl::PointXYZRGB>(cloudDir_);
 		
 		for (size_t i = 0; i < annotations.size(); i++) {
-		    pcl_ros::transformPointCloud(*(annotations[i].cloud), *transformedCloud,
-						 cloudTransform);
+		    // annotations start off in the same frame as the complete
+		    // cloud, so just apply the same transform as is applied to
+		    // everything else
+		    pcl_ros::transformPointCloud(*(annotations[i].cloud), *transformedCloud, cloudTransform);
 
 		    // get the file name
 		    std::string nameRoot = SysUtil::trimPath(annotations[i].fname, -1);

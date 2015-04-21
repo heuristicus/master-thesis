@@ -39,4 +39,8 @@ add_executable(merge_cloud src/cloudMerger.cpp)
 target_link_libraries(merge_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES} metaroom_xml_parser sysutil)
 add_dependencies(merge_cloud ${catkin_EXPORTED_TARGETS})
 
+add_executable(rotate_cloud src/cloudRotator.cpp)
+target_link_libraries(rotate_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES} metaroom_xml_parser sysutil)
+add_dependencies(rotate_cloud ${catkin_EXPORTED_TARGETS})
+
 add_library(pclutil src/annotationExtract.cpp)
