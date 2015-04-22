@@ -63,38 +63,44 @@ namespace objsearch {
 		exit(1);
 	    }
 
-	    // Define the locations of the original point clouds used to extract
-	    // features by extracting filenames from the query and target files.
-	    // We assume that the features directory is a subdirectory of the
-	    // directory containing those original files.
-	    std::string filePath = SysUtil::fullDirPath(SysUtil::trimPath(targetFile_, 2)); // original file dir
-	    std::string queryFName = SysUtil::trimPath(queryFile_, -1);
-	    std::string targetFName = SysUtil::trimPath(targetFile_, -1);
+	    // // Define the locations of the original point clouds used to extract
+	    // // features by extracting filenames from the query and target files.
+	    // // We assume that the features directory is a subdirectory of the
+	    // // directory containing those original files.
+	    // std::string filePath = SysUtil::fullDirPath(SysUtil::trimPath(targetFile_, 2)); // original file dir
+	    // std::string queryFName = SysUtil::trimPath(queryFile_, -1);
+	    // std::string targetFName = SysUtil::trimPath(targetFile_, -1);
 
-	    // if the files are intermediate, start the search for the
-	    // underscore after the first five characters.
-	    int qstart = 0;
-	    int tstart = 0;
-	    if (queryFName.front() == '0') {
-		qstart = 5;
-	    } else if (targetFName.front() == '0'){
-		tstart = 5;
-	    }
+	    // // if the files are intermediate, start the search for the
+	    // // underscore after the first five characters.
+	    // int qstart = 0;
+	    // int tstart = 0;
+	    // if (queryFName.front() == '0') {
+	    // 	qstart = 5;
+	    // } else if (targetFName.front() == '0'){
+	    // 	tstart = 5;
+	    // }
 
-	    // Construct the name of the file by extracting part of the
-	    // query/target file names
-	    std::string queryName = std::string(queryFName.begin(),
-						queryFName.begin()
-						+ queryFName.find_first_of('_', qstart));
-	    std::string targetName = std::string(targetFName.begin(),
-						 targetFName.begin()
-						 + targetFName.find_first_of('_', tstart));
+	    // // Construct the name of the file by extracting part of the
+	    // // query/target file names
+	    // std::string queryName = std::string(queryFName.begin(),
+	    // 					queryFName.begin()
+	    // 					+ queryFName.find_first_of('_', qstart));
+	    // std::string targetName = std::string(targetFName.begin(),
+	    // 					 targetFName.begin()
+	    // 					 + targetFName.find_first_of('_', tstart));
 
-	    // Combine the paths, filenames and the extension to get the full path
-	    targetPointFile_ = filePath + targetName + ".pcd";
-	    queryPointFile_ = filePath + queryName + ".pcd";
-	    ROS_INFO("Loading target points from %s", targetPointFile_.c_str());
-	    ROS_INFO("Loading query points from %s", queryPointFile_.c_str());
+	    // // Combine the paths, filenames and the extension to get the full path
+	    // targetPointFile_ = filePath + targetName + ".pcd";
+	    // queryPointFile_ = filePath + queryName + ".pcd";
+
+	    // define the locations of the files containing the points at which
+	    // features were extracted. Same as the file names, but with
+	    // "_points" added on to the end
+	    targetPointFile_ = SysUtil::removeExtension(targetFile_, false) + "_points.pcd";
+	    queryPointFile_ = SysUtil::removeExtension(queryFile_, false) + "_points.pcd";
+	    ROS_INFO("Loading target feature points from %s", targetPointFile_.c_str());
+	    ROS_INFO("Loading query feature points from %s", queryPointFile_.c_str());
 	    
 	    // Depending on the type of the descriptor in the cloud, we need to
 	    // instantiate a different template for the search function
@@ -132,6 +138,8 @@ namespace objsearch {
 	    // extract the annotated clouds from the raw directory along with their labels
 	    std::vector<pclutil::AnnotatedCloud<pcl::PointXYZRGB> > annotations
 		= pclutil::getProcessedAnnotatedClouds<pcl::PointXYZRGB>(dir);
+
+	    exit(1);
 
 	    pcl::KdTreeFLANN<pcl::PointXYZRGB> searchTree;
 	    // want to find the minimum distance and the corresponding index.
@@ -183,15 +191,21 @@ namespace objsearch {
 	    pcl::PCDReader reader;
 
 	    // Read the input clouds for the target and query descriptors. We
-	    // want to find descriptors in targetCloud which are close to those
-	    // in queryCloud. Need to use typename here because of dependent
+	    // want to find descriptors in targetFeatures which are close to those
+	    // in queryFeatures. Need to use typename here because of dependent
 	    // scope - what it is depends on the instantiation of the template
 	    // argument
-	    typename pcl::PointCloud<DescType>::Ptr targetCloud(new pcl::PointCloud<DescType>());
-	    typename pcl::PointCloud<DescType>::Ptr queryCloud(new pcl::PointCloud<DescType>());
-	    reader.read(targetFile_, *targetCloud);
-	    reader.read(queryFile_, *queryCloud);
+	    typename pcl::PointCloud<DescType>::Ptr targetFeatures(new pcl::PointCloud<DescType>());
+	    typename pcl::PointCloud<DescType>::Ptr queryFeatures(new pcl::PointCloud<DescType>());
+	    reader.read(targetFile_, *targetFeatures);
+	    reader.read(queryFile_, *queryFeatures);
 	    
+	    // each point in these clouds corresponds to the location of the
+	    // feature at the same index in the above clouds
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr targetPoints(new pcl::PointCloud<pcl::PointXYZRGB>());
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr queryPoints(new pcl::PointCloud<pcl::PointXYZRGB>());
+	    reader.read(targetPointFile_, *targetPoints);
+	    reader.read(queryPointFile_, *queryPoints);
 
 	    // Create a flannsearch object to use to do the NN search
 	    typename pcl::search::FlannSearch<DescType, flann::L2_Simple<float> >
@@ -201,18 +215,15 @@ namespace objsearch {
 	    typename pcl::DefaultPointRepresentation<DescType>::ConstPtr
 		descRepr(new pcl::DefaultPointRepresentation<DescType>());
 	    search->setPointRepresentation(descRepr);
-	    search->setInputCloud(targetCloud);
-	    
-	    // Use these to find the xyz position of the features in the clouds
-	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr targetPoints(new pcl::PointCloud<pcl::PointXYZRGB>());
-	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr queryPoints(new pcl::PointCloud<pcl::PointXYZRGB>());
-	    reader.read(targetPointFile_, *targetPoints);
-	    reader.read(queryPointFile_, *queryPoints);
+	    search->setInputCloud(targetFeatures);
 
 	    std::vector<int> indices;
 	    std::vector<std::string> labels;
 	    std::vector<float> distances;
-	    
+
+	    ROS_INFO("query point file %s", queryPointFile_.c_str());
+	    // assime that the annotations are in a directory above the one in
+	    // which feature clouds are stored.
 	    annotatePoints(SysUtil::trimPath(queryPointFile_, 2), queryPoints, indices, labels, distances, 0.4);
 
 	    ROS_INFO("%d annotated points of %d total", (int)indices.size(), (int)queryPoints->size());
@@ -221,81 +232,96 @@ namespace objsearch {
 
 	    ROS_INFO("Starting search");
 	    // Loop over all points in the query cloud
-	    std::vector<std::vector<int> > nearest((int)queryCloud->size());
-	    for (int i = 0; i < queryCloud->size(); i++) {
-		ROS_INFO("Query point %d of %d", i + 1, (int)queryCloud->size());
+	    std::vector<std::vector<int> > nearest((int)queryFeatures->size());
+	    
+	    for (int i = 0; i < queryFeatures->size(); i++) {
+		ROS_INFO("Query point %d of %d", i + 1, (int)queryFeatures->size());
 		// Initialise vectors to store the closest K points to the query point.	
 		std::vector<int> indices(K_);
 		std::vector<float> square_dists(K_);
 	    
 		// Search for the closest K points to the query point
-		search->nearestKSearch(queryCloud->points[i], K_, indices, square_dists);
+		search->nearestKSearch(queryFeatures->points[i], K_, indices, square_dists);
 
 		nearest.push_back(indices);
 
-		if (outputRegions_) {
-		    pcl::PCDWriter writer;
-
-		    // create kd trees to use to find points within a given radius of a
-		    // specific point
-		    pcl::KdTreeFLANN<pcl::PointXYZRGB> kdtreeQuery;
-		    pcl::KdTreeFLANN<pcl::PointXYZRGB> kdtreeTarget;
-		    kdtreeQuery.setInputCloud(queryPoints);
-		    kdtreeTarget.setInputCloud(targetPoints);
-		    std::vector<int> nn; // indices of points within the radius
-		    std::vector<float> pointRadiusSquaredDistance; // distances of those points
-
-		    float radius = 1;
-		    // find points withing a given radius of the query point
-		    kdtreeQuery.radiusSearch(queryPoints->points[0], radius, nn,
-					     pointRadiusSquaredDistance);
-	    
-		    ROS_INFO("%d points within radius %f of query point.", (int)nn.size(), radius);
-
-		    // create a cloud to hold those points within the spherical region
-		    pcl::PointCloud<pcl::PointXYZRGB>::Ptr regionPoints(new pcl::PointCloud<pcl::PointXYZRGB>());
-		    for (int i = 0; i < nn.size(); i++) {
-			regionPoints->push_back(queryPoints->points[nn[i]]);
-		    }
-
-		    // output the cloud
-		    std::string filePath = SysUtil::trimPath(queryFile_, 1);
-		    std::string queryRegionOut = outPath_ + "queryRegion.pcd";
-		    ROS_INFO("Outputting query point region to %s", queryRegionOut.c_str());
-		    writer.write<pcl::PointXYZRGB>(queryRegionOut, *regionPoints, true);
-
-	    
-		    ROS_INFO("Query point (%f, %f, %f)", queryPoints->points[0].x,
-			     queryPoints->points[0].y, queryPoints->points[0].z);
-
-		    // Loop over all the nearest neighbours and create regions for them as well.
-		    for (int i = 0; i < K_; i++) {
-			ROS_INFO("Index: %d, descriptor distance: %f", indices[i],
-				 square_dists[i]);
-			ROS_INFO("Target point (%f, %f, %f)", targetPoints->points[indices[i]].x,
-				 queryPoints->points[indices[i]].y,
-				 queryPoints->points[indices[i]].z);
-			// clear the spherical region to populate it with points in the
-			// region of the target points
-			regionPoints->clear();
-			kdtreeTarget.radiusSearch(targetPoints->points[indices[i]],
-						  radius, nn, pointRadiusSquaredDistance);
-			ROS_INFO("%d points within radius %f of matched target point.",
-				 (int)nn.size(), radius);
-			// push all points from the radius search into the new cloud
-			for (int j = 0; j < nn.size(); j++) {
-			    regionPoints->push_back(targetPoints->points[nn[j]]);
-			}
-
-			// output the region cloud
-			std::string targetRegionOut = outPath_ + "nn" + std::to_string(i) + ".pcd";
-			ROS_INFO("Outputting target point region to %s", targetRegionOut.c_str());
-			writer.write<pcl::PointXYZRGB>(targetRegionOut, *regionPoints, true);
-		    }
-		}
 	    }
 	    ROS_INFO("Search complete");
 	}
+
+	// void outputRegions(){
+	//     // if output regions is set, then we want to extract regions around the points at which features were computed
+	//     pcl::PointCloud<pcl::PointXYZRGB>::Ptr targetPoints;
+	//     pcl::PointCloud<pcl::PointXYZRGB>::Ptr queryPoints;
+	//     if (outputRegions_){
+	// 	// Use these to find the xyz position of the features in the clouds
+	// 	targetPoints = new pcl::PointCloud<pcl::PointXYZRGB>();
+	// 	queryPoints = new pcl::PointCloud<pcl::PointXYZRGB>();
+	// 	reader.read(targetPointFile_, *targetPoints);
+	// 	reader.read(queryPointFile_, *queryPoints);
+	//     }
+
+	    
+	//     if (outputRegions_) {
+	// 	pcl::PCDWriter writer;
+
+	// 	// create kd trees to use to find points within a given radius of a
+	// 	// specific point
+	// 	pcl::KdTreeFLANN<pcl::PointXYZRGB> kdtreeQuery;
+	// 	pcl::KdTreeFLANN<pcl::PointXYZRGB> kdtreeTarget;
+	// 	kdtreeQuery.setInputCloud(queryPoints);
+	// 	kdtreeTarget.setInputCloud(targetPoints);
+	// 	std::vector<int> nn; // indices of points within the radius
+	// 	std::vector<float> pointRadiusSquaredDistance; // distances of those points
+
+	// 	float radius = 1;
+	// 	// find points withing a given radius of the query point
+	// 	kdtreeQuery.radiusSearch(queryPoints->points[0], radius, nn,
+	// 				 pointRadiusSquaredDistance);
+	    
+	// 	ROS_INFO("%d points within radius %f of query point.", (int)nn.size(), radius);
+
+	// 	// create a cloud to hold those points within the spherical region
+	// 	pcl::PointCloud<pcl::PointXYZRGB>::Ptr regionPoints(new pcl::PointCloud<pcl::PointXYZRGB>());
+	// 	for (int i = 0; i < nn.size(); i++) {
+	// 	    regionPoints->push_back(queryPoints->points[nn[i]]);
+	// 	}
+
+	// 	// output the cloud
+	// 	std::string filePath = SysUtil::trimPath(queryFile_, 1);
+	// 	std::string queryRegionOut = outPath_ + "queryRegion.pcd";
+	// 	ROS_INFO("Outputting query point region to %s", queryRegionOut.c_str());
+	// 	writer.write<pcl::PointXYZRGB>(queryRegionOut, *regionPoints, true);
+
+	    
+	// 	ROS_INFO("Query point (%f, %f, %f)", queryPoints->points[0].x,
+	// 		 queryPoints->points[0].y, queryPoints->points[0].z);
+
+	// 	// Loop over all the nearest neighbours and create regions for them as well.
+	// 	for (int i = 0; i < K_; i++) {
+	// 	    ROS_INFO("Index: %d, descriptor distance: %f", indices[i],
+	// 		     square_dists[i]);
+	// 	    ROS_INFO("Target point (%f, %f, %f)", targetPoints->points[indices[i]].x,
+	// 		     queryPoints->points[indices[i]].y,
+	// 		     queryPoints->points[indices[i]].z);
+	// 	    // clear the spherical region to populate it with points in the
+	// 	    // region of the target points
+	// 	    regionPoints->clear();
+	// 	    kdtreeTarget.radiusSearch(targetPoints->points[indices[i]],
+	// 				      radius, nn, pointRadiusSquaredDistance);
+	// 	    ROS_INFO("%d points within radius %f of matched target point.",
+	// 		     (int)nn.size(), radius);
+	// 	    // push all points from the radius search into the new cloud
+	// 	    for (int j = 0; j < nn.size(); j++) {
+	// 		regionPoints->push_back(targetPoints->points[nn[j]]);
+	// 	    }
+
+	// 	    // output the region cloud
+	// 	    std::string targetRegionOut = outPath_ + "nn" + std::to_string(i) + ".pcd";
+	// 	    ROS_INFO("Outputting target point region to %s", targetRegionOut.c_str());
+	// 	    writer.write<pcl::PointXYZRGB>(targetRegionOut, *regionPoints, true);
+	// 	}
+	// }
 
     } // namespace objectquery
 } // namespace obj_search

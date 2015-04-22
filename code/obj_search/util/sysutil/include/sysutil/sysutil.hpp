@@ -48,7 +48,7 @@ namespace SysUtil {
     std::string fullDirPath(std::string path);
     std::string removePathBase(std::string path);
     std::string trimPath(std::string path, int nToTrim, bool fromFront=false);
-    std::string removeExtension(std::string filename);
+    std::string removeExtension(std::string filename, bool trim=true);
     bool makeDirs(std::string path);
     std::string combinePaths(std::string a, std::string b);
 } // namespace SysUtil
