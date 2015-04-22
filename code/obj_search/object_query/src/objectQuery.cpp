@@ -139,8 +139,6 @@ namespace objsearch {
 	    std::vector<pclutil::AnnotatedCloud<pcl::PointXYZRGB> > annotations
 		= pclutil::getProcessedAnnotatedClouds<pcl::PointXYZRGB>(dir);
 
-	    exit(1);
-
 	    pcl::KdTreeFLANN<pcl::PointXYZRGB> searchTree;
 	    // want to find the minimum distance and the corresponding index.
 
@@ -152,6 +150,7 @@ namespace objsearch {
 
 	    // look through all the points in the cloud to be annotated
 	    for (size_t i = 0; i < cloud->size(); i++) {
+
 		point = cloud->points[i];
 
 		// reset the min index and distance for the new point
@@ -175,7 +174,11 @@ namespace objsearch {
 		    indices.push_back(i);
 		    labels.push_back(annotations[minInd].label);
 		    distances.push_back(minDist);
+		    ROS_INFO("Point %d label %s", (int)i, labels.back().c_str());
+		} else {
+		    ROS_INFO("Point %d not labelled", (int)i);
 		}
+		
 	    }
 	}
 
@@ -227,6 +230,8 @@ namespace objsearch {
 	    annotatePoints(SysUtil::trimPath(queryPointFile_, 2), queryPoints, indices, labels, distances, 0.4);
 
 	    ROS_INFO("%d annotated points of %d total", (int)indices.size(), (int)queryPoints->size());
+
+	    
 	    
 	    exit(1);
 

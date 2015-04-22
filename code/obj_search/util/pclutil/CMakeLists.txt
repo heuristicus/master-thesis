@@ -43,4 +43,8 @@ add_executable(rotate_cloud src/cloudRotator.cpp)
 target_link_libraries(rotate_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES} metaroom_xml_parser sysutil)
 add_dependencies(rotate_cloud ${catkin_EXPORTED_TARGETS})
 
+add_executable(cloud_bounds src/cloudBounds.cpp)
+target_link_libraries(cloud_bounds ${catkin_LIBRARIES} ${PCL_LIBRARIES} sysutil)
+add_dependencies(cloud_bounds ${catkin_EXPORTED_TARGETS})
+
 add_library(pclutil src/annotationExtract.cpp)
