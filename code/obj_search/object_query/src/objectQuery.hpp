@@ -4,6 +4,7 @@
 #include "sysutil/sysutil.hpp"
 #include "rosutil/rosutil.hpp"
 #include "pclutil/annotationExtract.hpp"
+#include "pclutil/cloudBounds.hpp"
 
 #include <cmath>
 #include <string>
