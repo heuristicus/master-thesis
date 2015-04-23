@@ -33,10 +33,13 @@ namespace objsearch {
 	    
 	    template<typename DescType>
 	    void doSearch();
-	    void annotatePoints(std::string dir,
-				const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
-				std::vector<int>& indices, std::vector<std::string>& labels,
-				std::vector<float>& distances, float maxDist);
+	    void annotatePointsCloud(
+		std::string dir, const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
+		std::vector<int>& indices, std::vector<std::string>& labels,
+		std::vector<float>& distances, float maxDist);
+	    void annotatePointsOBB(
+		std::string dir, const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
+		std::vector<int>& indices, std::vector<std::string>& labels);
 	private:
 	    std::string queryFile_;
 	    std::string targetFile_;

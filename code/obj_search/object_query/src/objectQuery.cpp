@@ -115,11 +115,57 @@ namespace objsearch {
 	}
 
 	/** 
+	 * Annotate points in the given cloud, using oriented bounding boxes
+	 * computed from the annotated clouds.
+	 *
+	 * @param dir The top level room directory containing the cloud of
+	 * interest (and more specifically the annotated clouds).
+	 * @param cloud The cloud containing points to annotate.
+	 * @param indices This vector will be populated with the indices of the
+	 * points which have been labelled
+	 * @param labels Will be populated with the labels of the points
+	 */
+	void ObjectQuery::annotatePointsOBB(
+	    std::string dir, const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
+	    std::vector<int>& indices, std::vector<std::string>& labels) {
+	    // load all the annotated clouds and compute their bounding boxes.
+	    // Don't care about rgb values
+	    std::vector<pclutil::AnnotatedCloud<pcl::PointXYZ> > annotations
+		= pclutil::getProcessedAnnotatedClouds<pcl::PointXYZ>(dir);
+
+	    // fill a vector with the bounding boxes of each of the annotated clouds
+	    std::vector<pclutil::OrientedBoundingBox> bboxes;
+	    for (auto it = annotations.begin(); it != annotations.end(); it++) {
+		bboxes.push_back(pclutil::getOrientedBoundingBox(it->cloud, it->label));
+	    }
+
+	    // go through each point in the cloud given and check if it lies in
+	    // any of the bounding boxes of objects. If it lies in multiple
+	    // boxes, the point will be added to the indices and labels arrays
+	    // multiple times.
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformed(
+		new pcl::PointCloud<pcl::PointXYZRGB>());
+	    for (size_t i = 0; i < annotations.size(); i++) {
+		std::cout << "Checking bbox for " << annotations[i].label << std::endl;
+		// transform the points in the cloud into the frame of the box.
+		pcl::transformPointCloud(*cloud, *transformed, bboxes[i].transformInverse);
+		std::string currentLabel = annotations[i].label;
+		for (size_t j = 0; j < transformed->size(); j++) {
+		    if (bboxes[i].contains(transformed->points[i], true)){
+			indices.push_back(j);
+			labels.push_back(currentLabel);
+		    }
+		}
+	    }
+	}
+	
+	/** 
 	 * Annotate points in a cloud loaded from a certain directory based on
 	 * the annotations. Points in the given cloud will be compared to the
 	 * annotated objects, and labelled with the label of the nearest object,
 	 * but only if the point is within a euclidean distance of maxDist of
-	 * the object.
+	 * the object. Uses nearest neighbour search for each point in the query
+	 * cloud.
 	 * 
 	 * @param dir The top level room directory containing the cloud of
 	 * interest.
@@ -131,9 +177,10 @@ namespace objsearch {
 	 * @param maxDist The maximum distance from an object a point can be to
 	 * still be considered part of the object
 	 */
-	void ObjectQuery::annotatePoints(std::string dir, const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
-					 std::vector<int>& indices, std::vector<std::string>& labels,
-					 std::vector<float>& distances, float maxDist) {
+	void ObjectQuery::annotatePointsCloud(
+	    std::string dir, const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
+	    std::vector<int>& indices, std::vector<std::string>& labels,
+	    std::vector<float>& distances, float maxDist) {
 
 	    // extract the annotated clouds from the raw directory along with their labels
 	    std::vector<pclutil::AnnotatedCloud<pcl::PointXYZRGB> > annotations
@@ -227,11 +274,10 @@ namespace objsearch {
 	    ROS_INFO("query point file %s", queryPointFile_.c_str());
 	    // assime that the annotations are in a directory above the one in
 	    // which feature clouds are stored.
-	    annotatePoints(SysUtil::trimPath(queryPointFile_, 2), queryPoints, indices, labels, distances, 0.4);
+	    annotatePointsOBB(SysUtil::trimPath(queryPointFile_, 2), queryPoints, indices, labels);
+	    annotatePointsCloud(SysUtil::trimPath(queryPointFile_, 2), queryPoints, indices, labels, distances, 0.4);
 
 	    ROS_INFO("%d annotated points of %d total", (int)indices.size(), (int)queryPoints->size());
-
-	    
 	    
 	    exit(1);
 

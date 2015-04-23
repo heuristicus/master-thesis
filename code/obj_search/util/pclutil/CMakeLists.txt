@@ -47,4 +47,6 @@ add_executable(cloud_bounds src/cloudBounds.cpp)
 target_link_libraries(cloud_bounds ${catkin_LIBRARIES} ${PCL_LIBRARIES} sysutil)
 add_dependencies(cloud_bounds ${catkin_EXPORTED_TARGETS})
 
-add_library(pclutil src/annotationExtract.cpp)
+add_library(pclutil src/annotationExtract.cpp src/cloudBounds.cpp)
+# need to link pcl libraries, otherwise stuff (visualiser, other PCL stuff) breaks in objectQuery
+target_link_libraries(pclutil ${catkin_LIBRARIES} ${PCL_LIBRARIES} sysutil)
