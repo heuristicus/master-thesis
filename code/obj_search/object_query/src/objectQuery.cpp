@@ -149,9 +149,10 @@ namespace objsearch {
 		std::cout << "Checking bbox for " << annotations[i].label << std::endl;
 		// transform the points in the cloud into the frame of the box.
 		pcl::transformPointCloud(*cloud, *transformed, bboxes[i].transformInverse);
+
 		std::string currentLabel = annotations[i].label;
 		for (size_t j = 0; j < transformed->size(); j++) {
-		    if (bboxes[i].contains(transformed->points[i], true)){
+		    if (bboxes[i].contains(transformed->points[j], true)){
 			indices.push_back(j);
 			labels.push_back(currentLabel);
 		    }
@@ -275,10 +276,21 @@ namespace objsearch {
 	    // assime that the annotations are in a directory above the one in
 	    // which feature clouds are stored.
 	    annotatePointsOBB(SysUtil::trimPath(queryPointFile_, 2), queryPoints, indices, labels);
-	    annotatePointsCloud(SysUtil::trimPath(queryPointFile_, 2), queryPoints, indices, labels, distances, 0.4);
+	    // annotatePointsCloud(SysUtil::trimPath(queryPointFile_, 2), queryPoints, indices, labels, distances, 0.4);
 
 	    ROS_INFO("%d annotated points of %d total", (int)indices.size(), (int)queryPoints->size());
-	    
+
+	    // for (size_t i = 0; i < indices.size(); i++) {
+	    // 	queryPoints->points[indices[i]].r = 255;
+	    // 	queryPoints->points[indices[i]].g = 0;
+	    // 	queryPoints->points[indices[i]].b = 0;
+	    // }
+
+	    // pcl::PCDWriter writer;
+	    // writer.write<pcl::PointXYZRGB>(
+	    // 	SysUtil::fullDirPath(SysUtil::trimPath(queryPointFile_, 1))
+	    // 	+ "labelledpoints.pcd", *queryPoints, true);
+	    	    
 	    exit(1);
 
 	    ROS_INFO("Starting search");

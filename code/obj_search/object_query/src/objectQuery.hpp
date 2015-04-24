@@ -5,6 +5,7 @@
 #include "rosutil/rosutil.hpp"
 #include "pclutil/annotationExtract.hpp"
 #include "pclutil/cloudBounds.hpp"
+#include "pclutil/cloudViewer.hpp"
 
 #include <cmath>
 #include <string>

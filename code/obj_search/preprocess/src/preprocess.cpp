@@ -204,8 +204,6 @@ namespace objsearch {
 		ROS_INFO("Cloud size after trim: %d", (int)workingCloud->size());
 	    }
 
-	    exit(1);
-	    
 	    pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>());
 	    pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloudWithNormals(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
 	    // need to compute normals before extracting planes

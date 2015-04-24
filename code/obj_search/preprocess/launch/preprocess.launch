@@ -8,7 +8,7 @@
   <param name="/preprocess/cloud" value="$(arg cloud)" />
 
   <!-- Parameters defining the behaviour of RANSAC and plane extraction -->
-  <arg name="distance_threshold" default="0.07" />
+  <arg name="distance_threshold" default="0.05" />
   <param name="/preprocess/RANSAC_distance_threshold" value="$(arg distance_threshold)" />
   <arg name="iterations" default="300" />
   <param name="/preprocess/RANSAC_iterations" value="$(arg iterations)" />
@@ -29,7 +29,7 @@
        cloud.size -->
   <arg name="min_plane_points_complete" default="20000" />
   <param name="/preprocess/min_plane_points_complete" value="$(arg min_plane_points_complete)" />
-  <arg name="min_plane_points_intermediate" default="3000" />
+  <arg name="min_plane_points_intermediate" default="4500" />
   <param name="/preprocess/min_plane_points_intermediate" value="$(arg min_plane_points_intermediate)" />
   <!-- The maximum number of times in a row that plane extraction can be skipped
        before it is abandoned -->

@@ -51,6 +51,7 @@ namespace objsearch {
 		if (!inBoxFrame) {
 		    point = toBoxFrame(point);
 		}
+
 		// once the point is in the box frame, all that needs to be done is
 		// to check that the point is within the extents for all axes.
 		return (std::fabs(point.x) < extents.x
