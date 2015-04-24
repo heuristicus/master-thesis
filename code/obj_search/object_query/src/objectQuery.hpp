@@ -6,8 +6,11 @@
 #include "pclutil/annotationExtract.hpp"
 #include "pclutil/cloudBounds.hpp"
 #include "pclutil/cloudViewer.hpp"
+#include "pclutil/pointValidation.hpp"
 
+#include <algorithm>
 #include <cmath>
+#include <map>
 #include <string>
 #include <limits>
 #include <typeinfo>

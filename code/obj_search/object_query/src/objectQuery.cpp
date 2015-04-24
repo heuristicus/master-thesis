@@ -268,18 +268,17 @@ namespace objsearch {
 	    search->setPointRepresentation(descRepr);
 	    search->setInputCloud(targetFeatures);
 
-	    std::vector<int> indices;
-	    std::vector<std::string> labels;
-	    std::vector<float> distances;
-
-	    ROS_INFO("query point file %s", queryPointFile_.c_str());
-	    // assime that the annotations are in a directory above the one in
+	    std::vector<int> indicesQuery;
+	    std::vector<std::string> labelsQuery;
+	    // assume that the annotations are in a directory above the one in
 	    // which feature clouds are stored.
-	    annotatePointsOBB(SysUtil::trimPath(queryPointFile_, 2), queryPoints, indices, labels);
-	    // annotatePointsCloud(SysUtil::trimPath(queryPointFile_, 2), queryPoints, indices, labels, distances, 0.4);
-
-	    ROS_INFO("%d annotated points of %d total", (int)indices.size(), (int)queryPoints->size());
-
+	    annotatePointsOBB(SysUtil::trimPath(queryPointFile_, 2), queryPoints, indicesQuery, labelsQuery);
+	    ROS_INFO("query: %d annotated points of %d total", (int)indicesQuery.size(), (int)queryPoints->size());
+	    
+	    std::vector<int> indicesTarget;
+	    std::vector<std::string> labelsTarget;
+	    annotatePointsOBB(SysUtil::trimPath(targetPointFile_, 2), targetPoints, indicesTarget, labelsTarget);
+	    ROS_INFO("target: %d annotated points of %d total", (int)indicesTarget.size(), (int)targetPoints->size());
 	    // for (size_t i = 0; i < indices.size(); i++) {
 	    // 	queryPoints->points[indices[i]].r = 255;
 	    // 	queryPoints->points[indices[i]].g = 0;
@@ -290,8 +289,6 @@ namespace objsearch {
 	    // writer.write<pcl::PointXYZRGB>(
 	    // 	SysUtil::fullDirPath(SysUtil::trimPath(queryPointFile_, 1))
 	    // 	+ "labelledpoints.pcd", *queryPoints, true);
-	    	    
-	    exit(1);
 
 	    ROS_INFO("Starting search");
 	    // Loop over all points in the query cloud
@@ -299,16 +296,49 @@ namespace objsearch {
 	    
 	    for (int i = 0; i < queryFeatures->size(); i++) {
 		ROS_INFO("Query point %d of %d", i + 1, (int)queryFeatures->size());
+		// some features may have nan values and will crash if not excluded.
+		if (!pclutil::isValid(queryFeatures->points[i])){
+		    continue;
+		}
 		// Initialise vectors to store the closest K points to the query point.	
 		std::vector<int> indices(K_);
 		std::vector<float> square_dists(K_);
-	    
+
 		// Search for the closest K points to the query point
 		search->nearestKSearch(queryFeatures->points[i], K_, indices, square_dists);
 
 		nearest.push_back(indices);
-
 	    }
+
+	    ROS_INFO("Finished finding neighbours");
+
+	    std::map<std::string, int> matches;
+	    // go through all the nearest neighbours of the query points which
+	    // have labels and see if there are matches
+	    for (size_t i = 0; i < indicesQuery.size(); i++) {
+		std::string currentQueryLabel = labelsQuery[i];
+		ROS_INFO("Checking matches for label %s", currentQueryLabel.c_str());
+		std::vector<int>& neigh = nearest[indicesQuery[i]];
+		// go through the neighbours of this point
+		for (auto it = neigh.begin(); it != neigh.end(); it++) {
+		    // if the indices of labelled points in the target cloud
+		    // contain the neighbour we are looking at, and it has the
+		    // same label as the current point we are looking at in the
+		    // query cloud
+		    auto indit = std::find(indicesTarget.begin(),
+					   indicesTarget.end(), *it);
+		    std::string targetLabel = labelsTarget[indit - indicesTarget.begin()];
+		    if (indit != indicesTarget.end()
+			&& currentQueryLabel.compare(targetLabel) == 0){ 
+			// increment matches for the label
+			matches[currentQueryLabel]++;
+		    }
+		}
+	    }
+
+	    for (auto it=matches.begin(); it!=matches.end(); ++it)
+		std::cout << it->first << " => " << it->second << '\n';
+
 	    ROS_INFO("Search complete");
 	}
 
