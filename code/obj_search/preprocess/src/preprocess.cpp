@@ -61,24 +61,30 @@ namespace objsearch {
 		// are pushed onto the back. If not all the intermediate cloud
 		// files are present in cloudDir_, then the index of the cloud is
 		// likely to be different from the number of the cloud in the
-		// filename.
-		std::vector<std::string> files = SysUtil::listDir(cloudDir_).files;
+		// filename
+		// use regex to find files in the cloud directory which match
+		// have to use .... to match because of issues with g++ not
+		// having regex stuff fully upt o date apparently.
+		std::vector<std::string> files = SysUtil::listFilesWithString(
+		    cloudDir_, std::regex(intermediatePrefix + ".....pcd",
+					  std::regex_constants::extended));
 		// listing is unsorted, need things in order to get the correct index
 		std::sort(files.begin(), files.end());
 		cloudNum_ = 0; // reset the cloud number to fill with the correct index
+		ROS_INFO("Cloudfile: %s", cloudFile_.c_str());
 		for (auto it = files.begin(); it != files.end(); ++it) {
 		    // check that the file we are looking at is an intermediate
 		    // cloud. The files have their whole path - trim them so we
 		    // only look at the filename itself
 		    std::string fname = SysUtil::trimPath(*it, -1);
-		    if (fname.find(intermediatePrefix) == 0){
-			if (fname.compare(cloudFile_) == 0){
-			    // if the entire filename matches, then we have the desired index, so break
-			    break;
-			}
-			// otherwise, increment the index
-			cloudNum_++;
+		    ROS_INFO("Comparing cloudfile to %s", fname.c_str());
+		    if (fname.compare(cloudFile_) == 0){
+			ROS_INFO("entire filename matches");
+			// if the entire filename matches, then we have the desired index, so break
+			break;
 		    }
+		    // otherwise, increment the index
+		    cloudNum_++;
 		}
 	    } else {
 		type_ = CloudType::OTHER;
@@ -149,8 +155,12 @@ namespace objsearch {
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr
 		originalCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
 	    tf::StampedTransform cloudTransform;
+	    // store the transform from intermediate to registered cloud -
+	    // needed to make sure intermediate clouds are aligned with other
+	    // clouds
+	    tf::StampedTransform registeredTransform;
 
-	    loadCloud(originalCloud, cloudTransform);
+	    loadCloud(originalCloud, cloudTransform, registeredTransform);
 
 	    // create the directory for output if it has not already been created
 	    if (!SysUtil::makeDirs(outPath_)){
@@ -189,7 +199,8 @@ namespace objsearch {
 	    // non-dataset clouds have no transform information, so skip that step
 	    if (type_ != CloudType::OTHER && doTrimCloud_) {
 		ROS_INFO("Transforming and trimming cloud");
-		transformAndRemoveFloorCeiling(workingCloud, cloudTransform);
+		transformAndRemoveFloorCeiling(workingCloud, cloudTransform,
+					       registeredTransform);
 		ROS_INFO("Cloud size after trim: %d", (int)workingCloud->size());
 	    }
 
@@ -241,7 +252,8 @@ namespace objsearch {
 	 * left empty if there is no transform data.
 	 */
 	void PreprocessRoom::loadCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud, // needs to be a reference to allow modification. Weird pointer type
-				       tf::StampedTransform& cloudTransform) {
+				       tf::StampedTransform& cloudTransform,
+				       tf::StampedTransform& registeredTransform) {
 	    if (type_ == CloudType::OTHER){
 		ROS_INFO("Reading cloud");
 		pcl::PCDReader reader;
@@ -251,14 +263,16 @@ namespace objsearch {
 		ROS_INFO("Parsing room XML.");
 		SimpleXMLParser<pcl::PointXYZRGB>::RoomData roomData = parser.loadRoomFromXML(roomXML_);
 		ROS_INFO("Parse complete.");
+		// the transform is always the same, but need an additional
+		// transform for intermediate clouds
+		cloudTransform = roomData.vIntermediateRoomCloudTransforms[0];
 		if (type_ == CloudType::FULL) {
 		    ROS_INFO("Getting complete cloud");
 		    cloud = roomData.completeRoomCloud->makeShared();
-		    cloudTransform = roomData.vIntermediateRoomCloudTransforms[0];
 		} else {
 		    ROS_INFO("Getting intermediate cloud");
 		    cloud = roomData.vIntermediateRoomClouds[cloudNum_]->makeShared();
-		    cloudTransform = roomData.vIntermediateRoomCloudTransforms[cloudNum_];
+		    registeredTransform = roomData.vIntermediateRoomCloudTransformsRegistered[cloudNum_];
 		}
 	    }
 	}
@@ -279,25 +293,24 @@ namespace objsearch {
 	 * its position relative to the global reference frame. Ideally
 	 * extracted from the XML data for the room and its intermediate clouds.
 	 */
-	void PreprocessRoom::transformAndRemoveFloorCeiling(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
-							    const tf::StampedTransform& cloudTransform){
-	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformedCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+	void PreprocessRoom::transformAndRemoveFloorCeiling(
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
+	    const tf::StampedTransform& cloudTransform,
+	    const tf::StampedTransform& registeredTransform){
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformedCloud(
+		new pcl::PointCloud<pcl::PointXYZRGB>);
 
-	    // This is the point at which the camera was while taking the images.
-	    // tf::Vector3 origin = cloudTransform.getOrigin();
-	    // std::cout << origin.getX() << ", " << origin.getY() << ", " << origin.getZ() << std::endl;
+
+	    // if we have an intermediate cloud, first need to transform it into
+	    // the complete cloud frame before transforming to the final frame.
+	    if (type_ == CloudType::INTERMEDIATE) {
+	    	pcl_ros::transformPointCloud(*cloud, *cloud, registeredTransform);
+	    }
 	    // Transform the cloud according to the given transform. After this
 	    // point the x-y axis should be aligned with the floor, and the
 	    // z-axis should point upwards.
 	    pcl_ros::transformPointCloud(*cloud, *transformedCloud, cloudTransform);
-
-	    // pcl::PointXYZRGB min;
-	    // pcl::PointXYZRGB max;
-	    // pcl::getMinMax3D(*transformedCloud, min, max);
-
-	    // ROS_INFO("min: %f, %f, %f", min.x, min.y, min.z);
-	    // ROS_INFO("max: %f, %f, %f", max.x, max.y, max.z);
-
+	    
 	    // Use a passthrough filter to remove points beyond a specific
 	    // threshold - the floor position plus an offset, and the ceiling
 	    // position minus an offset. Positive z points towards the ceiling.

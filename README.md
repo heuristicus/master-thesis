@@ -66,3 +66,64 @@ sit in `/usr/lib/x86_64-linux-gnu/`. Copy the library files to that location.
 
 And things should compile when `catkin_make` is run in the workspace.
 
+# Data
+
+The data used comes from an internal dataset at KTH which consists of multiple
+frames of rooms taken from a single position within the room. The frames are
+registered to form a single large cloud of the whole room. Both the full cloud
+and individual frames are available. Some information about transforms relating
+the frames to the full cloud are found in an XML file.
+
+All clouds start off in their own frame of reference, so the origin is at the
+position at which the camera was when the frames were taken. The complete cloud
+can be transformed into the map frame using the transform of the first
+intermediate cloud from `room.xml`. The rooms are in a corridor, and there are
+several rooms for which there are scans available, so doing this puts the cloud
+in the correct position in the corridor. To transform the individual frames (e.g.
+`intermediate_cloud0001.pcd`) into the map frame, it is necessary to first apply
+the transform from the original position to the registered position, and then
+apply the same transform as was applied to the complete cloud.
+
+In addition, some annotated clouds of objects present in the rooms are also
+available. Each cloud (e.g. `rgb_0013_label_0.pcd`) corresponds to an object
+extracted from one of the intermediate clouds, in this case the 13th. Each cloud
+has an associated label found in a text file with a single line (e.g.
+`rgb_0013_label_0.txt`).
+
+# Usage
+
+## Preprocessing
+
+The preprocessing node will reduce the size of the cloud by trimming the floors
+and ceilings, and removing large planes. It is intended to be run on raw data
+from scans of a room from a single position. There are numerous parameters which
+can be specified in the
+[launch file](code/obj_search/preprocess/launch/preprocess.launch). The default
+is to carry out all preprocessing steps: downsampling, plane extraction,
+trimming, annotation rotation and normal extraction.
+
+The result of the processing is output to a `processed` directory. If given data
+in `/pcddata/raw/annotated/rares/20140901/patrol_run_31/room_2/`, for example,
+the resulting processed data will be placed in
+`/pcddata/processed/annotated/rares/20140901/patrol_run_31/room_2/`.
+
+### Complete clouds
+
+    roslaunch preprocess preprocess.launch cloud:=/home/michal/Downloads/pcddata/raw/annotated/rares/20140901/patrol_run_31/room_2/complete_cloud.pcd
+
+### Intermediate clouds
+The intended use of the preprocessing on intermediate clouds is to generate
+clouds which can be used to check the efficacy of the system. We extract
+features from the complete cloud and an intermediate cloud, and then check the
+correspondences between the extracted features.
+
+    roslaunch preprocess preprocess.launch cloud:=/home/michal/Downloads/pcddata/raw/annotated/rares/20140901/patrol_run_31/room_2/intermediate_cloud0014.pcd
+
+## Feature Extraction
+
+## Object Query
+
+Comparing SHOT features extracted from the 14th intermediate cloud to the
+features extracted from the complete cloud.
+	
+    roslaunch object_query object_query.launch query:=/home/michal/Downloads/pcddata/processed/annotated/rares/20140901/patrol_run_31/room_2/features/0014_nonPlanes_shot.pcd target:=/home/michal/Downloads/pcddata/processed/annotated/rares/20140901/patrol_run_31/room_2/features/nonPlanes_shot.pcd

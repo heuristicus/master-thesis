@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
 	if (!SysUtil::isFile(argv[2])) {
 	    bboxFiles = SysUtil::listFilesWithString(std::string(argv[2]), std::regex(".*label.*pcd"));
 	} else { // additional arguments are assumed to be files
-	    for (int i = 0; i < argc; i++) {
+	    for (int i = 2; i < argc; i++) {
 		bboxFiles.push_back(std::string(argv[i]));
 	    }
 	}

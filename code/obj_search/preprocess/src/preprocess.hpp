@@ -20,6 +20,7 @@
 #include <iostream>
 #include <string>
 #include <cmath>
+#include <regex>
 
 #include <pcl/ModelCoefficients.h>
 #include <pcl/common/common.h>
@@ -55,9 +56,11 @@ namespace objsearch {
 	    PreprocessRoom(int argc, char* argv[]);
             void preprocessCloud();
 	    void loadCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
-			   tf::StampedTransform& cloudTransform);
+			   tf::StampedTransform& cloudTransform,
+			   tf::StampedTransform& registeredTransform);
 	    void transformAndRemoveFloorCeiling(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
-						const tf::StampedTransform& cloudTransform);
+						const tf::StampedTransform& cloudTransform,
+						const tf::StampedTransform& registeredTransform);
 	    void extractPlanes(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 			       pcl::PointCloud<pcl::Normal>::Ptr& normals);
 	    template<typename SegmentationType>
