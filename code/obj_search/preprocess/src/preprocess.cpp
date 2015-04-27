@@ -60,6 +60,8 @@ namespace objsearch {
 	    ROSUtil::getParam(handle, "/preprocess/downsample", doDownsample_);
 	    ROSUtil::getParam(handle, "/preprocess/downsample_leafsize", downsampleLeafSize_);
 	    ROSUtil::getParam(handle, "/preprocess/downsample_increment", downsampleIncrement_);
+	    std::string match;
+	    ROSUtil::getParam(handle, "/preprocess/match", match);
 
 	    ROS_INFO("Initialisation completed.");
 
@@ -73,7 +75,14 @@ namespace objsearch {
 	    initPaths(cloudPath_);
 	    
 	    if (sysutil::isDir(cloudPath_)) {
-		roomFiles = sysutil::listFilesWithString(cloudPath_, "complete_cloud.pcd", true);
+		// the match variable contains the string requested to use to
+		// match clouds in the subdirectories. If it is null, preprocess
+		// the complete clouds
+		if (match.compare("NULL") == 0) {
+		    roomFiles = sysutil::listFilesWithString(cloudPath_, "complete_cloud.pcd", true);
+		} else { // otherwise, match the string and process those files
+		    roomFiles = sysutil::listFilesWithString(cloudPath_, match, true);
+		}
 		dataOutput = sysutil::fullDirPath(outPath_) + "preparams_" + timeNow + ".yaml";
 	    } else { // is a file, so just process that
 		dataOutput = sysutil::fullDirPath(outPath_) + "preparams_" + timeNow + ".yaml";
@@ -207,8 +216,10 @@ namespace objsearch {
 	    // computation, number of planes extracted, time for plane
 	    // extraction
 	    if (!append) {
-		// if not appending, put headers to the columns
-		file << "#filename n_pre n_downsample n_trim n_rmplane t_load t_downsample"
+		// if not appending, put headers to the columns and the
+		// directory/file the program was run on
+		file << cloudPath_.c_str()
+		     << "#filename n_pre n_downsample n_trim n_rmplane t_load t_downsample"
 		     << " t_trim t_normals n_plane t_plane" << std::endl;
 	    }
 

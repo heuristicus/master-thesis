@@ -109,7 +109,15 @@ the resulting processed data will be placed in
 
 ### Complete clouds
 
+This command will do preprocessing steps on the complete cloud specified, and
+also process the associated annotations.
+
     roslaunch preprocess preprocess.launch cloud:=/home/michal/Downloads/pcddata/raw/annotated/rares/20140901/patrol_run_31/room_2/complete_cloud.pcd
+
+This command will do preprocessing steps for all complete clouds in
+subdirectories of the specified directory.
+	
+    roslaunch preprocess preprocess.launch cloud:=/home/michal/Downloads/pcddata/raw/annotated/rares/
 
 ### Intermediate clouds
 The intended use of the preprocessing on intermediate clouds is to generate
