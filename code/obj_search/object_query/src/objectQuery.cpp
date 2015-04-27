@@ -293,21 +293,18 @@ namespace objsearch {
 	    ROS_INFO("Starting search");
 	    // Loop over all points in the query cloud
 	    std::vector<std::vector<int> > nearest((int)queryFeatures->size());
-	    
+	    // Initialise vectors to store the closest K points to the query point.	
+	    std::vector<float> square_dists(K_);
 	    for (int i = 0; i < queryFeatures->size(); i++) {
 		ROS_INFO("Query point %d of %d", i + 1, (int)queryFeatures->size());
 		// some features may have nan values and will crash if not excluded.
 		if (!pclutil::isValid(queryFeatures->points[i])){
 		    continue;
 		}
-		// Initialise vectors to store the closest K points to the query point.	
-		std::vector<int> indices(K_);
-		std::vector<float> square_dists(K_);
+
 
 		// Search for the closest K points to the query point
-		search->nearestKSearch(queryFeatures->points[i], K_, indices, square_dists);
-
-		nearest.push_back(indices);
+		search->nearestKSearch(queryFeatures->points[i], K_, nearest[i], square_dists);
 	    }
 
 	    ROS_INFO("Finished finding neighbours");
@@ -317,21 +314,28 @@ namespace objsearch {
 	    // have labels and see if there are matches
 	    for (size_t i = 0; i < indicesQuery.size(); i++) {
 		std::string currentQueryLabel = labelsQuery[i];
-		ROS_INFO("Checking matches for label %s", currentQueryLabel.c_str());
+		ROS_INFO("Checking matches for label %s at index %d",
+			 currentQueryLabel.c_str(), indicesQuery[i]);
 		std::vector<int>& neigh = nearest[indicesQuery[i]];
+		ROS_INFO("Num neighbours %d", (int)neigh.size());
 		// go through the neighbours of this point
 		for (auto it = neigh.begin(); it != neigh.end(); it++) {
+		    ROS_INFO("Checking neighbour with target index %d", *it);
 		    // if the indices of labelled points in the target cloud
 		    // contain the neighbour we are looking at, and it has the
 		    // same label as the current point we are looking at in the
-		    // query cloud
+		    // query cloud. 
 		    auto indit = std::find(indicesTarget.begin(),
 					   indicesTarget.end(), *it);
-		    std::string targetLabel = labelsTarget[indit - indicesTarget.begin()];
-		    if (indit != indicesTarget.end()
-			&& currentQueryLabel.compare(targetLabel) == 0){ 
-			// increment matches for the label
-			matches[currentQueryLabel]++;
+		    if (indit != indicesTarget.end()){
+			ROS_INFO("Found target index %d at location %d", (int)*it, (int)(indit - indicesTarget.begin()));
+			std::string targetLabel = labelsTarget[indit - indicesTarget.begin()];
+			ROS_INFO("Label is %s", targetLabel.c_str());
+			if (currentQueryLabel.compare(targetLabel) == 0){
+			    ROS_INFO("Labels match");
+			    // increment matches for the label
+			    matches[currentQueryLabel]++;
+			}
 		    }
 		}
 	    }
