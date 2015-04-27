@@ -94,6 +94,15 @@ namespace objsearch {
 	    ROS_INFO("Caling system with command %s", command.c_str());
 	    system(command.c_str());
 
+	    ROS_INFO("Preprocessing files");
+	    size_t i;
+	    for (i = 0; i < 10 && i < roomFiles.size(); i++) {
+		ROS_INFO("%s", roomFiles[i].c_str());
+	    }
+	    if (i >= 10) {
+		ROS_INFO("And more...");
+	    }
+
 	    bool append = false;
 	    std::string dataFile = sysutil::fullDirPath(sysutil::trimPath(dataOutput, 1))
 		+ "predata_" + timeNow + ".txt";

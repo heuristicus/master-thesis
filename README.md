@@ -119,6 +119,13 @@ subdirectories of the specified directory.
 	
     roslaunch preprocess preprocess.launch cloud:=/home/michal/Downloads/pcddata/raw/annotated/rares/
 
+This command will do preprocessing steps for all clouds in subdirectories of the
+specified directory that contain the string "intermediate". You can also
+provide regex input in the same position and it should work (untested).
+	
+    roslaunch preprocess preprocess.launch cloud:=/home/michal/Downloads/pcddata/raw/annotated/rares/ match:=intermediate
+
+
 ### Intermediate clouds
 The intended use of the preprocessing on intermediate clouds is to generate
 clouds which can be used to check the efficacy of the system. We extract
