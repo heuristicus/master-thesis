@@ -10,9 +10,9 @@
 #include "sysutil.hpp"
 
 /**
- * @namespace SysUtil Namespace for system utilities like directory interaction
+ * @namespace sysutil Namespace for system utilities like directory interaction
  */
-namespace SysUtil {
+namespace sysutil {
     
     /** 
      * Check if the path given is of a certain type.
@@ -65,42 +65,56 @@ namespace SysUtil {
      * Extract information about the files and directories on a given path
      *
      * @param path The path to list.
+     * @param recursive Default false. If true, list all files and directories
+     * in subdirectories.
      * 
      * @return A struct containing vectors of directory and file names on the
      * path. If something went wrong opening the path (e.g. \p path was not a directory,
      * invalid permissions), then the returned struct will be empty
      */
-    DirContents listDir(std::string path) {
+    DirContents listDir(std::string path, bool recursive) {
 	DirContents c;
 	c.path = cleanDirPath(path);
+	c.recursive = recursive;
 
 	if (!isDir(c.path)){
 	    std::cout << "Path " << path << " was not a directory." << std::endl;
 	    return c;
 	}
+
+	std::queue<std::string> directories;
+	directories.push(path);
 	
 	DIR* dir;
 	struct dirent* ent;
-	if ((dir = opendir(path.c_str())) != NULL) {
-	    while ((ent = readdir(dir)) != NULL) {
-		// ignore current and parent dirs
-		if (strcmp(ent->d_name, ".") == 0 
-		    || strcmp(ent->d_name, "..") == 0){
-		    continue;
+	while (!directories.empty()) {
+	    std::string curDir = directories.front();
+	    directories.pop();
+	    if ((dir = opendir(curDir.c_str())) != NULL) {
+		while ((ent = readdir(dir)) != NULL) {
+		    // ignore current and parent dirs
+		    if (strcmp(ent->d_name, ".") == 0 
+			|| strcmp(ent->d_name, "..") == 0){
+			continue;
+		    }
+		    std::string fullPath = fullDirPath(curDir) + std::string(ent->d_name);
+		    if (isFile(fullPath)) {
+			c.files.push_back(fullPath);
+		    } else if (isDir(fullPath)) {
+			c.dirs.push_back(fullPath);
+			// if recursing, add directories to the queue to be
+			// processed.
+			if (recursive) {
+			    directories.push(fullPath);
+			}
+		    }
 		}
-		std::string fullPath = c.path + "/" + std::string(ent->d_name);
-		if (isFile(fullPath)) {
-		    c.files.push_back(fullPath);
-		} else if (isDir(fullPath)) {
-		    c.dirs.push_back(fullPath);
-		}
+	    } else {
+		// Couldn't access directory
+		perror("");
+		std::cout << "Error processing " << path.c_str() << std::endl;
 	    }
-	} else {
-	    // Couldn't access directory
-	    perror("");
-	    std::cout << "Error processing " << path.c_str() << std::endl;
 	}
-
 	return c;
     }
 
@@ -109,11 +123,13 @@ namespace SysUtil {
      *
      * @param path The path to list.
      * @param r Regex to use to search the file/directory names.
+     * @param recursive Default false. If true, search through subdirectories as well.
      * 
      * @return A vector of filenames on \p path which contain \p s.
      */
-    std::vector<std::string> listFilesWithString(std::string path, std::regex r) {
-	DirContents d = listDir(path); // get the contents of the directory
+    std::vector<std::string> listFilesWithString(std::string path, std::regex r,
+						 bool recursive) {
+	DirContents d = listDir(path, recursive); // get the contents of the directory
 
 	std::vector<std::string> matches;
 	// go through the directories, checking for the string
@@ -142,13 +158,15 @@ namespace SysUtil {
      *
      * @param path The path to list.
      * @param s String to search for inside the file/directory names.
+     * @param recursive Default false. If true, search through subdirectories as well.
      * 
      * @return A vector of filenames on \p path which contain \p s.
      */
-    std::vector<std::string> listFilesWithString(std::string path, std::string s) {
+    std::vector<std::string> listFilesWithString(std::string path, std::string s,
+						 bool recursive) {
 	// convert the string to a regex and pass it to the main function
 	std::regex r = std::regex(std::string(".*" + s + ".*"));
-	return listFilesWithString(path, r);
+	return listFilesWithString(path, r, recursive);
     }
 
     /**
@@ -404,4 +422,22 @@ namespace SysUtil {
 	return fullDirPath(a) + b;
     }
 
-} // namespae SysUtil
+    /**
+     * Returns a string representation of the current date and time in the form
+     * YYYY-MM-DD_HH-MM-SS
+     */
+    std::string getDateTimeString(){
+        time_t rawTime;
+        time(&rawTime);
+        struct tm* timeinfo;
+        char ctime[100];
+        // get the current time
+        timeinfo = localtime(&rawTime);
+        // put it into a useful format
+        strftime(ctime, 100, "%F_%T", timeinfo);
+        std::string ret = std::string(ctime);
+        std::replace(ret.begin(), ret.end(), ':', '-');
+        return ret;
+    }
+
+} // namespace sysutil

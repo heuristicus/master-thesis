@@ -29,94 +29,13 @@ namespace objsearch {
 
 	    // Retrieve the path to the cloud to be processed
 	    ROSUtil::getParam(handle, "/preprocess/cloud", cloudPath_);
-	    if (!SysUtil::isFile(cloudPath_)){
-		ROS_ERROR("%s does not exist.", cloudPath_.c_str());
-		exit(1);
-	    }
-	    
-	    // remove the filename from the end of the path to get the directory
-	    cloudDir_ = SysUtil::trimPath(cloudPath_, 1);
-	    // remove the front of the path to get just the filename
-	    cloudFile_ = SysUtil::trimPath(cloudPath_, -1);
-	    
-	    // Construct the filenames for the XML file containing data
-	    roomXML_ = SysUtil::fullDirPath(cloudDir_) + "room.xml";
-
-	    if (cloudFile_.compare(completeCloudName) == 0) {
-		type_ = CloudType::FULL;
-		// trivial case
-	    } else if (cloudFile_.find(intermediatePrefix) == 0) {
-		type_ = CloudType::INTERMEDIATE;
-		// the filename stars with the expected prefix for an
-		// intermediate cloud
-		// prefix the output by the number of the cloud. The files are
-		// all in a standard format: intermediate_cloudxxxx.pcd, where
-		// xxxx is a padded integer
-		std::string cloudNum_Str(cloudFile_, intermediatePrefix.length(), 4);
-		outPrefix_ = cloudNum_Str + "_";
-		cloudNum_ = std::stoi(cloudNum_Str);
-		
-		// need to do additional work to ensure that cloudNum_ refers to
-		// the position of the requested file in a vector where clouds
-		// are pushed onto the back. If not all the intermediate cloud
-		// files are present in cloudDir_, then the index of the cloud is
-		// likely to be different from the number of the cloud in the
-		// filename
-		// use regex to find files in the cloud directory which match
-		// have to use .... to match because of issues with g++ not
-		// having regex stuff fully upt o date apparently.
-		std::vector<std::string> files = SysUtil::listFilesWithString(
-		    cloudDir_, std::regex(intermediatePrefix + ".....pcd",
-					  std::regex_constants::extended));
-		// listing is unsorted, need things in order to get the correct index
-		std::sort(files.begin(), files.end());
-		cloudNum_ = 0; // reset the cloud number to fill with the correct index
-		ROS_INFO("Cloudfile: %s", cloudFile_.c_str());
-		for (auto it = files.begin(); it != files.end(); ++it) {
-		    // check that the file we are looking at is an intermediate
-		    // cloud. The files have their whole path - trim them so we
-		    // only look at the filename itself
-		    std::string fname = SysUtil::trimPath(*it, -1);
-		    ROS_INFO("Comparing cloudfile to %s", fname.c_str());
-		    if (fname.compare(cloudFile_) == 0){
-			ROS_INFO("entire filename matches");
-			// if the entire filename matches, then we have the desired index, so break
-			break;
-		    }
-		    // otherwise, increment the index
-		    cloudNum_++;
-		}
-	    } else {
-		type_ = CloudType::OTHER;
-	    }
-	    
 	    ROSUtil::getParam(handle, "/obj_search/raw_data_dir", dataPath_);
-
-	    // If the given cloud file corresponds to a file in the raw data
-	    // directory, extract the remaining directories in the path of the
-	    // file so that the data can be put into the output directory with
-	    // the same path. e.g. if raw_data_dir is set to /home/user/data and
-	    // the input cloud is in /home/user/data/sets/set1/, then datasubdir
-	    // will be /sets/set1.
-	    if (cloudPath_.compare(0, dataPath_.size(), dataPath_) == 0){
-		dataSubDir_ = std::string(cloudDir_, dataPath_.size());
-	    } else {
-		// if not in raw data, just output to the input directory
-		dataSubDir_ = SysUtil::trimPath(cloudDir_, -1);
-	    }
-
 	    ROSUtil::getParam(handle, "/preprocess/output_dir", outDir_);
 	    // If output is not specified, set the output directory to be the processed
 	    // data directory specified by the global parameters.
 	    if (std::string("NULL").compare(outDir_) == 0) {
 		ROSUtil::getParam(handle, "/obj_search/processed_data_dir", outDir_);
 	    }
-
-	    // The output path for processed clouds is the subdirectory combined
-	    // with the top level output directory. If dataSubDir_ is not
-	    // initialised, then clouds are simply output to the top level
-	    // output directory
-	    outPath_ = SysUtil::combinePaths(outDir_, dataSubDir_);
 
 	    ROSUtil::getParam(handle, "/preprocess/extract_planes", doExtractPlanes_);
 	    ROSUtil::getParam(handle, "/preprocess/RANSAC_distance_threshold", ransacDistanceThresh_);
@@ -144,13 +63,167 @@ namespace objsearch {
 
 	    ROS_INFO("Initialisation completed.");
 
-	    preprocessCloud();
+	    // depending on whether the input cloud has been set as a directory
+	    // or a path to a file, we change the behaviour. If it is set to a
+	    // directory, then find all the complete_cloud.pcd files in the
+	    // subdirectories and process them
+	    std::vector<std::string> roomFiles;
+	    std::string dataOutput;
+	    std::string timeNow = sysutil::getDateTimeString();
+	    initPaths(cloudPath_);
+	    
+	    if (sysutil::isDir(cloudPath_)) {
+		roomFiles = sysutil::listFilesWithString(cloudPath_, "complete_cloud.pcd", true);
+		dataOutput = sysutil::fullDirPath(outPath_) + "preparams_" + timeNow + ".yaml";
+	    } else { // is a file, so just process that
+		dataOutput = sysutil::fullDirPath(outPath_) + "preparams_" + timeNow + ".yaml";
+		roomFiles.push_back(cloudPath_);
+	    }
+	    // Dump parameters used for this run
+	    // dangerous, but otherwise annoying to output all parameters individually.
+	    std::string command("rosparam dump " + dataOutput);
+	    ROS_INFO("Caling system with command %s", command.c_str());
+	    system(command.c_str());
+
+	    bool append = false;
+	    std::string dataFile = sysutil::fullDirPath(sysutil::trimPath(dataOutput, 1))
+		+ "predata_" + timeNow + ".txt";
+	    // Loop over all the clouds and process them
+	    for (auto it = roomFiles.begin(); it != roomFiles.end(); it++) {
+		ROS_INFO("----------Processing cloud %d of %d----------\n%s",
+			 (int)(it - roomFiles.begin()) + 1, (int)roomFiles.size(), (*it).c_str());
+		// first, initialise the object's variables to set it to
+		// preprocess the cloud in the iterator is pointing to
+		initPaths(*it);
+		ProcessInfo info = preprocessCloud();
+		writeInfo(dataFile, info, append);
+		// switch to appending once the first info has been written.
+		append = true;
+	    }
+	}
+
+	/** 
+	 * Initialise the object with some variables for filenames and such to
+	 * do with the file that we are going to process.
+	 * 
+	 * @param path 
+	 */
+	void PreprocessRoom::initPaths(std::string path) {
+	    cloudPath_ = path;
+	    // remove the filename from the end of the path to get the directory
+	    if (sysutil::isDir(path)){
+		cloudDir_ = path;
+		cloudFile_ = path;
+	    } else {
+		cloudDir_ = sysutil::trimPath(path, 1);
+		// remove the front of the path to get just the filename
+		cloudFile_ = sysutil::trimPath(path, -1);
+	    }
+
+	    // Construct the filenames for the XML file containing data
+	    roomXML_ = sysutil::fullDirPath(cloudDir_) + "room.xml";
+
+	    if (cloudFile_.compare(completeCloudName) == 0) {
+		type_ = CloudType::FULL;
+		// trivial case
+	    } else if (cloudFile_.find(intermediatePrefix) == 0) {
+		type_ = CloudType::INTERMEDIATE;
+		// the filename stars with the expected prefix for an
+		// intermediate cloud
+		// prefix the output by the number of the cloud. The files are
+		// all in a standard format: intermediate_cloudxxxx.pcd, where
+		// xxxx is a padded integer
+		std::string cloudNum_Str(cloudFile_, intermediatePrefix.length(), 4);
+		outPrefix_ = cloudNum_Str + "_";
+		cloudNum_ = std::stoi(cloudNum_Str);
+		
+		// need to do additional work to ensure that cloudNum_ refers to
+		// the position of the requested file in a vector where clouds
+		// are pushed onto the back. If not all the intermediate cloud
+		// files are present in cloudDir_, then the index of the cloud is
+		// likely to be different from the number of the cloud in the
+		// filename
+		// use regex to find files in the cloud directory which match
+		// have to use .... to match because of issues with g++ not
+		// having regex stuff fully upt o date apparently.
+		std::vector<std::string> files = sysutil::listFilesWithString(
+		    cloudDir_, std::regex(intermediatePrefix + ".....pcd",
+					  std::regex_constants::extended));
+		// listing is unsorted, need things in order to get the correct index
+		std::sort(files.begin(), files.end());
+		cloudNum_ = 0; // reset the cloud number to fill with the correct index
+		ROS_INFO("Cloudfile: %s", cloudFile_.c_str());
+		for (auto it = files.begin(); it != files.end(); ++it) {
+		    // check that the file we are looking at is an intermediate
+		    // cloud. The files have their whole path - trim them so we
+		    // only look at the filename itself
+		    std::string fname = sysutil::trimPath(*it, -1);
+		    ROS_INFO("Comparing cloudfile to %s", fname.c_str());
+		    if (fname.compare(cloudFile_) == 0){
+			ROS_INFO("entire filename matches");
+			// if the entire filename matches, then we have the desired index, so break
+			break;
+		    }
+		    // otherwise, increment the index
+		    cloudNum_++;
+		}
+	    } else {
+		type_ = CloudType::OTHER;
+	    }
+	    
+
+	    // If the given cloud file corresponds to a file in the raw data
+	    // directory, extract the remaining directories in the path of the
+	    // file so that the data can be put into the output directory with
+	    // the same path. e.g. if raw_data_dir is set to /home/user/data and
+	    // the input cloud is in /home/user/data/sets/set1/, then datasubdir
+	    // will be /sets/set1.
+	    if (path.compare(0, dataPath_.size(), dataPath_) == 0){
+		dataSubDir_ = std::string(cloudDir_, dataPath_.size());
+	    } else {
+		// if not in raw data, just output to the input directory
+		dataSubDir_ = sysutil::trimPath(cloudDir_, -1);
+	    }
+	    
+	    // The output path for processed clouds is the subdirectory combined
+	    // with the top level output directory. If dataSubDir_ is not
+	    // initialised, then clouds are simply output to the top level
+	    // output directory
+	    outPath_ = sysutil::combinePaths(outDir_, dataSubDir_);
+	}
+
+	void PreprocessRoom::writeInfo(std::string outPath, ProcessInfo info, bool append) {
+	    std::ofstream file;
+	    if (append){
+		file.open(outPath, ios::app);
+	    } else {
+		file.open(outPath);
+	    }
+
+	    // write the column headers: filename for the information output,
+	    // number of points before modification, number of points after
+	    // trimming, number of points after plane removal, load time,
+	    // downsample time, time for trim and transform, time for normal
+	    // computation, number of planes extracted, time for plane
+	    // extraction
+	    if (!append) {
+		// if not appending, put headers to the columns
+		file << "#filename n_pre n_downsample n_trim n_rmplane t_load t_downsample"
+		     << " t_trim t_normals n_plane t_plane" << std::endl;
+	    }
+
+	    // output data from the struct
+	    file << info.fname.c_str() << " " << info.originalPoints << " " << info.downsampledPoints
+	    << " " << info.trimmedPoints << " " << info.nonPlanePoints << " "
+	    << info.loadTime << " " << info.downsampleTime << " " << info.trimTime << " "
+	    << info.normalTime << " " << info.numPlanes << " " << info.planeTime << std::endl;
+	    file.close();
 	}
 
 	/** 
 	 * Start the processing of the point cloud.
 	 */
-	void PreprocessRoom::preprocessCloud() {
+	PreprocessRoom::ProcessInfo PreprocessRoom::preprocessCloud() {
 	    ROS_INFO("Start processing");
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr
 		originalCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
@@ -160,16 +233,24 @@ namespace objsearch {
 	    // clouds
 	    tf::StampedTransform registeredTransform;
 
+	    ProcessInfo info;
+	    info.fname = cloudPath_;
+	    
+	    ros::Time loadStart = ros::Time::now();
 	    loadCloud(originalCloud, cloudTransform, registeredTransform);
-
+	    info.loadTime = (ros::Time::now() - loadStart).toSec();
+	    info.originalPoints = originalCloud->size();
+	    
 	    // create the directory for output if it has not already been created
-	    if (!SysUtil::makeDirs(outPath_)){
+	    if (!sysutil::makeDirs(outPath_)){
 		ROS_INFO("Could not create output directory %s.", outPath_.c_str());
 		perror("Error message");
 		exit(1);
 	    }
 
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr workingCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
+	    
+	    ros::Time downsampleStart = ros::Time::now();
 	    if (doDownsample_) {
 		ROS_INFO("Points before downsample: %d", (int)originalCloud->size());
 		pcl::VoxelGrid<pcl::PointXYZRGB> sor;
@@ -191,21 +272,30 @@ namespace objsearch {
 		}
 		
 		ROS_INFO("Points after downsample: %d", (int)workingCloud->size());
+		
+		info.downsampledPoints = workingCloud->size();
+		info.downsampleTime = (ros::Time::now() - downsampleStart).toSec();
 	    } else {
 		workingCloud = originalCloud;
 	    }
 	    ROS_INFO("workingCloud points: %d", (int)workingCloud->size());
+
 	    
+
+	    ros::Time trimStart = ros::Time::now();
 	    // non-dataset clouds have no transform information, so skip that step
 	    if (type_ != CloudType::OTHER && doTrimCloud_) {
 		ROS_INFO("Transforming and trimming cloud");
 		transformAndRemoveFloorCeiling(workingCloud, cloudTransform,
 					       registeredTransform);
 		ROS_INFO("Cloud size after trim: %d", (int)workingCloud->size());
+		info.trimmedPoints = workingCloud->size();
+		info.trimTime = (ros::Time::now() - trimStart).toSec();
 	    }
 
 	    pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>());
 	    pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloudWithNormals(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
+	    ros::Time normalStart = ros::Time::now();
 	    // need to compute normals before extracting planes
 	    if (doComputeNormals_) {
 		ROS_INFO("Computing normals");
@@ -214,14 +304,19 @@ namespace objsearch {
 		// pcl::concatenateFields(*workingCloud, *normals, *cloudWithNormals);
 
 		// pcl::PCDWriter writer;
-		// ROS_INFO("Outputting normals to %s", std::string(SysUtil::fullDirPath(outPath_) + "normCloud.pcd").c_str());
-		// writer.write<pcl::Normal>(SysUtil::fullDirPath(outPath_) + "cloudWithNormals.pcd",
+		// ROS_INFO("Outputting normals to %s", std::string(sysutil::fullDirPath(outPath_) + "normCloud.pcd").c_str());
+		// writer.write<pcl::Normal>(sysutil::fullDirPath(outPath_) + "cloudWithNormals.pcd",
 		// 			  *cloudWithNormals, true);
+		info.normalTime = (ros::Time::now() - normalStart).toSec();
 	    }
-	    
+
+
+	    ros::Time planeStart = ros::Time::now();
 	    if (doExtractPlanes_) {
 		ROS_INFO("Extracting planes.");
-		extractPlanes(workingCloud, normals);
+		info.numPlanes = extractPlanes(workingCloud, normals);
+		info.planeTime = (ros::Time::now() - planeStart).toSec();
+		info.nonPlanePoints = workingCloud->size();
 		ROS_INFO("Cloud size after plane extraction: %d", (int)workingCloud->size());
 		ROS_INFO("Normals size after plane extraction: %d", (int)normals->size());		
 	    }
@@ -229,11 +324,12 @@ namespace objsearch {
 	    // Only save the normals cloud once it has also been pruned by the plane extraction
 	    if (doComputeNormals_){
 		pcl::PCDWriter writer;
-		std::string outFile = SysUtil::fullDirPath(outPath_) + outPrefix_ + "normCloud.pcd";
+		std::string outFile = sysutil::fullDirPath(outPath_) + outPrefix_ + "normCloud.pcd";
 		ROS_INFO("Outputting normals to %s", outFile.c_str());
 		writer.write<pcl::Normal>(outFile, *normals, true);
 	    }
 
+	    return info;
 	}
 
 	/** 
@@ -325,11 +421,11 @@ namespace objsearch {
 
 	    pcl::PCDWriter writer;
 	    ROS_INFO("Writing transformed cloud...");
-	    writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(cloudDir_) + outPrefix_
+	    writer.write<pcl::PointXYZRGB>(sysutil::fullDirPath(cloudDir_) + outPrefix_
 					   + "transformedRoom.pcd", *transformedCloud, true);
 	    ROS_INFO("Done");
 	    ROS_INFO("Writing trimmed cloud...");
-	    writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(cloudDir_) + outPrefix_
+	    writer.write<pcl::PointXYZRGB>(sysutil::fullDirPath(cloudDir_) + outPrefix_
 					   + "trimmedRoom.pcd", *cloud, true);
 
 	    if (doRotateAnnotations_ && type_ == CloudType::FULL){ // only put the annotations into the full cloud reference frame
@@ -343,7 +439,7 @@ namespace objsearch {
 		    pcl_ros::transformPointCloud(*(annotations[i].cloud), *transformedCloud, cloudTransform);
 
 		    // get the file name
-		    std::string nameRoot = SysUtil::trimPath(annotations[i].fname, -1);
+		    std::string nameRoot = sysutil::trimPath(annotations[i].fname, -1);
 		    // remove the extension and another bit of the annotation
 		    // string preceding the label number to make the base string
 		    // on top of which the actual label will be placed.
@@ -352,7 +448,7 @@ namespace objsearch {
 
 		    // no prefix for the annotations, they are the same whether
 		    // the cloud input is intermediate or the complete cloud
-		    writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath_) + 
+		    writer.write<pcl::PointXYZRGB>(sysutil::fullDirPath(outPath_) + 
 						   base + "_" + annotations[i].label + ".pcd",
 						   *(transformedCloud), true);
 		}
@@ -368,25 +464,26 @@ namespace objsearch {
 	 * process is done using a basic RANSAC procedure.
 	 *
 	 * @param cloud Pointer to the cloud from which planes are to be extracted.
+	 * @return Number of planes extracted
 	 * 
 	 */
-	void PreprocessRoom::extractPlanes(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
+	int PreprocessRoom::extractPlanes(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 					   pcl::PointCloud<pcl::Normal>::Ptr& normals){
 	    if (doComputeNormals_){
 		pcl::SACSegmentationFromNormals<pcl::PointXYZRGB, pcl::Normal> seg;
 		seg.setModelType(pcl::SACMODEL_NORMAL_PLANE);
 		seg.setInputNormals(normals);
 		seg.setEpsAngle(0.25);
-		extractPlanes(seg, cloud, normals);
+		return extractPlanes(seg, cloud, normals);
 	    } else {
 		pcl::SACSegmentation<pcl::PointXYZRGB> seg;
 		seg.setModelType(pcl::SACMODEL_PLANE);
-		extractPlanes(seg, cloud, normals);
+		return extractPlanes(seg, cloud, normals);
 	    }
 	}
 	
 	template<typename SegmentationType>
-	void PreprocessRoom::extractPlanes(SegmentationType& seg,
+	int PreprocessRoom::extractPlanes(SegmentationType& seg,
 					   pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 					   pcl::PointCloud<pcl::Normal>::Ptr& normals){
 	    ROS_INFO("Extracting planes.");
@@ -436,11 +533,12 @@ namespace objsearch {
 	    }
 	    
 	    int skipped = 0;
+	    int nplanes;
 	    ROS_INFO("Minimum points per plane: %d", minPoints);
 	    // keep going until the requested number of planes have been
 	    // extracted, or the maximum number of skips in a row have occurred.
-	    for (int i = 0; i < planesToExtract_ && skipped < planeSkipLimit_; i++) {
-		ROS_INFO("Extracting plane %d", i + 1);
+	    for (nplanes = 0; nplanes < planesToExtract_ && skipped < planeSkipLimit_; nplanes++) {
+		ROS_INFO("Extracting plane %d", nplanes + 1);
 		seg.setInputCloud(intermediateCloud);
 		seg.segment(*inliers, *coefficients);
 
@@ -455,7 +553,7 @@ namespace objsearch {
 		}
 		
 		// reset the number of skipped planes
-		skipped = 0;
+		// skipped = 0;
 
 		ROS_INFO("Size of intermediate cloud: %d", (int)intermediateCloud->size());
 		
@@ -473,9 +571,9 @@ namespace objsearch {
 		ROS_INFO("Number of points after adding new plane: %d",
 			 (int)allPlanes->size());
 
-		writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath_)
+		writer.write<pcl::PointXYZRGB>(sysutil::fullDirPath(outPath_)
 					       + outPrefix_ + "extractedPlane_"
-					       + std::to_string(i) +".pcd",
+					       + std::to_string(nplanes) +".pcd",
 					       *extractedPlane, true);
 
 		// also need to extract inlier indices from the normals, if they
@@ -507,10 +605,10 @@ namespace objsearch {
 	    ROS_INFO("Outputting results to: %s", outPath_.c_str());
 
 	    // Write the extracted planes and the remaining points to separate files
-	    writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath_)
+	    writer.write<pcl::PointXYZRGB>(sysutil::fullDirPath(outPath_)
 					   + outPrefix_ + "allPlanes.pcd",
 					   *allPlanes, true);
-	    writer.write<pcl::PointXYZRGB>(SysUtil::fullDirPath(outPath_)
+	    writer.write<pcl::PointXYZRGB>(sysutil::fullDirPath(outPath_)
 					   + outPrefix_ + "nonPlanes.pcd",
 					   *cloud, true);
 	    ROS_INFO("Done");
@@ -525,6 +623,9 @@ namespace objsearch {
 	    // points together again so that they can be displayed
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr fullCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 	    *fullCloud = *allPlanes + *remainingPoints;
+
+	    // number of planes extracted.
+	    return nplanes + 1 - skipped;
 	}
 
 	/** 

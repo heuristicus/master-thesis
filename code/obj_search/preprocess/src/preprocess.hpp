@@ -53,18 +53,35 @@ namespace objsearch {
 	 */
 	class PreprocessRoom {
 	public:
+	    // store information about how long things take, number of points and the like
+	    struct ProcessInfo {
+		std::string fname;
+		int originalPoints;
+		int downsampledPoints;
+		int trimmedPoints;
+		int nonPlanePoints;
+		double loadTime;
+		double downsampleTime;
+		double trimTime;
+		double normalTime;
+		int numPlanes;
+		double planeTime;
+	    };
+	    
 	    PreprocessRoom(int argc, char* argv[]);
-            void preprocessCloud();
+	    void initPaths(std::string path);
+	    void writeInfo(std::string outPath, ProcessInfo info, bool append=false);
+            ProcessInfo preprocessCloud();
 	    void loadCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 			   tf::StampedTransform& cloudTransform,
 			   tf::StampedTransform& registeredTransform);
 	    void transformAndRemoveFloorCeiling(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 						const tf::StampedTransform& cloudTransform,
 						const tf::StampedTransform& registeredTransform);
-	    void extractPlanes(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
+	    int extractPlanes(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 			       pcl::PointCloud<pcl::Normal>::Ptr& normals);
 	    template<typename SegmentationType>
-	    void extractPlanes(SegmentationType& seg,
+	    int extractPlanes(SegmentationType& seg,
 			       pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 			       pcl::PointCloud<pcl::Normal>::Ptr& normals);
 	    void computeNormals(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
@@ -79,7 +96,7 @@ namespace objsearch {
 	    enum class CloudType {
 		INTERMEDIATE, FULL, OTHER
 	    };
-	    
+
 	    std::string cloudPath_; // path of the target cloud
 	    std::string cloudDir_;
 	    std::string cloudFile_; // path to the target cloud
@@ -127,7 +144,3 @@ namespace objsearch {
 } // namespace objsearch
 
 #endif // PREPROCESS_H
-
-
-
-

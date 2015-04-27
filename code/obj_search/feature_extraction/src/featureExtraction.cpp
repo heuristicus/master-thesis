@@ -24,9 +24,9 @@ namespace objsearch {
 	    // extract the remaining directories in the path of the file so that the
 	    // data can be put into the output directory with the same path.
 	    if (cloudFile_.compare(0, processedDir_.size(), processedDir_) == 0){
-		dataSubDir_ = SysUtil::trimPath(std::string(cloudFile_, processedDir_.size()), 1);
+		dataSubDir_ = sysutil::trimPath(std::string(cloudFile_, processedDir_.size()), 1);
 	    } else if (cloudFile_.compare(0, rawDir_.size(), rawDir_) == 0) {
-		dataSubDir_ = SysUtil::trimPath(std::string(cloudFile_, rawDir_.size()), 1);
+		dataSubDir_ = sysutil::trimPath(std::string(cloudFile_, rawDir_.size()), 1);
 	    }
 
 	    ROSUtil::getParam(handle, "/feature_extraction/output_dir", outDir_);
@@ -40,7 +40,7 @@ namespace objsearch {
 	    // with the top level output directory. If dataSubDir_ is not
 	    // initialised, then clouds are simply output to the top level
 	    // output directory
-	    outPath_ = SysUtil::combinePaths(outDir_, dataSubDir_);
+	    outPath_ = sysutil::combinePaths(outDir_, dataSubDir_);
 
 	    ROSUtil::getParam(handle, "/feature_extraction/feature_type", featureType_);
 	    ROSUtil::getParam(handle, "/feature_extraction/feature_selection", featureSelection_);
@@ -92,10 +92,10 @@ namespace objsearch {
 	    if (featureType_.compare("shot") == 0) {
 		// load the cloud of normals. Should find a better way of
 		// distinguishing between intermediate and complete clouds
-		std::string normFile = SysUtil::trimPath(cloudFile_, 1) + '/';
-		if (SysUtil::trimPath(cloudFile_, -1)[0] == '0') { // intermediate clouds start with zero
+		std::string normFile = sysutil::trimPath(cloudFile_, 1) + '/';
+		if (sysutil::trimPath(cloudFile_, -1)[0] == '0') { // intermediate clouds start with zero
 		    // intermediate has 4 digits followed by underscore
-		    normFile += std::string(SysUtil::trimPath(cloudFile_, -1), 0, 5) + "normCloud.pcd";
+		    normFile += std::string(sysutil::trimPath(cloudFile_, -1), 0, 5) + "normCloud.pcd";
 		} else {
 		    normFile += "normCloud.pcd";
 		}
@@ -217,19 +217,19 @@ namespace objsearch {
 	template<typename DescType, typename PointType>
 	void FeatureExtractor::writeData(const typename pcl::PointCloud<DescType>::Ptr& descriptors,
 					 const typename pcl::PointCloud<PointType>::Ptr& points){
-	    if (!SysUtil::makeDirs(SysUtil::cleanDirPath(outPath_) + "/features/")){
+	    if (!sysutil::makeDirs(sysutil::cleanDirPath(outPath_) + "/features/")){
 		ROS_INFO("Could not create output directory.");
 	    }
 	    pcl::PCDWriter writer;
-	    std::string featureOutFile = SysUtil::cleanDirPath(outPath_) + "/features/"
-		+ SysUtil::removeExtension(cloudFile_) + "_shot.pcd";
+	    std::string featureOutFile = sysutil::cleanDirPath(outPath_) + "/features/"
+		+ sysutil::removeExtension(cloudFile_) + "_shot.pcd";
 	    ROS_INFO("Writing computed features to %s", featureOutFile.c_str());
 	    writer.write<DescType>(featureOutFile, *descriptors, true);
 
 	    // output the points at which the descriptors were computed so that they
 	    // can be used later
-	    std::string pointOutFile = SysUtil::cleanDirPath(outPath_) + "/features/"
-		+ SysUtil::removeExtension(cloudFile_) + "_shot_points.pcd";
+	    std::string pointOutFile = sysutil::cleanDirPath(outPath_) + "/features/"
+		+ sysutil::removeExtension(cloudFile_) + "_shot_points.pcd";
 	    ROS_INFO("Writing feature computation points to %s", pointOutFile.c_str());
 	    writer.write<PointType>(pointOutFile, *points, true);
 	}

@@ -27,7 +27,7 @@ namespace objsearch {
 	    // extract the remaining directories in the path of the file so that the
 	    // data can be put into the output directory with the same path.
 	    if (queryFile_.compare(0, dataPath_.size(), dataPath_) == 0){
-		dataSubDir_ = SysUtil::trimPath(std::string(queryFile_, dataPath_.size()), 1);
+		dataSubDir_ = sysutil::trimPath(std::string(queryFile_, dataPath_.size()), 1);
 	    }
 
 	    ROSUtil::getParam(handle, "/object_query/output_dir", outDir_);
@@ -41,7 +41,7 @@ namespace objsearch {
 	    // with the top level output directory. If dataSubDir_ is not
 	    // initialised, then clouds are simply output to the top level
 	    // output directory
-	    outPath_ = SysUtil::fullDirPath(SysUtil::combinePaths(outDir_, dataSubDir_));
+	    outPath_ = sysutil::fullDirPath(sysutil::combinePaths(outDir_, dataSubDir_));
 
 	    // Read the headers for the point clouds that were provided as
 	    // input, and look at the field names to determine which descriptor
@@ -67,9 +67,9 @@ namespace objsearch {
 	    // // features by extracting filenames from the query and target files.
 	    // // We assume that the features directory is a subdirectory of the
 	    // // directory containing those original files.
-	    // std::string filePath = SysUtil::fullDirPath(SysUtil::trimPath(targetFile_, 2)); // original file dir
-	    // std::string queryFName = SysUtil::trimPath(queryFile_, -1);
-	    // std::string targetFName = SysUtil::trimPath(targetFile_, -1);
+	    // std::string filePath = sysutil::fullDirPath(sysutil::trimPath(targetFile_, 2)); // original file dir
+	    // std::string queryFName = sysutil::trimPath(queryFile_, -1);
+	    // std::string targetFName = sysutil::trimPath(targetFile_, -1);
 
 	    // // if the files are intermediate, start the search for the
 	    // // underscore after the first five characters.
@@ -97,8 +97,8 @@ namespace objsearch {
 	    // define the locations of the files containing the points at which
 	    // features were extracted. Same as the file names, but with
 	    // "_points" added on to the end
-	    targetPointFile_ = SysUtil::removeExtension(targetFile_, false) + "_points.pcd";
-	    queryPointFile_ = SysUtil::removeExtension(queryFile_, false) + "_points.pcd";
+	    targetPointFile_ = sysutil::removeExtension(targetFile_, false) + "_points.pcd";
+	    queryPointFile_ = sysutil::removeExtension(queryFile_, false) + "_points.pcd";
 	    ROS_INFO("Loading target feature points from %s", targetPointFile_.c_str());
 	    ROS_INFO("Loading query feature points from %s", queryPointFile_.c_str());
 	    
@@ -272,12 +272,12 @@ namespace objsearch {
 	    std::vector<std::string> labelsQuery;
 	    // assume that the annotations are in a directory above the one in
 	    // which feature clouds are stored.
-	    annotatePointsOBB(SysUtil::trimPath(queryPointFile_, 2), queryPoints, indicesQuery, labelsQuery);
+	    annotatePointsOBB(sysutil::trimPath(queryPointFile_, 2), queryPoints, indicesQuery, labelsQuery);
 	    ROS_INFO("query: %d annotated points of %d total", (int)indicesQuery.size(), (int)queryPoints->size());
 	    
 	    std::vector<int> indicesTarget;
 	    std::vector<std::string> labelsTarget;
-	    annotatePointsOBB(SysUtil::trimPath(targetPointFile_, 2), targetPoints, indicesTarget, labelsTarget);
+	    annotatePointsOBB(sysutil::trimPath(targetPointFile_, 2), targetPoints, indicesTarget, labelsTarget);
 	    ROS_INFO("target: %d annotated points of %d total", (int)indicesTarget.size(), (int)targetPoints->size());
 	    // for (size_t i = 0; i < indices.size(); i++) {
 	    // 	queryPoints->points[indices[i]].r = 255;
@@ -287,7 +287,7 @@ namespace objsearch {
 
 	    // pcl::PCDWriter writer;
 	    // writer.write<pcl::PointXYZRGB>(
-	    // 	SysUtil::fullDirPath(SysUtil::trimPath(queryPointFile_, 1))
+	    // 	sysutil::fullDirPath(sysutil::trimPath(queryPointFile_, 1))
 	    // 	+ "labelledpoints.pcd", *queryPoints, true);
 
 	    ROS_INFO("Starting search");
@@ -385,7 +385,7 @@ namespace objsearch {
 	// 	}
 
 	// 	// output the cloud
-	// 	std::string filePath = SysUtil::trimPath(queryFile_, 1);
+	// 	std::string filePath = sysutil::trimPath(queryFile_, 1);
 	// 	std::string queryRegionOut = outPath_ + "queryRegion.pcd";
 	// 	ROS_INFO("Outputting query point region to %s", queryRegionOut.c_str());
 	// 	writer.write<pcl::PointXYZRGB>(queryRegionOut, *regionPoints, true);

@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
     }
 
     pcl::PCDWriter writer;
-    std::string out = SysUtil::fullDirPath(SysUtil::trimPath(std::string(argv[1]), 1)) + "mergedCloud.pcd";
+    std::string out = sysutil::fullDirPath(sysutil::trimPath(std::string(argv[1]), 1)) + "mergedCloud.pcd";
     std::cout << "Writing to " << out.c_str() << std::endl;
     writer.write<pcl::PointXYZRGB>(out, *mergedCloud, true);
     
