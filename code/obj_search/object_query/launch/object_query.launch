@@ -4,6 +4,11 @@
   <!-- Parameters specific to object query, used if parameters not provided at
        commandline -->
   <rosparam file="$(find object_query)/config/params.yaml" command="load" />
+
+  <!-- Use this when a directory is passed to cloud - the clouds which contain
+       the given string will be processed -->
+  <arg name="match" default="NULL"/>
+  <param name="/object_query/match" value="$(arg match)" />
   
   <arg name="query" />
   <param name="/object_query/query_features" value="$(arg query)" />

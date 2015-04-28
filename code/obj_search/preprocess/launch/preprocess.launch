@@ -39,6 +39,10 @@
        before it is abandoned -->
   <arg name="plane_skip_limit" default="2" />
   <param name="/preprocess/plane_skip_limit" value="$(arg plane_skip_limit)" />
+  <!-- Save individual planes extracted or just the combined cloud of all the planes? -->
+  <arg name="planesave" default="false"/>
+  <param name="/preprocess/save_planes" value="$(arg planesave)" />
+
   
   <!-- These values are used to further adjust the floor and ceiling z-value
        which is used to remove points which make up those parts of the cloud -->
@@ -74,6 +78,7 @@
   <param name="/preprocess/rotate_annotations" value="$(arg annotations)" />
   <arg name="normals" default="true"/>
   <param name="/preprocess/compute_normals" value="$(arg normals)" />
+
 
   <node name="preprocess" pkg="preprocess" type="preprocess" output="screen" />
 </launch>

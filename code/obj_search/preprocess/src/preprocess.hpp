@@ -118,6 +118,7 @@ namespace objsearch {
 	    bool doRotateAnnotations_;
 	    bool doComputeNormals_;
 	    bool doDownsample_;
+            bool savePlanes_; // save individual planes or just the combined cloud
 
 	    // plane extraction parameters
 	    float ransacDistanceThresh_;

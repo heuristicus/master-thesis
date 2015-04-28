@@ -46,6 +46,7 @@ namespace objsearch {
 	    ROSUtil::getParam(handle, "/preprocess/min_plane_points_complete", minPlanePointsComplete_);
 	    ROSUtil::getParam(handle, "/preprocess/min_plane_points_intermediate", minPlanePointsIntermediate_);
 	    ROSUtil::getParam(handle, "/preprocess/plane_skip_limit", planeSkipLimit_);
+	    ROSUtil::getParam(handle, "/preprocess/save_planes", savePlanes_);
 
 	    ROSUtil::getParam(handle, "/preprocess/trim_cloud", doTrimCloud_);
 	    ROSUtil::getParam(handle, "/preprocess/rotate_annotations", doRotateAnnotations_);
@@ -591,10 +592,12 @@ namespace objsearch {
 		ROS_INFO("Number of points after adding new plane: %d",
 			 (int)allPlanes->size());
 
-		writer.write<pcl::PointXYZRGB>(sysutil::fullDirPath(outPath_)
-					       + outPrefix_ + "extractedPlane_"
-					       + std::to_string(nplanes) +".pcd",
-					       *extractedPlane, true);
+		if (savePlanes_) {
+		    writer.write<pcl::PointXYZRGB>(sysutil::fullDirPath(outPath_)
+						   + outPrefix_ + "extractedPlane_"
+						   + std::to_string(nplanes) +".pcd",
+						   *extractedPlane, true);
+		}
 
 		// also need to extract inlier indices from the normals, if they
 		// were computed, so that the normals and points are consistent
@@ -624,12 +627,19 @@ namespace objsearch {
 	    
 	    ROS_INFO("Outputting results to: %s", outPath_.c_str());
 
+
+	    // add a suffix so that it is possible to match intermediate or
+	    // complete clouds easier with simple regex
+	    std::string suffix;
+	    if (type_ == CloudType::INTERMEDIATE) {
+		suffix = "_inter";
+	    }
 	    // Write the extracted planes and the remaining points to separate files
 	    writer.write<pcl::PointXYZRGB>(sysutil::fullDirPath(outPath_)
-					   + outPrefix_ + "allPlanes.pcd",
+					   + outPrefix_ + "allPlanes" + suffix + ".pcd",
 					   *allPlanes, true);
 	    writer.write<pcl::PointXYZRGB>(sysutil::fullDirPath(outPath_)
-					   + outPrefix_ + "nonPlanes.pcd",
+					   + outPrefix_ + "nonPlanes" + suffix + ".pcd",
 					   *cloud, true);
 	    ROS_INFO("Done");
 
