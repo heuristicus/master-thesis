@@ -17,7 +17,9 @@
 #include <algorithm>
 #include <string>
 #include <cmath>
+#include <cstdlib>
 #include <vector>
+#include <iostream>
 
 #include <ros/console.h>
 
@@ -34,12 +36,21 @@ namespace objsearch {
     namespace featureExtraction {
 	class FeatureExtractor {
 	public:
+	    struct FeatureInfo {
+		std::string fname;
+		int originalSize;
+		int featureSize; // number of points at which features will be computed
+		double selectTime; // time to compute computation locations
+		double featureTime; // time to compute features
+	    };
 	    FeatureExtractor(int argc, char *argv[]);
 
-	    void extractFeatures();
+	    FeatureInfo extractFeatures();
 	    template<typename DescType, typename PointType>
 	    void writeData(const typename pcl::PointCloud<DescType>::Ptr& descriptors,
 			   const typename pcl::PointCloud<PointType>::Ptr& points);
+	    void initPaths(std::string path);
+	    void writeInfo(std::string outPath, FeatureInfo info, bool append);
 
 	    // strings to store information about directories and the like for
 	    // saving and retrieving data.

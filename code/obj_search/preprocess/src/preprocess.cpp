@@ -213,7 +213,7 @@ namespace objsearch {
 	void PreprocessRoom::writeInfo(std::string outPath, ProcessInfo info, bool append) {
 	    std::ofstream file;
 	    if (append){
-		file.open(outPath, ios::app);
+		file.open(outPath, std::ios::app);
 	    } else {
 		file.open(outPath);
 	    }
