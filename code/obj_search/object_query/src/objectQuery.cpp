@@ -79,8 +79,6 @@ namespace objsearch {
 		ROS_INFO("And more...");
 	    }
 
-	    exit(1);
-	    
 	    // Depending on the type of the descriptor in the cloud, we need to
 	    // instantiate a different template for the search function
 	    if (queryType_.compare("shot") == 0) {
@@ -297,8 +295,8 @@ namespace objsearch {
 		ROS_INFO("Starting search");
 		// Loop over all points in the query cloud
 		std::vector<std::vector<int> > nearest((int)queryFeatures->size());
+		std::vector<std::vector<float> > square_dists((int)queryFeatures->size());
 		// Initialise vectors to store the closest K points to the query point.	
-		std::vector<float> square_dists(K_);
 		for (int i = 0; i < queryFeatures->size(); i++) {
 		    ROS_INFO("Query point %d of %d", i + 1, (int)queryFeatures->size());
 		    // some features may have nan values and will crash if not excluded.
@@ -306,7 +304,7 @@ namespace objsearch {
 			continue;
 		    }
 		    // Search for the closest K points to the query point
-		    search->nearestKSearch(queryFeatures->points[i], K_, nearest[i], square_dists);
+		    search->nearestKSearch(queryFeatures->points[i], K_, nearest[i], square_dists[i]);
 		}
 
 		ROS_INFO("Finished finding neighbours");

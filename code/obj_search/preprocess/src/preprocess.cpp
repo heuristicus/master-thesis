@@ -89,6 +89,12 @@ namespace objsearch {
 		dataOutput = sysutil::fullDirPath(outPath_) + "preparams_" + timeNow + ".yaml";
 		roomFiles.push_back(cloudPath_);
 	    }
+
+	    if (roomFiles.size() == 0) {
+		ROS_INFO("No matches for %s", match.c_str());
+		exit(1);
+	    }
+	    
 	    // Dump parameters used for this run
 	    // dangerous, but otherwise annoying to output all parameters individually.
 	    std::string command("rosparam dump " + dataOutput);
@@ -177,9 +183,9 @@ namespace objsearch {
 		    // cloud. The files have their whole path - trim them so we
 		    // only look at the filename itself
 		    std::string fname = sysutil::trimPath(*it, -1);
-		    ROS_INFO("Comparing cloudfile to %s", fname.c_str());
+//		    ROS_INFO("Comparing cloudfile to %s", fname.c_str());
 		    if (fname.compare(cloudFile_) == 0){
-			ROS_INFO("entire filename matches");
+//			ROS_INFO("entire filename matches");
 			// if the entire filename matches, then we have the desired index, so break
 			break;
 		    }
@@ -339,7 +345,6 @@ namespace objsearch {
 		info.planeTime = (ros::Time::now() - planeStart).toSec();
 		info.nonPlanePoints = workingCloud->size();
 		ROS_INFO("Cloud size after plane extraction: %d", (int)workingCloud->size());
-		ROS_INFO("Normals size after plane extraction: %d", (int)normals->size());		
 	    }
 
 	    // Only save the normals cloud once it has also been pruned by the plane extraction
@@ -618,8 +623,6 @@ namespace objsearch {
 	    ROS_INFO("All planes size after loop: %d", (int)allPlanes->size());
 	    ROS_INFO("Remaining points size after loop: %d",
 		     (int)intermediateCloud->size());
-	    ROS_INFO("Normals size after loop: %d",
-		     (int)normals->size());
 
 	    // Make sure to swap out the fully filtered intermediate cloud into
 	    // the cloud that will be visible outside

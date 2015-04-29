@@ -58,6 +58,12 @@ namespace objsearch {
 		dataOutput = sysutil::fullDirPath(outPath_) + "featureparams_" + timeNow + ".yaml";
 		roomFiles.push_back(cloudFile_);
 	    }
+
+	    if (roomFiles.size() == 0) {
+		ROS_INFO("No matches for %s", match.c_str());
+		exit(1);
+	    }
+
 	    // Dump parameters used for this run
 	    // dangerous, but otherwise annoying to output all parameters individually.
 	    std::string command("rosparam dump " + dataOutput);
