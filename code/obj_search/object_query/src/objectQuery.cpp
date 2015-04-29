@@ -22,96 +22,101 @@ namespace objsearch {
 	    }
 
 	    ROSUtil::getParam(handle, "/obj_search/processed_data_dir", dataPath_);
-	    
-	    // If the given cloud file corresponds to a file in the raw data directory,
-	    // extract the remaining directories in the path of the file so that the
-	    // data can be put into the output directory with the same path.
-	    if (queryFile_.compare(0, dataPath_.size(), dataPath_) == 0){
-		dataSubDir_ = SysUtil::trimPath(std::string(queryFile_, dataPath_.size()), 1);
-	    }
-
 	    ROSUtil::getParam(handle, "/object_query/output_dir", outDir_);
 	    // If output is not specified, set the output directory to be the processed
 	    // data directory specified by the global parameters.
 	    if (std::string("NULL").compare(outDir_) == 0) {
-		ROSUtil::getParam(handle, "/obj_search/processed_data_dir", outDir_);
+		outDir_ = dataPath_;
 	    }
 
+	    // Query info is always the same, so initialise everything here.
+	    // Stuff about the target will be initialised every loop. In the
+	    // doSearch function
+	    
+	    // extract the remaining directories in the path of the file so that
+	    // the data can be put into the output directory with the same path
+	    // following it.
+	    if (queryFile_.compare(0, dataPath_.size(), dataPath_) == 0){
+		dataSubDir_ = sysutil::trimPath(std::string(queryFile_, dataPath_.size()), 1);
+	    }
+	    
 	    // The output path for processed clouds is the subdirectory combined
 	    // with the top level output directory. If dataSubDir_ is not
 	    // initialised, then clouds are simply output to the top level
-	    // output directory
-	    outPath_ = SysUtil::fullDirPath(SysUtil::combinePaths(outDir_, dataSubDir_));
+	    // output directory. The output will be written to a location for
+	    // the query cloud, for each of the target clouds used.
+	    outPath_ = sysutil::fullDirPath(sysutil::combinePaths(outDir_, dataSubDir_));
+	    queryPointFile_ = sysutil::removeExtension(queryFile_, false) + "_points.pcd";
+	    pcl::PCDReader reader;
+	    pcl::PCLPointCloud2 queryHeader;
+	    reader.readHeader(queryFile_, queryHeader);
+	    std::string queryType_ = queryHeader.fields[0].name;
+	    ROS_INFO("Loading query feature points from %s", queryPointFile_.c_str());
 
+	    std::string match;
+	    ROSUtil::getParam(handle, "/object_query/match", match);
+	    // Get all paths to the target clouds to check. This depends on
+	    // whether the parameter given is a file or directory, and also
+	    // whether a match string was given or not.
+	    if (sysutil::isDir(targetFile_)) {
+		if (match.compare("NULL") == 0) {
+		    targetClouds_ = sysutil::listFilesWithString(targetFile_, "nonPlanes.pcd", true);
+		} else { // otherwise, match the string and process those files
+		    targetClouds_ = sysutil::listFilesWithString(targetFile_, match, true);
+		}
+//		dataOutput = sysutil::fullDirPath(outPath_) + "featureparams_" + timeNow + ".yaml";
+	    } else { // is a file, so just process that
+//		dataOutput = sysutil::fullDirPath(outPath_) + "featureparams_" + timeNow + ".yaml";
+		targetClouds_.push_back(targetFile_);
+	    }
+
+	    // print some information about what files will be processed
+	    size_t i;
+	    for (i = 0; i < 10 && i < targetClouds_.size(); i++) {
+		ROS_INFO("%s", targetClouds_[i].c_str());
+	    }
+	    if (i >= 10) {
+		ROS_INFO("And more...");
+	    }
+
+	    // Depending on the type of the descriptor in the cloud, we need to
+	    // instantiate a different template for the search function
+	    if (queryType_.compare("shot") == 0) {
+		doSearch<pcl::SHOT352>();
+	    } else if (queryType_.compare("shape_context") == 0) {
+		doSearch<pcl::ShapeContext1980>();
+	    } else {
+		ROS_ERROR("Unknown descriptor field specifier: %s", queryType_.c_str());
+                exit(1);
+	    }
+	}
+
+	bool ObjectQuery::initAndCheckPaths(std::string path) {
+	    targetFile_ = path;
 	    // Read the headers for the point clouds that were provided as
 	    // input, and look at the field names to determine which descriptor
 	    // type is stored in the cloud.
 	    pcl::PCDReader reader;
 	    pcl::PCLPointCloud2 targetHeader;
 	    reader.readHeader(targetFile_, targetHeader);
-	    std::string targetField = targetHeader.fields[0].name;
-	    
-	    pcl::PCLPointCloud2 queryHeader;
-	    reader.readHeader(queryFile_, queryHeader);
-	    std::string queryField = queryHeader.fields[0].name;
+	    std::string targetType = targetHeader.fields[0].name;
 
 	    // The descriptors for both clouds must be the same, otherwise we
 	    // cannot compare them.
-	    if (queryField.compare(targetField) != 0){
+	    if (queryType_.compare(targetType) != 0){
 		ROS_ERROR("Fields of the two descriptor clouds do not match: \n"\
-			  "Query: %s, target: %s", queryField.c_str(), targetField.c_str());
-		exit(1);
+			  "Query: %s, target: %s", queryType_.c_str(), targetType.c_str());
+		return false;
 	    }
-
-	    // // Define the locations of the original point clouds used to extract
-	    // // features by extracting filenames from the query and target files.
-	    // // We assume that the features directory is a subdirectory of the
-	    // // directory containing those original files.
-	    // std::string filePath = SysUtil::fullDirPath(SysUtil::trimPath(targetFile_, 2)); // original file dir
-	    // std::string queryFName = SysUtil::trimPath(queryFile_, -1);
-	    // std::string targetFName = SysUtil::trimPath(targetFile_, -1);
-
-	    // // if the files are intermediate, start the search for the
-	    // // underscore after the first five characters.
-	    // int qstart = 0;
-	    // int tstart = 0;
-	    // if (queryFName.front() == '0') {
-	    // 	qstart = 5;
-	    // } else if (targetFName.front() == '0'){
-	    // 	tstart = 5;
-	    // }
-
-	    // // Construct the name of the file by extracting part of the
-	    // // query/target file names
-	    // std::string queryName = std::string(queryFName.begin(),
-	    // 					queryFName.begin()
-	    // 					+ queryFName.find_first_of('_', qstart));
-	    // std::string targetName = std::string(targetFName.begin(),
-	    // 					 targetFName.begin()
-	    // 					 + targetFName.find_first_of('_', tstart));
-
-	    // // Combine the paths, filenames and the extension to get the full path
-	    // targetPointFile_ = filePath + targetName + ".pcd";
-	    // queryPointFile_ = filePath + queryName + ".pcd";
 
 	    // define the locations of the files containing the points at which
 	    // features were extracted. Same as the file names, but with
 	    // "_points" added on to the end
-	    targetPointFile_ = SysUtil::removeExtension(targetFile_, false) + "_points.pcd";
-	    queryPointFile_ = SysUtil::removeExtension(queryFile_, false) + "_points.pcd";
+	    targetPointFile_ = sysutil::removeExtension(targetFile_, false) + "_points.pcd";
+
 	    ROS_INFO("Loading target feature points from %s", targetPointFile_.c_str());
-	    ROS_INFO("Loading query feature points from %s", queryPointFile_.c_str());
-	    
-	    // Depending on the type of the descriptor in the cloud, we need to
-	    // instantiate a different template for the search function
-	    if (queryField.compare("shot") == 0) {
-		doSearch<pcl::SHOT352>();
-	    } else if (queryField.compare("shape_context") == 0) {
-		doSearch<pcl::ShapeContext1980>();
-	    } else {
-		ROS_ERROR("Unknown descriptor field specifier: %s", queryField.c_str());
-                exit(1);
-	    }
+
+	    return true;
 	}
 
 	/** 
@@ -159,7 +164,7 @@ namespace objsearch {
 		}
 	    }
 	}
-	
+
 	/** 
 	 * Annotate points in a cloud loaded from a certain directory based on
 	 * the annotations. Points in the given cloud will be compared to the
@@ -242,21 +247,23 @@ namespace objsearch {
 	    pcl::PCDReader reader;
 
 	    // Read the input clouds for the target and query descriptors. We
-	    // want to find descriptors in targetFeatures which are close to those
-	    // in queryFeatures. Need to use typename here because of dependent
-	    // scope - what it is depends on the instantiation of the template
-	    // argument
-	    typename pcl::PointCloud<DescType>::Ptr targetFeatures(new pcl::PointCloud<DescType>());
+	    // want to find descriptors in targetFeatures which are close to
+	    // those in queryFeatures. Need to use typename here because of
+	    // dependent scope - what it is depends on the instantiation of the
+	    // template argument. Each point in the *Points clouds corresponds
+	    // to the location of the feature at the same index in the *Features
+	    // clouds
 	    typename pcl::PointCloud<DescType>::Ptr queryFeatures(new pcl::PointCloud<DescType>());
-	    reader.read(targetFile_, *targetFeatures);
-	    reader.read(queryFile_, *queryFeatures);
-	    
-	    // each point in these clouds corresponds to the location of the
-	    // feature at the same index in the above clouds
-	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr targetPoints(new pcl::PointCloud<pcl::PointXYZRGB>());
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr queryPoints(new pcl::PointCloud<pcl::PointXYZRGB>());
-	    reader.read(targetPointFile_, *targetPoints);
 	    reader.read(queryPointFile_, *queryPoints);
+	    reader.read(queryFile_, *queryFeatures);
+
+	    std::vector<int> indicesQuery;
+	    std::vector<std::string> labelsQuery;
+	    // assume that the annotations are in a directory above the one in
+	    // which feature clouds are stored.
+	    annotatePointsOBB(sysutil::trimPath(queryPointFile_, 2), queryPoints, indicesQuery, labelsQuery);
+	    ROS_INFO("query: %d annotated points of %d total", (int)indicesQuery.size(), (int)queryPoints->size());
 
 	    // Create a flannsearch object to use to do the NN search
 	    typename pcl::search::FlannSearch<DescType, flann::L2_Simple<float> >
@@ -266,84 +273,82 @@ namespace objsearch {
 	    typename pcl::DefaultPointRepresentation<DescType>::ConstPtr
 		descRepr(new pcl::DefaultPointRepresentation<DescType>());
 	    search->setPointRepresentation(descRepr);
-	    search->setInputCloud(targetFeatures);
-
-	    std::vector<int> indicesQuery;
-	    std::vector<std::string> labelsQuery;
-	    // assume that the annotations are in a directory above the one in
-	    // which feature clouds are stored.
-	    annotatePointsOBB(SysUtil::trimPath(queryPointFile_, 2), queryPoints, indicesQuery, labelsQuery);
-	    ROS_INFO("query: %d annotated points of %d total", (int)indicesQuery.size(), (int)queryPoints->size());
 	    
-	    std::vector<int> indicesTarget;
-	    std::vector<std::string> labelsTarget;
-	    annotatePointsOBB(SysUtil::trimPath(targetPointFile_, 2), targetPoints, indicesTarget, labelsTarget);
-	    ROS_INFO("target: %d annotated points of %d total", (int)indicesTarget.size(), (int)targetPoints->size());
-	    // for (size_t i = 0; i < indices.size(); i++) {
-	    // 	queryPoints->points[indices[i]].r = 255;
-	    // 	queryPoints->points[indices[i]].g = 0;
-	    // 	queryPoints->points[indices[i]].b = 0;
-	    // }
-
-	    // pcl::PCDWriter writer;
-	    // writer.write<pcl::PointXYZRGB>(
-	    // 	SysUtil::fullDirPath(SysUtil::trimPath(queryPointFile_, 1))
-	    // 	+ "labelledpoints.pcd", *queryPoints, true);
-
-	    ROS_INFO("Starting search");
-	    // Loop over all points in the query cloud
-	    std::vector<std::vector<int> > nearest((int)queryFeatures->size());
-	    // Initialise vectors to store the closest K points to the query point.	
-	    std::vector<float> square_dists(K_);
-	    for (int i = 0; i < queryFeatures->size(); i++) {
-		ROS_INFO("Query point %d of %d", i + 1, (int)queryFeatures->size());
-		// some features may have nan values and will crash if not excluded.
-		if (!pclutil::isValid(queryFeatures->points[i])){
+	    // loop over all clouds in the target cloud vector
+	    for (size_t i = 0; i < targetClouds_.size(); i++) {
+		// Do a check to make sure the feature types match. If not, skip
+		// this target cloud
+		if (!initAndCheckPaths(targetClouds_[i])) {
 		    continue;
 		}
 
+		pcl::PointCloud<pcl::PointXYZRGB>::Ptr targetPoints(new pcl::PointCloud<pcl::PointXYZRGB>());
+		typename pcl::PointCloud<DescType>::Ptr targetFeatures(new pcl::PointCloud<DescType>());
+		targetPointFile_ = sysutil::removeExtension(targetClouds_[i], false) + "_points.pcd";
+		reader.read(targetClouds_[i], *targetFeatures);
+		reader.read(targetPointFile_, *targetPoints);
+		search->setInputCloud(targetFeatures);
+	    
+		std::vector<int> indicesTarget;
+		std::vector<std::string> labelsTarget;
 
-		// Search for the closest K points to the query point
-		search->nearestKSearch(queryFeatures->points[i], K_, nearest[i], square_dists);
-	    }
+		ROS_INFO("Starting search");
+		// Loop over all points in the query cloud
+		std::vector<std::vector<int> > nearest((int)queryFeatures->size());
+		std::vector<std::vector<float> > square_dists((int)queryFeatures->size());
+		// Initialise vectors to store the closest K points to the query point.	
+		for (int i = 0; i < queryFeatures->size(); i++) {
+		    ROS_INFO("Query point %d of %d", i + 1, (int)queryFeatures->size());
+		    // some features may have nan values and will crash if not excluded.
+		    if (!pclutil::isValid(queryFeatures->points[i])){
+			continue;
+		    }
+		    // Search for the closest K points to the query point
+		    search->nearestKSearch(queryFeatures->points[i], K_, nearest[i], square_dists[i]);
+		}
 
-	    ROS_INFO("Finished finding neighbours");
+		ROS_INFO("Finished finding neighbours");
 
-	    std::map<std::string, int> matches;
-	    // go through all the nearest neighbours of the query points which
-	    // have labels and see if there are matches
-	    for (size_t i = 0; i < indicesQuery.size(); i++) {
-		std::string currentQueryLabel = labelsQuery[i];
-		ROS_INFO("Checking matches for label %s at index %d",
-			 currentQueryLabel.c_str(), indicesQuery[i]);
-		std::vector<int>& neigh = nearest[indicesQuery[i]];
-		ROS_INFO("Num neighbours %d", (int)neigh.size());
-		// go through the neighbours of this point
-		for (auto it = neigh.begin(); it != neigh.end(); it++) {
-		    ROS_INFO("Checking neighbour with target index %d", *it);
-		    // if the indices of labelled points in the target cloud
-		    // contain the neighbour we are looking at, and it has the
-		    // same label as the current point we are looking at in the
-		    // query cloud. 
-		    auto indit = std::find(indicesTarget.begin(),
-					   indicesTarget.end(), *it);
-		    if (indit != indicesTarget.end()){
-			ROS_INFO("Found target index %d at location %d", (int)*it, (int)(indit - indicesTarget.begin()));
-			std::string targetLabel = labelsTarget[indit - indicesTarget.begin()];
-			ROS_INFO("Label is %s", targetLabel.c_str());
-			if (currentQueryLabel.compare(targetLabel) == 0){
-			    ROS_INFO("Labels match");
-			    // increment matches for the label
-			    matches[currentQueryLabel]++;
+		annotatePointsOBB(sysutil::trimPath(targetPointFile_, 2), targetPoints, indicesTarget, labelsTarget);
+		ROS_INFO("target: %d annotated points of %d total", (int)indicesTarget.size(), (int)targetPoints->size());
+
+
+		std::map<std::string, int> matches;
+		// go through all the nearest neighbours of the query points which
+		// have labels and see if there are matches
+		for (size_t i = 0; i < indicesQuery.size(); i++) {
+		    std::string currentQueryLabel = labelsQuery[i];
+		    ROS_INFO("Checking matches for label %s at index %d",
+			     currentQueryLabel.c_str(), indicesQuery[i]);
+		    std::vector<int>& neigh = nearest[indicesQuery[i]];
+		    ROS_INFO("Num neighbours %d", (int)neigh.size());
+		    // go through the neighbours of this point
+		    for (auto it = neigh.begin(); it != neigh.end(); it++) {
+			ROS_INFO("Checking neighbour with target index %d", *it);
+			// if the indices of labelled points in the target cloud
+			// contain the neighbour we are looking at, and it has the
+			// same label as the current point we are looking at in the
+			// query cloud. 
+			auto indit = std::find(indicesTarget.begin(),
+					       indicesTarget.end(), *it);
+			if (indit != indicesTarget.end()){
+			    ROS_INFO("Found target index %d at location %d", (int)*it, (int)(indit - indicesTarget.begin()));
+			    std::string targetLabel = labelsTarget[indit - indicesTarget.begin()];
+			    ROS_INFO("Label is %s", targetLabel.c_str());
+			    if (currentQueryLabel.compare(targetLabel) == 0){
+				ROS_INFO("Labels match");
+				// increment matches for the label
+				matches[currentQueryLabel]++;
+			    }
 			}
 		    }
 		}
+
+		for (auto it=matches.begin(); it!=matches.end(); ++it)
+		    std::cout << it->first << " => " << it->second << '\n';
+
+		ROS_INFO("Search complete");
 	    }
-
-	    for (auto it=matches.begin(); it!=matches.end(); ++it)
-		std::cout << it->first << " => " << it->second << '\n';
-
-	    ROS_INFO("Search complete");
 	}
 
 	// void outputRegions(){
@@ -385,7 +390,7 @@ namespace objsearch {
 	// 	}
 
 	// 	// output the cloud
-	// 	std::string filePath = SysUtil::trimPath(queryFile_, 1);
+	// 	std::string filePath = sysutil::trimPath(queryFile_, 1);
 	// 	std::string queryRegionOut = outPath_ + "queryRegion.pcd";
 	// 	ROS_INFO("Outputting query point region to %s", queryRegionOut.c_str());
 	// 	writer.write<pcl::PointXYZRGB>(queryRegionOut, *regionPoints, true);

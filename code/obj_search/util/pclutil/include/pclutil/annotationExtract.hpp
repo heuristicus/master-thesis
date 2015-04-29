@@ -35,18 +35,18 @@ namespace objsearch {
 	    std::string filename, pcl::PCDReader& reader=pcl::PCDReader()) {
 	    // the label name comes between "label_" and the extension in
 	    // the filename
-	    std::string label = SysUtil::removeExtension(filename, true);
+	    std::string label = sysutil::removeExtension(filename, true);
 	    int labelStartInd = label.find("label_") + 6;
 	    // extract the label from the filename
 	    label = std::string(label.begin() + labelStartInd, label.end());
 		
-	    ROS_INFO("----------%s----------", filename.c_str());
-	    ROS_INFO("File label is %s", label.c_str());
+	    // ROS_INFO("----------%s----------", filename.c_str());
+	    // ROS_INFO("File label is %s", label.c_str());
 
 	    // create a new cloud each time to get a different pointer.
 	    typename pcl::PointCloud<PointT>::Ptr cloud(new pcl::PointCloud<PointT>());
 	    reader.read(filename, *cloud);
-	    ROS_INFO("Cloud size is %d", (int)cloud->size());
+//	    ROS_INFO("Cloud size is %d", (int)cloud->size());
 	    return AnnotatedCloud<PointT>(label, filename, cloud);
 	}
 
@@ -67,7 +67,7 @@ namespace objsearch {
 	    // annotations. They should be the same length.
 	    ROS_INFO("Searching %s for annotation clouds", filePath.c_str());
 	    
-	    std::vector<std::string> matchesPCD = SysUtil::listFilesWithString(
+	    std::vector<std::string> matchesPCD = sysutil::listFilesWithString(
 		filePath, std::regex(".*label.*pcd"));
 	    std::sort(matchesPCD.begin(), matchesPCD.end());
 
@@ -122,11 +122,11 @@ namespace objsearch {
 	std::vector<AnnotatedCloud<PointT> > getRawAnnotatedClouds(std::string filePath) {
 	    // get two sorted vectors containing the cloud files and txt data for the
 	    // annotations. They should be the same length.
-	    std::vector<std::string> matchesPCD = SysUtil::listFilesWithString(
+	    std::vector<std::string> matchesPCD = sysutil::listFilesWithString(
 		filePath, std::regex(".*label.*pcd"));
 	    std::sort(matchesPCD.begin(), matchesPCD.end());
 
-	    std::vector<std::string> matchesTXT = SysUtil::listFilesWithString(
+	    std::vector<std::string> matchesTXT = sysutil::listFilesWithString(
 		filePath, std::regex(".*label.*txt"));
 	    std::sort(matchesTXT.begin(), matchesTXT.end());
 

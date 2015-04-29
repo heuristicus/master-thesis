@@ -20,27 +20,8 @@ namespace objsearch {
 	    ROSUtil::getParam(handle, "/feature_extraction/input_cloud", cloudFile_);
 	    ROSUtil::getParam(handle, "/obj_search/processed_data_dir", processedDir_);
 	    ROSUtil::getParam(handle, "/obj_search/raw_data_dir", rawDir_);
-	    // If the given cloud file corresponds to a file in the processed data directory,
-	    // extract the remaining directories in the path of the file so that the
-	    // data can be put into the output directory with the same path.
-	    if (cloudFile_.compare(0, processedDir_.size(), processedDir_) == 0){
-		dataSubDir_ = SysUtil::trimPath(std::string(cloudFile_, processedDir_.size()), 1);
-	    } else if (cloudFile_.compare(0, rawDir_.size(), rawDir_) == 0) {
-		dataSubDir_ = SysUtil::trimPath(std::string(cloudFile_, rawDir_.size()), 1);
-	    }
-
 	    ROSUtil::getParam(handle, "/feature_extraction/output_dir", outDir_);
-	    // If output is not specified, set the output directory to be the processed
-	    // data directory specified by the global parameters.
-	    if (std::string("NULL").compare(outDir_) == 0) {
-		outDir_ = processedDir_;
-	    }
 
-	    // The output path for processed clouds is the subdirectory combined
-	    // with the top level output directory. If dataSubDir_ is not
-	    // initialised, then clouds are simply output to the top level
-	    // output directory
-	    outPath_ = SysUtil::combinePaths(outDir_, dataSubDir_);
 
 	    ROSUtil::getParam(handle, "/feature_extraction/feature_type", featureType_);
 	    ROSUtil::getParam(handle, "/feature_extraction/feature_selection", featureSelection_);
@@ -55,11 +36,117 @@ namespace objsearch {
 	    ROSUtil::getParam(handle, "/feature_extraction/usc_minimal_radius", uscMinRadius_);
 	    ROSUtil::getParam(handle, "/feature_extraction/usc_density_radius", uscDensityRadius_);
 	    ROSUtil::getParam(handle, "/feature_extraction/usc_local_radius", uscLocalRadius_);
+	    std::string match;
+	    ROSUtil::getParam(handle, "/feature_extraction/match", match);
+
+
+	    std::vector<std::string> roomFiles;
+	    std::string dataOutput;
+	    std::string timeNow = sysutil::getDateTimeString();
+	    initPaths(cloudFile_);
 	    
-	    extractFeatures();
+	    // room files are different depending on what input was received -
+	    // directory, file, or directory with match string
+	    if (sysutil::isDir(cloudFile_)) {
+		if (match.compare("NULL") == 0) {
+		    roomFiles = sysutil::listFilesWithString(cloudFile_, "nonPlanes.pcd", true);
+		} else { // otherwise, match the string and process those files
+		    roomFiles = sysutil::listFilesWithString(cloudFile_, match, true);
+		}
+		dataOutput = sysutil::fullDirPath(outPath_) + "featureparams_" + timeNow + ".yaml";
+	    } else { // is a file, so just process that
+		dataOutput = sysutil::fullDirPath(outPath_) + "featureparams_" + timeNow + ".yaml";
+		roomFiles.push_back(cloudFile_);
+	    }
+
+	    if (roomFiles.size() == 0) {
+		ROS_INFO("No matches for %s", match.c_str());
+		exit(1);
+	    }
+
+	    // Dump parameters used for this run
+	    // dangerous, but otherwise annoying to output all parameters individually.
+	    std::string command("rosparam dump " + dataOutput);
+	    ROS_INFO("Caling system with command %s", command.c_str());
+	    system(command.c_str());
+
+	    // print some information about what files will be processed
+	    size_t i;
+	    for (i = 0; i < 10 && i < roomFiles.size(); i++) {
+		ROS_INFO("%s", roomFiles[i].c_str());
+	    }
+	    if (i >= 10) {
+		ROS_INFO("And more...");
+	    }
+
+	    bool append = false;
+	    std::string dataFile = sysutil::fullDirPath(sysutil::trimPath(dataOutput, 1))
+		+ "featuredata_" + timeNow + ".txt";
+	    for (auto it = roomFiles.begin(); it != roomFiles.end(); it++) {
+		ROS_INFO("Extracting features from cloud %d of %d",
+			 (int)(it - roomFiles.begin()), (int)roomFiles.size());
+		cloudFile_ = *it;
+		initPaths(cloudFile_); // update output paths
+		FeatureInfo info = extractFeatures();
+		writeInfo(dataFile, info, append);
+		append = true;
+	    }
 	}
 
-	void FeatureExtractor::extractFeatures(){
+	void FeatureExtractor::writeInfo(std::string outPath, FeatureInfo info, bool append) {
+	    std::ofstream file;
+	    if (append){
+		file.open(outPath, std::ios::app);
+	    } else {
+		file.open(outPath);
+	    }
+
+	    // write the column headers: filename for the information output,
+	    // number of points before modification, number of points selected
+	    // for feature computation, time taken for selection, time taken for
+	    // feature computation
+	    if (!append) {
+		// if not appending, put headers to the columns and the
+		// directory/file the program was run on
+		file << cloudFile_.c_str()
+		     << "#filename n_pre n_feature t_select t_feature" << std::endl;
+	    }
+
+	    // output data from the struct
+	    file << info.fname.c_str() << " " << info.originalSize << " " << info.featureSize
+		 << " " << info.selectTime << " " << info.featureTime << std::endl;
+	    file.close();
+	}
+
+
+	void FeatureExtractor::initPaths(std::string path) {
+	    // if the path is a directory, don't want to trim anything off the end.
+	    int toTrim = 1;
+	    if (sysutil::isDir(path)) {
+		toTrim = 0;
+	    }
+	    // If the given cloud file corresponds to a file in the processed data directory,
+	    // extract the remaining directories in the path of the file so that the
+	    // data can be put into the output directory with the same path.
+	    if (path.compare(0, processedDir_.size(), processedDir_) == 0){
+		dataSubDir_ = sysutil::trimPath(std::string(path, processedDir_.size()), toTrim);
+	    } else if (path.compare(0, rawDir_.size(), rawDir_) == 0) {
+		dataSubDir_ = sysutil::trimPath(std::string(path, rawDir_.size()), toTrim);
+	    }
+	    // If output is not specified, set the output directory to be the processed
+	    // data directory specified by the global parameters.
+	    if (std::string("NULL").compare(outDir_) == 0) {
+		outDir_ = processedDir_;
+	    }
+
+	    // The output path for processed clouds is the subdirectory combined
+	    // with the top level output directory. If dataSubDir_ is not
+	    // initialised, then clouds are simply output to the top level
+	    // output directory
+	    outPath_ = sysutil::combinePaths(outDir_, dataSubDir_);
+	}
+
+	FeatureExtractor::FeatureInfo FeatureExtractor::extractFeatures(){
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 	    if (pcl::io::loadPCDFile<pcl::PointXYZRGB>(cloudFile_, *cloud) != -1){
 		ROS_INFO("Loaded cloud from %s", cloudFile_.c_str());
@@ -67,9 +154,14 @@ namespace objsearch {
 		ROS_INFO("Could not load cloud from %s", cloudFile_.c_str());
 		exit(1);
 	    }
+	    FeatureInfo info;
+	    info.fname = cloudFile_;
+	    info.originalSize = cloud->size();
 
 	    // Define points at which descriptors should be computed.
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr descriptorLocations(new pcl::PointCloud<pcl::PointXYZRGB>());
+	    
+	    ros::Time selectStart = ros::Time::now();
 	    if (featureSelection_.compare("uniform") == 0) {
 		// Get points uniformly across the space using a voxel grid,
 		// ignoring regions which have no points in them.
@@ -82,20 +174,23 @@ namespace objsearch {
 		ROS_INFO("Unknown feature selection method %s", featureSelection_.c_str());
 		exit(1);
 	    }
+	    info.selectTime = (ros::Time::now() - selectStart).toSec();
+	    info.featureSize = descriptorLocations->size();
 
 	    ROS_INFO("Number of points to compute features at: %d", (int)descriptorLocations->size());
 
 	    // get lowercase for the feature type to allow lowercase input as well as
 	    // uppercase, because laziness
 	    std::transform(featureType_.begin(), featureType_.end(), featureType_.begin(), ::tolower);
-    
+
+	    ros::Time featureStart = ros::Time::now();
 	    if (featureType_.compare("shot") == 0) {
 		// load the cloud of normals. Should find a better way of
 		// distinguishing between intermediate and complete clouds
-		std::string normFile = SysUtil::trimPath(cloudFile_, 1) + '/';
-		if (SysUtil::trimPath(cloudFile_, -1)[0] == '0') { // intermediate clouds start with zero
+		std::string normFile = sysutil::trimPath(cloudFile_, 1) + '/';
+		if (sysutil::trimPath(cloudFile_, -1)[0] == '0') { // intermediate clouds start with zero
 		    // intermediate has 4 digits followed by underscore
-		    normFile += std::string(SysUtil::trimPath(cloudFile_, -1), 0, 5) + "normCloud.pcd";
+		    normFile += std::string(sysutil::trimPath(cloudFile_, -1), 0, 5) + "normCloud.pcd";
 		} else {
 		    normFile += "normCloud.pcd";
 		}
@@ -212,24 +307,26 @@ namespace objsearch {
 		ROS_ERROR("%s is not a valid feature type.", featureType_.c_str());
 		exit(1);
 	    }
+	    info.featureTime = (ros::Time::now() - featureStart).toSec();
+	    return info;
 	}
 
 	template<typename DescType, typename PointType>
 	void FeatureExtractor::writeData(const typename pcl::PointCloud<DescType>::Ptr& descriptors,
 					 const typename pcl::PointCloud<PointType>::Ptr& points){
-	    if (!SysUtil::makeDirs(SysUtil::cleanDirPath(outPath_) + "/features/")){
+	    if (!sysutil::makeDirs(sysutil::cleanDirPath(outPath_) + "/features/")){
 		ROS_INFO("Could not create output directory.");
 	    }
 	    pcl::PCDWriter writer;
-	    std::string featureOutFile = SysUtil::cleanDirPath(outPath_) + "/features/"
-		+ SysUtil::removeExtension(cloudFile_) + "_shot.pcd";
+	    std::string featureOutFile = sysutil::cleanDirPath(outPath_) + "/features/"
+		+ sysutil::removeExtension(cloudFile_) + "_" + featureType_ + ".pcd";
 	    ROS_INFO("Writing computed features to %s", featureOutFile.c_str());
 	    writer.write<DescType>(featureOutFile, *descriptors, true);
 
 	    // output the points at which the descriptors were computed so that they
 	    // can be used later
-	    std::string pointOutFile = SysUtil::cleanDirPath(outPath_) + "/features/"
-		+ SysUtil::removeExtension(cloudFile_) + "_shot_points.pcd";
+	    std::string pointOutFile = sysutil::cleanDirPath(outPath_) + "/features/"
+		+ sysutil::removeExtension(cloudFile_) + "_" + featureType_ + "_points.pcd";
 	    ROS_INFO("Writing feature computation points to %s", pointOutFile.c_str());
 	    writer.write<PointType>(pointOutFile, *points, true);
 	}

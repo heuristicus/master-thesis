@@ -34,7 +34,8 @@ namespace objsearch {
 	class ObjectQuery {
 	public:
 	    ObjectQuery(int argc, char *argv[]);
-	    
+
+	    bool initAndCheckPaths(std::string path);
 	    template<typename DescType>
 	    void doSearch();
 	    void annotatePointsCloud(
@@ -53,9 +54,11 @@ namespace objsearch {
 	    std::string dataSubDir_;
 	    std::string outDir_;
 	    std::string outPath_;
+	    std::string queryType_;
+	    std::vector<std::string> targetClouds_;
 	    int K_; // number of nearest neighbours to find
 
-	    bool outputRegions_;
+	    bool outputRegions_; // unused
 	};
 	
     } // namespace objectquery

@@ -2,10 +2,14 @@
   <rosparam file="$(find objsearch_toplevel)/config/global_params.yaml" command="load" />
 
   <!-- Input/output parameters -->
-  <arg name="output" default="NULL"/>
+  <arg name="output" default="NULL" />
   <param name="/preprocess/output_dir" value="$(arg output)" />
   <arg name="cloud" />
   <param name="/preprocess/cloud" value="$(arg cloud)" />
+  <!-- Use this when a directory is passed to cloud - the clouds which contain
+       the given string will be processed -->
+  <arg name="match" default="NULL"/>
+  <param name="/preprocess/match" value="$(arg match)" />
 
   <!-- Parameters defining the behaviour of RANSAC and plane extraction -->
   <arg name="distance_threshold" default="0.05" />
@@ -35,6 +39,10 @@
        before it is abandoned -->
   <arg name="plane_skip_limit" default="2" />
   <param name="/preprocess/plane_skip_limit" value="$(arg plane_skip_limit)" />
+  <!-- Save individual planes extracted or just the combined cloud of all the planes? -->
+  <arg name="planesave" default="false"/>
+  <param name="/preprocess/save_planes" value="$(arg planesave)" />
+
   
   <!-- These values are used to further adjust the floor and ceiling z-value
        which is used to remove points which make up those parts of the cloud -->
@@ -70,6 +78,7 @@
   <param name="/preprocess/rotate_annotations" value="$(arg annotations)" />
   <arg name="normals" default="true"/>
   <param name="/preprocess/compute_normals" value="$(arg normals)" />
+
 
   <node name="preprocess" pkg="preprocess" type="preprocess" output="screen" />
 </launch>

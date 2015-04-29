@@ -10,22 +10,22 @@ int main(int argc, char* argv[]) {
     
     std::string operate(argv[1]);
     std::vector<std::string> bboxFiles;
-    if (!SysUtil::isFile(operate)) {
+    if (!sysutil::isFile(operate)) {
 	// only have directory, so get all the annotation cloud files there
 	if (argc == 2){
-	    bboxFiles = SysUtil::listFilesWithString(operate, std::regex(".*label.*pcd"));
+	    bboxFiles = sysutil::listFilesWithString(operate, std::regex(".*label.*pcd"));
 	}
 	
 	// operate is a directory, so construct the path to the file
-	operate = SysUtil::fullDirPath(operate) + "nonPlanes.pcd";
+	operate = sysutil::fullDirPath(operate) + "nonPlanes.pcd";
     }
 
     // have additional arguments
     if (argc > 2) {
 	// have a directory as additional arguments - extract all annotation
 	// cloud files there
-	if (!SysUtil::isFile(argv[2])) {
-	    bboxFiles = SysUtil::listFilesWithString(std::string(argv[2]), std::regex(".*label.*pcd"));
+	if (!sysutil::isFile(argv[2])) {
+	    bboxFiles = sysutil::listFilesWithString(std::string(argv[2]), std::regex(".*label.*pcd"));
 	} else { // additional arguments are assumed to be files
 	    for (int i = 2; i < argc; i++) {
 		bboxFiles.push_back(std::string(argv[i]));
