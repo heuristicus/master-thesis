@@ -15,5 +15,9 @@
   <run_depend>rosunit</run_depend>
   <build_depend>sysutil</build_depend>
   <run_depend>sysutil</run_depend>
+  <build_depend>pclutil</build_depend>
+  <run_depend>pclutil</run_depend>
+  <build_depend>pcl_ros</build_depend>
+  <run_depend>pcl_ros</run_depend>
 
 </package>
