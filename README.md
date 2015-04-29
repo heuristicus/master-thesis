@@ -27,18 +27,6 @@ for some pointers).
     # copy or symlink libgtest.a and libgtest_main.a to your /usr/lib folder
     sudo cp *.a /usr/lib
 
-In the `code/test` directory there are some files which you can use to check if
-things are properly configured. You can compile either with `g++` or `cmake`.
-
-    g++ -g tests.cpp totest.cpp totest.hpp -lgtest -lpthread -o gpRun
-    ./gpRun
-
-or
-
-    cmake CMakeLists.txt
-    make
-    ./runTests
-
 # Compilation
 
 Some of the packages used by the STRANDS project require `qt_build` and
@@ -64,7 +52,19 @@ sit in `/usr/lib/x86_64-linux-gnu/`. Copy the library files to that location.
 
     sudo cp lib/libopencv_nonfree* /usr/lib/x86-64-linux-gnu
 
-And things should compile when `catkin_make` is run in the workspace.
+And things should compile when `catkin_make` is run in the workspace which
+contains the project. To set up a workspace, see the
+[ROS tutorial](http://wiki.ros.org/catkin/Tutorials/create_a_workspace).
+
+# Testing
+
+In the `code/test` directory there are some files which you can use to check if
+things are properly configured. To compile use
+
+    catkin_make run_tests
+
+This will also run the tests and give information about which ones passed or
+failed (all should pass).
 
 # Data
 
