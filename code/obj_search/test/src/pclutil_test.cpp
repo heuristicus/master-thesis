@@ -29,7 +29,7 @@ namespace testing {
 
 	    }
 	    // cube and its corresponding expected centres for all cells
-	    Grid3D cube3 = Grid3D(3, 3, 3, 1, 1, 1);
+	    Grid3D cube3 = Grid3D(3, 3, 3, 1, 1, 1, 0, 0, 0);
 	    // cells on the edges
 	    pcl::PointXYZ frontBottom = pcl::PointXYZ(1.5, 0.5, 0.5);
 	    pcl::PointXYZ frontTop = pcl::PointXYZ(1.5, 0.5, 2.5);
@@ -63,7 +63,7 @@ namespace testing {
 	    pcl::PointXYZ backCentre = pcl::PointXYZ(1.5, 2.5, 1.5);
 	    pcl::PointXYZ midCentre = pcl::PointXYZ(1.5, 1.5, 1.5);
 
-	    Grid3D box = Grid3D(4, 3, 5, 1, 1, 1);
+	    Grid3D box = Grid3D(4, 3, 5, 1, 1, 1, 0, 0, 0);
 	    std::vector<pcl::PointXYZ> boxCentres;
 	};
 	
@@ -76,7 +76,7 @@ namespace testing {
 	}
 
 	TEST_F(PCLUtilTest, grid3d_init_box){
-	    Grid3D grid(3, 2, 1, 1, 1, 1);
+	    Grid3D grid(3, 2, 1, 1, 1, 1, 0, 0, 0);
 	    ASSERT_TRUE(grid.width_ == 3);
 	    ASSERT_TRUE(grid.height_ == 1);
 	    ASSERT_TRUE(grid.depth_ == 2);
@@ -86,7 +86,7 @@ namespace testing {
 	// make sure the initialisation works as expected when the dimension is
 	// not exactly divisible by the step.
 	TEST_F(PCLUtilTest, grid3d_init_box_overstep){
-	    Grid3D grid(2, 2, 2, 0.6, 0.3, 0.7);
+	    Grid3D grid(2, 2, 2, 0.6, 0.3, 0.7, 0, 0, 0);
 	    ASSERT_TRUE(grid.width_ == 4);
 	    ASSERT_TRUE(grid.height_ == 3);
 	    ASSERT_TRUE(grid.depth_ == 7);

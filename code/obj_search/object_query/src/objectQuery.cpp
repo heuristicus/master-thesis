@@ -291,8 +291,8 @@ namespace objsearch {
 		np.z = centres[i].z;
 		pclutil::rgb colour = pclutil::getHeatColour(grid.at(i), maxVal);
 		np.r = colour.r * 255;
-		np.g = colour.r * 255;
-		np.b = colour.r * 255;
+		np.g = colour.g * 255;
+		np.b = colour.b * 255;
 		
 		voteCloud->push_back(np);
 	    }

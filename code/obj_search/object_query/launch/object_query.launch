@@ -22,11 +22,12 @@
 
   <!-- Step to use for the hough voting process, in metres. Defines cell size
        used for the grid. -->
-  <arg name="x_step_hough" default="0.1"/>
+  <arg name="unistep" default="0.1" />
+  <arg name="x_step_hough" default="$(arg unistep)"/>
   <param name="/object_query/x_step_hough" value="$(arg x_step_hough)" />
-  <arg name="y_step_hough" default="0.1"/>
+  <arg name="y_step_hough" default="$(arg unistep)"/>
   <param name="/object_query/y_step_hough" value="$(arg y_step_hough)" />
-  <arg name="z_step_hough" default="0.1"/>
+  <arg name="z_step_hough" default="$(arg unistep)"/>
   <param name="/object_query/z_step_hough" value="$(arg z_step_hough)" />
 
   <arg name="regions" default="false"/>
