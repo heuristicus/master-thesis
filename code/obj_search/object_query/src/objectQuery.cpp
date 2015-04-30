@@ -23,6 +23,11 @@ namespace objsearch {
 
 	    ROSUtil::getParam(handle, "/obj_search/processed_data_dir", dataPath_);
 	    ROSUtil::getParam(handle, "/object_query/output_dir", outDir_);
+
+	    ROSUtil::getParam(handle, "/object_query/x_step_hough", xStepHough_);
+	    ROSUtil::getParam(handle, "/object_query/y_step_hough", yStepHough_);
+	    ROSUtil::getParam(handle, "/object_query/z_step_hough", zStepHough_);
+
 	    // If output is not specified, set the output directory to be the processed
 	    // data directory specified by the global parameters.
 	    if (std::string("NULL").compare(outDir_) == 0) {
@@ -50,7 +55,7 @@ namespace objsearch {
 	    pcl::PCDReader reader;
 	    pcl::PCLPointCloud2 queryHeader;
 	    reader.readHeader(queryFile_, queryHeader);
-	    std::string queryType_ = queryHeader.fields[0].name;
+	    queryType_ = queryHeader.fields[0].name;
 	    ROS_INFO("Loading query feature points from %s", queryPointFile_.c_str());
 
 	    std::string match;
@@ -236,6 +241,71 @@ namespace objsearch {
 	}
 
 	/** 
+	 * Perform hough voting given the information provided. For each index
+	 * in the indices given, which refer to points in the targetPoints
+	 * cloud, we add a vote to a cell in 3d space. The votes should indicate
+	 * regions where objects of interest lie
+	 * 
+	 * @param targetPoints The points to use to index into the 3d space
+	 * which the grid defines
+	 * @param indices The indices of the points at
+	 * which we wish to place votes
+	 * @param distances The distances to the points
+	 */
+	void ObjectQuery::houghVoting(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetPoints,
+				      const std::vector<std::vector<int> >& indices,
+				      const std::vector<std::vector<float> >& distances) {
+	    // to construct the grid, need to know the bounds of the target
+	    // points. Doesn't really matter if we waste some space on extra
+	    // cells because the grid is not rotated (hopefully)
+	    pcl::PointXYZRGB min;
+	    pcl::PointXYZRGB max;
+	    pcl::getMinMax3D(*targetPoints, min, max);
+	    ROS_INFO("Grid dimensions %f, %f, %f", max.x - min.x, max.y - min.y, max.z - min.z);
+	    pclutil::Grid3D grid(max.x - min.x, max.y - min.y, max.z - min.z,
+				 xStepHough_, yStepHough_, zStepHough_,
+				 min.x, min.y, min.z);
+
+	    // Go through all points in the nearest neighbours
+	    for (size_t i = 0; i < indices.size(); i++) {
+		for (int j = 0; j < indices[i].size(); j++) {
+		    pcl::PointXYZRGB cur = targetPoints->points[indices[i][j]];
+		    grid.at(cur.x, cur.y, cur.z)++;
+		}
+	    }
+	    int maxVal = *std::max_element(grid.values_.begin(), grid.values_.end());
+	    std::vector<pcl::PointXYZ> centres = grid.allCentres();
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr voteCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
+	    ROS_INFO("Maximum votes in a single region %d", maxVal);
+	    ROS_INFO("Total votes %d", std::accumulate(grid.values_.begin(), grid.values_.end(), 0));
+	    ROS_INFO("Total cells %d", (int)grid.values_.size());
+	    int empty = 0;
+	    for (size_t i = 0; i < centres.size(); i++) {
+		// if (grid.at(i) == 0) {
+		//     empty++;
+		//     continue;
+		// }
+		pcl::PointXYZRGB np;
+		np.x = centres[i].x;
+		np.y = centres[i].y;
+		np.z = centres[i].z;
+		pclutil::rgb colour = pclutil::getHeatColour(grid.at(i), maxVal);
+		np.r = colour.r * 255;
+		np.g = colour.r * 255;
+		np.b = colour.r * 255;
+		
+		voteCloud->push_back(np);
+	    }
+	    ROS_INFO("Total empty cells %d", empty);
+
+	    std::string out = std::string(sysutil::fullDirPath(outPath_) + "testhough.pcd");
+	    ROS_INFO("Hough done, outputting to %s", out.c_str());
+
+	    pcl::PCDWriter writer;
+	    writer.write<pcl::PointXYZRGB>(out, *voteCloud, true);
+	}
+
+	/** 
 	 * Do a nearest neighbour search for the features in the query cloud in
 	 * the target cloud. 
 	 * 
@@ -306,9 +376,11 @@ namespace objsearch {
 		    // Search for the closest K points to the query point
 		    search->nearestKSearch(queryFeatures->points[i], K_, nearest[i], square_dists[i]);
 		}
-
 		ROS_INFO("Finished finding neighbours");
 
+		houghVoting(targetPoints, nearest, square_dists);
+
+		exit(1);
 		annotatePointsOBB(sysutil::trimPath(targetPointFile_, 2), targetPoints, indicesTarget, labelsTarget);
 		ROS_INFO("target: %d annotated points of %d total", (int)indicesTarget.size(), (int)targetPoints->size());
 

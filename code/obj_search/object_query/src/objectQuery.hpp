@@ -7,6 +7,8 @@
 #include "pclutil/cloudBounds.hpp"
 #include "pclutil/cloudViewer.hpp"
 #include "pclutil/pointValidation.hpp"
+#include "pclutil/grid3d.hpp"
+#include "pclutil/colourConversion.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -19,6 +21,7 @@
 
 #include <ros/console.h>
 
+#include <pcl/common/common.h>
 #include <pcl/features/shot.h>
 #include <pcl/features/usc.h>
 #include <pcl/io/pcd_io.h>
@@ -45,6 +48,9 @@ namespace objsearch {
 	    void annotatePointsOBB(
 		std::string dir, const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 		std::vector<int>& indices, std::vector<std::string>& labels);
+	    void houghVoting(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetPoints,
+			     const std::vector<std::vector<int> >& indices,
+			     const std::vector<std::vector<float> >& distances);
 	private:
 	    std::string queryFile_;
 	    std::string targetFile_;
@@ -55,6 +61,11 @@ namespace objsearch {
 	    std::string outDir_;
 	    std::string outPath_;
 	    std::string queryType_;
+
+	    float xStepHough_;
+	    float yStepHough_;
+	    float zStepHough_;
+
 	    std::vector<std::string> targetClouds_;
 	    int K_; // number of nearest neighbours to find
 
