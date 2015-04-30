@@ -62,7 +62,19 @@ namespace objsearch {
 	}
 
 	/** 
-	 * Get the index in the array of the point with the given coordinates
+	 * 
+	 * 
+	 * @param point 
+	 * 
+	 * @return 
+	 */
+	int Grid3D::pointIndex(const pcl::PointXYZ& point) {
+	    return pointIndex(point.x, point.y, point.z);
+	}
+	
+	/** 
+	 * Get the index in the array of the cell containing the point with the
+	 * given coordinates.
 	 * 
 	 * @param x 
 	 * @param y 
@@ -90,6 +102,18 @@ namespace objsearch {
 	    return x + width_ * (y + z * depth_);
 	}
 
+
+	/** 
+	 * 
+	 * 
+	 * @param point 
+	 * 
+	 * @return 
+	 */
+	pcl::PointXYZ Grid3D::cellCentre(const pcl::PointXYZ& point){
+	    return cellCentre(point.x, point.y, point.z);
+	}
+
 	/** 
 	 * Get the centre of the cell containing the point specified by the three values
 	 * 
@@ -110,6 +134,34 @@ namespace objsearch {
 	}
 
 	/** 
+	 * 
+	 * 
+	 * @return 
+	 */
+	std::vector<pcl::PointXYZ> Grid3D::allCentres() {
+	    std::vector<pcl::PointXYZ> centres;
+	    for (int z = 0; z < height_; z++) {
+		for (int y = 0; y < depth_; y++) {
+		    for (int x = 0; x < width_; x++) {
+			centres.push_back(pcl::PointXYZ(xStep_/2 + x, yStep_/2 + y, zStep_/2 + z));
+		    }
+		}
+	    }
+	    return centres;
+	}
+	
+	/** 
+	 * 
+	 * 
+	 * @param point 
+	 * 
+	 * @return 
+	 */
+	int& Grid3D::at(const pcl::PointXYZ& point) {
+	    return at(point.x, point.y, point.z);
+	}
+
+	/** 
 	 * Get the value of the grid cell with the given coordinates.
 	 * 
 	 * @param x 
@@ -119,7 +171,32 @@ namespace objsearch {
 	 * @return Reference to the value of the cell
 	 */
 	int& Grid3D::at(float x, float y, float z) {
-	    return values_[pointIndex(x, y, z)];
+	    return at(pointIndex(x, y, z));
+	}
+
+	/** 
+	 * 
+	 * 
+	 * @param index 
+	 * 
+	 * @return 
+	 */
+	int& Grid3D::at(int index) {
+	    return values_[index];
+	}
+
+	/** 
+	 * Unflatten an index from 1D to 3D. e.g. values[26] = values[2][2][2]
+	 * 
+	 * @param index Index to unflatten
+	 * @param x 3d x index
+	 * @param y 3d y index
+	 * @param z 3d z index
+	 */
+	void Grid3D::indexUnflatten(int index, int& x, int& y, int& z) {
+	    z = std::floor(index / (width_ * depth_));
+	    y = (int)std::floor(index / width_) % depth_;
+	    x = index % x;
 	}
 
     } // namespace pclutil

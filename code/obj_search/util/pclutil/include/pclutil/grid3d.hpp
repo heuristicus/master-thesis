@@ -20,8 +20,14 @@ namespace objsearch {
 
 	    int indexFromDimIndices(int x, int y, int z);
 	    pcl::PointXYZ cellCentre(float x, float y, float z);
+	    pcl::PointXYZ cellCentre(const pcl::PointXYZ& point);
+	    std::vector<pcl::PointXYZ> allCentres();
+	    int& at(int index);
 	    int& at(float x, float y, float z);
+	    int& at(const pcl::PointXYZ& point);
 	    int pointIndex(float x, float y, float z);
+	    int pointIndex(const pcl::PointXYZ& point);
+	    void indexUnflatten(int index, int& x, int& y, int& z);
 	};
     } // namespace pclutil
 } // namespace objsearch
