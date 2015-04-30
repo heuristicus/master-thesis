@@ -11,10 +11,13 @@ namespace objsearch {
 	class Grid3D {
 	public:
 	    Grid3D(float _dim, float _step);
-	    Grid3D(float _xDim, float _yDim, float _zDim, float _xStep, float _yStep, float _zStep);
+	    Grid3D(float _xDim, float _yDim, float _zDim,
+		   float _xStep, float _yStep, float _zStep,
+		   float _xOffset, float _yOffset, float _zOffset);
 
 	    float xDim_, yDim_, zDim_; // size of each dimension
 	    float xStep_, yStep_, zStep_; // step in each dimension - defines cell dimensions
+	    float xOffset_, yOffset_, zOffset_;
 	    int width_, height_, depth_; 
 	    std::vector<int> values_; // store value in each cell
 

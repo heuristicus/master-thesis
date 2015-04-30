@@ -13,8 +13,10 @@
 #include "sysutil/sysutil.hpp"
 
 namespace smlu = semantic_map_load_utilties;
+namespace sys = objsearch::sysutil;
 
 int main(int argc, char *argv[]) {
+    
     smlu::IntermediateCloudCompleteData<pcl::PointXYZRGB> inter = smlu::loadIntermediateCloudsCompleteDataFromSingleSweep<pcl::PointXYZRGB>(std::string(argv[1]), true);
 
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr mergedCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
@@ -29,7 +31,7 @@ int main(int argc, char *argv[]) {
     }
 
     pcl::PCDWriter writer;
-    std::string out = sysutil::fullDirPath(sysutil::trimPath(std::string(argv[1]), 1)) + "mergedCloud.pcd";
+    std::string out = sys::fullDirPath(sys::trimPath(std::string(argv[1]), 1)) + "mergedCloud.pcd";
     std::cout << "Writing to " << out.c_str() << std::endl;
     writer.write<pcl::PointXYZRGB>(out, *mergedCloud, true);
     

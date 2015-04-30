@@ -36,6 +36,9 @@ namespace objsearch {
 	 *  |  /
 	 *  | /
 	 *  |/____> x
+	 *
+	 * The offsets specify the origin for the box, so that cells are in the
+	 * correct region of space for the space that is being described.
 	 * 
 	 * @param _xDim Length of the x dimension
 	 * @param _yDim y dimension
@@ -43,16 +46,25 @@ namespace objsearch {
 	 * @param _xStep Step of the x dimension
 	 * @param _yStep y dim
 	 * @param _zStep z dim
+	 * @param _xOffset Offset of the x dimension.
+	 * @param _yOffset y dim
+	 * @param _zOffset z dim
 	 * 
 	 * @return 
 	 */
-	Grid3D::Grid3D(float _xDim, float _yDim, float _zDim, float _xStep, float _yStep, float _zStep){
+	Grid3D::Grid3D(float _xDim, float _yDim, float _zDim,
+		       float _xStep, float _yStep, float _zStep,
+		       float _xOffset, float _yOffset, float _zOffset){
 	    xDim_ = _xDim;
 	    yDim_ = _yDim;
 	    zDim_ = _zDim;
 	    xStep_ = _xStep;
 	    yStep_ = _yStep;
 	    zStep_ = _zStep;
+	    xOffset_ = _xOffset;
+	    yOffset_ = _yOffset;
+	    zOffset_ = _zOffset;
+	    
 
 	    width_ = std::ceil(xDim_/xStep_);
 	    height_ = std::ceil(zDim_/zStep_); 
@@ -83,8 +95,12 @@ namespace objsearch {
 	 * @return 
 	 */
 	int Grid3D::pointIndex(float x, float y, float z) {
-	    // integer truncation down to correct index
-	    return indexFromDimIndices(x/xStep_, y/yStep_, z/zStep_);
+	    // integer truncation down to correct index. Make sure that the
+	    // point is translated to the origin frame of reference to get
+	    // correct computations
+	    return indexFromDimIndices((x - xOffset_)/xStep_,
+				       (y - yOffset_)/yStep_,
+				       (z - zOffset_)/zStep_);
 	}
 
 	/** 
@@ -127,9 +143,9 @@ namespace objsearch {
 	    pcl::PointXYZ point;
 	    // the second part gives the minimum point in the cell on that axis,
 	    // centre is where half the step for that axis is added
-	    point.x = xStep_/2 + std::floor(x/xStep_) * xStep_;
-	    point.y = yStep_/2 + std::floor(y/yStep_) * yStep_;
-	    point.z = zStep_/2 + std::floor(z/zStep_) * zStep_;
+	    point.x = xOffset_ + xStep_/2 + std::floor((x - xOffset_)/xStep_) * xStep_;
+	    point.y = yOffset_ + yStep_/2 + std::floor((y - yOffset_)/yStep_) * yStep_;
+	    point.z = zOffset_ + zStep_/2 + std::floor((z - zOffset_)/zStep_) * zStep_;
 	    return point;
 	}
 
@@ -143,7 +159,9 @@ namespace objsearch {
 	    for (int z = 0; z < height_; z++) {
 		for (int y = 0; y < depth_; y++) {
 		    for (int x = 0; x < width_; x++) {
-			centres.push_back(pcl::PointXYZ(xStep_/2 + x, yStep_/2 + y, zStep_/2 + z));
+			centres.push_back(pcl::PointXYZ(xStep_/2 + x + xOffset_,
+							yStep_/2 + y + yOffset_,
+							zStep_/2 + z + zOffset_));
 		    }
 		}
 	    }

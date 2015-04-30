@@ -15,6 +15,7 @@
 #include "sysutil/sysutil.hpp"
 
 namespace smlu = semantic_map_load_utilties;
+namespace sys = objsearch::sysutil;
 
 int main(int argc, char *argv[]) {
     // first argument should be the intermediate cloud to rotate. The rotation
@@ -25,13 +26,13 @@ int main(int argc, char *argv[]) {
     std::string number = std::string(interFile.begin() + startInd,
 				     interFile.begin() + startInd + 4);
 
-    std::string dir = sysutil::fullDirPath(sysutil::trimPath(interFile, 1));
+    std::string dir = sys::fullDirPath(sys::trimPath(interFile, 1));
     std::string xml = dir + "room.xml";
 
     SimpleXMLParser<pcl::PointXYZRGB> parser;
     SimpleXMLParser<pcl::PointXYZRGB>::RoomData rd = parser.loadRoomFromXML(xml);
 
-    std::vector<std::string> intermediateFiles = sysutil::listFilesWithString(dir, "intermediate");
+    std::vector<std::string> intermediateFiles = sys::listFilesWithString(dir, "intermediate");
     std::sort(intermediateFiles.begin(), intermediateFiles.end());
     // find the index in the vector of the file which we are interested in so
     // that its rotation can be extracted.
@@ -59,7 +60,7 @@ int main(int argc, char *argv[]) {
 
 
     pcl::PCDWriter writer;
-    std::string out = dir + sysutil::removeExtension(sysutil::trimPath(interFile, -1))
+    std::string out = dir + sys::removeExtension(sys::trimPath(interFile, -1))
 	+ "_rotated.pcd";
     std::cout << "Writing to " << out.c_str() << std::endl;
     writer.write<pcl::PointXYZRGB>(out, *finalCloud, true);
