@@ -159,9 +159,9 @@ namespace objsearch {
 	    for (int z = 0; z < height_; z++) {
 		for (int y = 0; y < depth_; y++) {
 		    for (int x = 0; x < width_; x++) {
-			centres.push_back(pcl::PointXYZ(xStep_/2 + x + xOffset_,
-							yStep_/2 + y + yOffset_,
-							zStep_/2 + z + zOffset_));
+			centres.push_back(pcl::PointXYZ(xStep_/2 + x * xStep_ + xOffset_,
+							yStep_/2 + y * yStep_ + yOffset_,
+							zStep_/2 + z * zStep_ + zOffset_));
 		    }
 		}
 	    }

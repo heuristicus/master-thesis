@@ -281,10 +281,10 @@ namespace objsearch {
 	    ROS_INFO("Total cells %d", (int)grid.values_.size());
 	    int empty = 0;
 	    for (size_t i = 0; i < centres.size(); i++) {
-		// if (grid.at(i) == 0) {
-		//     empty++;
-		//     continue;
-		// }
+		if (grid.at(i) == 0) {
+		    empty++;
+		    continue;
+		}
 		pcl::PointXYZRGB np;
 		np.x = centres[i].x;
 		np.y = centres[i].y;
