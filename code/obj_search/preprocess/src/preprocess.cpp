@@ -455,14 +455,20 @@ namespace objsearch {
 					   + "trimmedRoom.pcd", *cloud, true);
 
 	    if (doRotateAnnotations_ && type_ == CloudType::FULL){ // only put the annotations into the full cloud reference frame
+		ROS_INFO("Processing annotations...");
 		std::vector<pclutil::AnnotatedCloud<pcl::PointXYZRGB> > annotations
 		    = pclutil::getRawAnnotatedClouds<pcl::PointXYZRGB>(cloudDir_);
+		pcl::PointCloud<pcl::Normal>::Ptr normalCloud(new pcl::PointCloud<pcl::Normal>());
 		
 		for (size_t i = 0; i < annotations.size(); i++) {
+		    ROS_INFO("%s", annotations[i].fname.c_str());
 		    // annotations start off in the same frame as the complete
 		    // cloud, so just apply the same transform as is applied to
 		    // everything else
 		    pcl_ros::transformPointCloud(*(annotations[i].cloud), *transformedCloud, cloudTransform);
+		    // also need to compute the normals so that the annotated
+		    // clouds can have features computed from them
+		    computeNormals(annotations[i].cloud, normalCloud, cloudTransform);
 
 		    // get the file name
 		    std::string nameRoot = sysutil::trimPath(annotations[i].fname, -1);
@@ -477,6 +483,10 @@ namespace objsearch {
 		    writer.write<pcl::PointXYZRGB>(sysutil::fullDirPath(outPath_) + 
 						   base + "_" + annotations[i].label + ".pcd",
 						   *(transformedCloud), true);
+		    // also write the clouds of normals for annotations
+		    writer.write<pcl::Normal>(sysutil::fullDirPath(outPath_) + 
+						   base + "_" + annotations[i].label + "_normals.pcd",
+						   *(normalCloud), true);
 		}
 	    }
 	    

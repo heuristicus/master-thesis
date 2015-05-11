@@ -191,6 +191,8 @@ namespace objsearch {
 		if (sysutil::trimPath(cloudFile_, -1)[0] == '0') { // intermediate clouds start with zero
 		    // intermediate has 4 digits followed by underscore
 		    normFile += std::string(sysutil::trimPath(cloudFile_, -1), 0, 5) + "normCloud.pcd";
+		} else if (cloudFile_.find("label") != std::string::npos) { // annotation clouds contain the text "label"
+		    normFile += sysutil::removeExtension(cloudFile_) + "_normals.pcd";
 		} else {
 		    normFile += "normCloud.pcd";
 		}

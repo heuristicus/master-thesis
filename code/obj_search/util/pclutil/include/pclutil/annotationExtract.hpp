@@ -99,12 +99,12 @@ namespace objsearch {
 		exit(1);
 	    }
 
-	    ROS_INFO("----------%s----------", filename.c_str());
-	    ROS_INFO("File label is %s", label.c_str());
+	    // ROS_INFO("----------%s----------", filename.c_str());
+	    // ROS_INFO("File label is %s", label.c_str());
 	    // create a new cloud each time to get a different pointer.
 	    typename pcl::PointCloud<PointT>::Ptr cloud(new pcl::PointCloud<PointT>());
 	    reader.read(filename, *cloud);
-	    ROS_INFO("Cloud size is %d", (int)cloud->size());
+	    // ROS_INFO("Cloud size is %d", (int)cloud->size());
 	    return AnnotatedCloud<PointT>(label, filename, cloud);
     	}
 	
