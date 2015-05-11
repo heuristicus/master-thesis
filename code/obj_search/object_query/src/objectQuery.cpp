@@ -56,6 +56,7 @@ namespace objsearch {
 	    pcl::PCLPointCloud2 queryHeader;
 	    reader.readHeader(queryFile_, queryHeader);
 	    queryType_ = queryHeader.fields[0].name;
+	    
 	    ROS_INFO("Loading query feature points from %s", queryPointFile_.c_str());
 
 	    std::string match;
@@ -86,8 +87,29 @@ namespace objsearch {
 
 	    // Depending on the type of the descriptor in the cloud, we need to
 	    // instantiate a different template for the search function
-	    if (queryType_.compare("shot") == 0) {
-		doSearch<pcl::SHOT352>();
+	    if (queryType_.find("shot") != std::string::npos) {
+		// the only way to distinguish between colour shot and normal
+		// shot is by checking the dimensionality of the descriptor
+		int count = queryHeader.fields[0].count;
+		if (count == 352) {
+		    doSearch<pcl::SHOT352>();
+		} else if (count == 1344) {
+		    doSearch<pcl::SHOT1344>();
+		} else {
+		    ROS_ERROR("Unknown descriptor field specifier: %s", queryType_.c_str());
+		    exit(1);
+		}
+	    } else if (queryType_.find("pfh") != std::string::npos) {
+		if (queryType_.compare("pfh") == 0) {
+		    doSearch<pcl::PFHSignature125>();
+		} else if (queryType_.compare("fpfh") == 0) {
+		    doSearch<pcl::FPFHSignature33>();
+		} else if (queryType_.compare("pfhrgb") == 0) {
+		    doSearch<pcl::PFHRGBSignature250>();
+		} else {
+		    ROS_ERROR("Unknown descriptor field specifier: %s", queryType_.c_str());
+		    exit(1);
+		}
 	    } else if (queryType_.compare("shape_context") == 0) {
 		doSearch<pcl::ShapeContext1980>();
 	    } else {

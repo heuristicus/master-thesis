@@ -24,6 +24,9 @@
 #include <ros/console.h>
 
 #include <pcl/common/common.h>
+#include <pcl/features/fpfh_omp.h>
+#include <pcl/features/pfh.h>
+#include <pcl/features/pfhrgb.h>
 #include <pcl/features/shot_omp.h>
 #include <pcl/features/usc.h>
 #include <pcl/filters/extract_indices.h>
@@ -51,7 +54,8 @@ namespace objsearch {
 			   const typename pcl::PointCloud<PointType>::Ptr& points);
 	    void initPaths(std::string path);
 	    void writeInfo(std::string outPath, FeatureInfo info, bool append);
-
+	    void loadNormals(pcl::PointCloud<pcl::Normal>::Ptr& normals);
+	    
 	    // strings to store information about directories and the like for
 	    // saving and retrieving data.
 	    std::string dataSubDir_;
@@ -75,6 +79,15 @@ namespace objsearch {
 	    float uscMinRadius_;
 	    float uscDensityRadius_;
 	    float uscLocalRadius_;
+
+	    // fpfh parameters
+	    float fpfhRadius_;
+
+	    // pfh
+	    float pfhRadius_;
+	    
+	    // pfhrgb
+	    float pfhrgbRadius_;
 	};
 
     } // namespace feature_extraction

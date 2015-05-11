@@ -36,6 +36,15 @@ namespace objsearch {
 	    ROSUtil::getParam(handle, "/feature_extraction/usc_minimal_radius", uscMinRadius_);
 	    ROSUtil::getParam(handle, "/feature_extraction/usc_density_radius", uscDensityRadius_);
 	    ROSUtil::getParam(handle, "/feature_extraction/usc_local_radius", uscLocalRadius_);
+
+	    // FPFH
+	    ROSUtil::getParam(handle, "/feature_extraction/fpfh_radius", fpfhRadius_);
+	    // PFH
+	    ROSUtil::getParam(handle, "/feature_extraction/pfh_radius", pfhRadius_);
+	    // PFHRGB
+	    ROSUtil::getParam(handle, "/feature_extraction/pfhrgb_radius", pfhrgbRadius_);
+	    
+	    
 	    std::string match;
 	    ROSUtil::getParam(handle, "/feature_extraction/match", match);
 
@@ -84,7 +93,7 @@ namespace objsearch {
 		+ "featuredata_" + timeNow + ".txt";
 	    for (auto it = roomFiles.begin(); it != roomFiles.end(); it++) {
 		ROS_INFO("Extracting features from cloud %d of %d",
-			 (int)(it - roomFiles.begin()), (int)roomFiles.size());
+			 (int)(it - roomFiles.begin()) + 1, (int)roomFiles.size());
 		cloudFile_ = *it;
 		initPaths(cloudFile_); // update output paths
 		FeatureInfo info = extractFeatures();
@@ -185,25 +194,8 @@ namespace objsearch {
 
 	    ros::Time featureStart = ros::Time::now();
 	    if (featureType_.find("shot") != std::string::npos) { // two different shot descriptors with same preprocess
-		// load the cloud of normals. Should find a better way of
-		// distinguishing between intermediate and complete clouds
-		std::string normFile = sysutil::trimPath(cloudFile_, 1) + '/';
-		if (sysutil::trimPath(cloudFile_, -1)[0] == '0') { // intermediate clouds start with zero
-		    // intermediate has 4 digits followed by underscore
-		    normFile += std::string(sysutil::trimPath(cloudFile_, -1), 0, 5) + "normCloud.pcd";
-		} else if (cloudFile_.find("label") != std::string::npos) { // annotation clouds contain the text "label"
-		    normFile += sysutil::removeExtension(cloudFile_) + "_normals.pcd";
-		} else {
-		    normFile += "normCloud.pcd";
-		}
-
-		pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);
-		if (pcl::io::loadPCDFile<pcl::Normal>(normFile, *normals) != -1){
-		    ROS_INFO("Loaded cloud from %s", normFile.c_str());
-		} else {
-		    ROS_INFO("Could not load cloud from %s", normFile.c_str());
-		    exit(1);
-		}
+		pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>());
+		loadNormals(normals);
 
 		pcl::PointIndices::Ptr nanIndices(new pcl::PointIndices());
 		
@@ -328,6 +320,60 @@ namespace objsearch {
 		usc.compute(*descriptors);
 		ROS_INFO("Done.");
 		writeData<pcl::ShapeContext1980, pcl::PointXYZ>(descriptors, descriptorLocations_xyz);
+	    } else if (featureType_.find("pfh") != std::string::npos) { // point feature histogram, multiple types
+		pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>());
+		loadNormals(normals);
+		
+		if (featureType_.compare("pfh") == 0) {
+		    pcl::PointCloud<pcl::PFHSignature125>::Ptr descriptors(new pcl::PointCloud<pcl::PFHSignature125>());
+		    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr kdtree(new pcl::search::KdTree<pcl::PointXYZRGB>);
+		    pcl::PFHEstimation<pcl::PointXYZRGB, pcl::Normal, pcl::PFHSignature125> pfh;
+		    
+		    pfh.setInputCloud(descriptorLocations);
+		    pfh.setSearchSurface(cloud);
+		    pfh.setInputNormals(normals);
+		    pfh.setSearchMethod(kdtree);
+		    pfh.setRadiusSearch(pfhRadius_);
+		    ROS_INFO("Starting feature computation");
+		    pfh.compute(*descriptors);
+		    ROS_INFO("Feature computation done");
+		    
+		    writeData<pcl::PFHSignature125, pcl::PointXYZRGB>(descriptors, descriptorLocations);
+		} else if (featureType_.compare("fpfh") == 0) {
+		    pcl::PointCloud<pcl::FPFHSignature33>::Ptr descriptors(new pcl::PointCloud<pcl::FPFHSignature33>());
+		    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr kdtree(new pcl::search::KdTree<pcl::PointXYZRGB>);
+		    pcl::FPFHEstimationOMP<pcl::PointXYZRGB, pcl::Normal, pcl::FPFHSignature33> fpfh;
+		    
+		    fpfh.setInputCloud(descriptorLocations);
+		    fpfh.setSearchSurface(cloud);
+		    fpfh.setInputNormals(normals);
+		    fpfh.setSearchMethod(kdtree);
+		    fpfh.setRadiusSearch(fpfhRadius_);
+		    ROS_INFO("Starting feature computation");
+		    fpfh.compute(*descriptors);
+		    ROS_INFO("Feature computation done");
+		    
+		    writeData<pcl::FPFHSignature33, pcl::PointXYZRGB>(descriptors, descriptorLocations);
+		} else if (featureType_.compare("pfhrgb") == 0) {
+
+		    pcl::PointCloud<pcl::PFHRGBSignature250>::Ptr descriptors(new pcl::PointCloud<pcl::PFHRGBSignature250>());
+		    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr kdtree(new pcl::search::KdTree<pcl::PointXYZRGB>);
+		    pcl::PFHRGBEstimation<pcl::PointXYZRGB, pcl::Normal, pcl::PFHRGBSignature250> pfhrgb;
+		    
+		    pfhrgb.setInputCloud(descriptorLocations);
+		    pfhrgb.setSearchSurface(cloud);
+		    pfhrgb.setInputNormals(normals);
+		    pfhrgb.setSearchMethod(kdtree);
+		    pfhrgb.setRadiusSearch(pfhrgbRadius_);
+		    ROS_INFO("Starting feature computation");
+		    pfhrgb.compute(*descriptors);
+		    ROS_INFO("Feature computation done");
+		    
+		    writeData<pcl::PFHRGBSignature250, pcl::PointXYZRGB>(descriptors, descriptorLocations);
+		} else {
+		    ROS_INFO("Unknown pfh feature type %s", featureType_.c_str());
+		    exit(1);
+		}
 	    } else {
 		ROS_ERROR("%s is not a valid feature type.", featureType_.c_str());
 		exit(1);
@@ -354,6 +400,28 @@ namespace objsearch {
 		+ sysutil::removeExtension(cloudFile_) + "_" + featureType_ + "_points.pcd";
 	    ROS_INFO("Writing feature computation points to %s", pointOutFile.c_str());
 	    writer.write<PointType>(pointOutFile, *points, true);
+	}
+
+	void FeatureExtractor::loadNormals(pcl::PointCloud<pcl::Normal>::Ptr& normals){
+	    // load the cloud of normals. Should find a better way of
+	    // distinguishing between intermediate and complete clouds
+	    std::string normFile = sysutil::trimPath(cloudFile_, 1) + '/';
+	    if (sysutil::trimPath(cloudFile_, -1)[0] == '0') { // intermediate clouds start with zero
+		// intermediate has 4 digits followed by underscore
+		normFile += std::string(sysutil::trimPath(cloudFile_, -1), 0, 5) + "normCloud.pcd";
+	    } else if (cloudFile_.find("label") != std::string::npos) { // annotation clouds contain the text "label"
+		normFile += sysutil::removeExtension(cloudFile_) + "_normals.pcd";
+	    } else {
+		normFile += "normCloud.pcd";
+	    }
+
+
+	    if (pcl::io::loadPCDFile<pcl::Normal>(normFile, *normals) != -1){
+		ROS_INFO("Loaded cloud from %s", normFile.c_str());
+	    } else {
+		ROS_INFO("Could not load cloud from %s", normFile.c_str());
+		exit(1);
+	    }
 	}
 
 	

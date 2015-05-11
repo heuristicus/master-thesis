@@ -42,7 +42,18 @@
   <!-- Local reference frame is computed using this radius -->
   <arg name="usc_local_radius" default="0.05"/>
   <param name="/feature_extraction/usc_local_radius" value="$(arg usc_local_radius)" />
+
+  <!-- Options for the FPFH descriptor -->
+  <!-- This value should be larger than the radius used to compute the normals
+       for the cloud being described -->
+  <arg name="fpfh_radius" default="0.05"/>
+  <param name="/feature_extraction/fpfh_radius" value="$(arg fpfh_radius)" />
+
+  <arg name="pfh_radius" default="0.05"/>
+  <param name="/feature_extraction/pfh_radius" value="$(arg pfh_radius)" />
   
+  <arg name="pfhrgb_radius" default="0.05"/>
+  <param name="/feature_extraction/pfhrgb_radius" value="$(arg pfhrgb_radius)" />
   
   <node name="feature_extraction" pkg="feature_extraction" type="extract_features" output="screen" />
 </launch>

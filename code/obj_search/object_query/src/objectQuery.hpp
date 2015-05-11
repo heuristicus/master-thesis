@@ -22,6 +22,9 @@
 #include <ros/console.h>
 
 #include <pcl/common/common.h>
+#include <pcl/features/fpfh.h>
+#include <pcl/features/pfh.h>
+#include <pcl/features/pfhrgb.h>
 #include <pcl/features/shot.h>
 #include <pcl/features/usc.h>
 #include <pcl/io/pcd_io.h>
