@@ -184,7 +184,7 @@ namespace objsearch {
 	    std::transform(featureType_.begin(), featureType_.end(), featureType_.begin(), ::tolower);
 
 	    ros::Time featureStart = ros::Time::now();
-	    if (featureType_.compare("shot") == 0) {
+	    if (featureType_.find("shot") != std::string::npos) { // two different shot descriptors with same preprocess
 		// load the cloud of normals. Should find a better way of
 		// distinguishing between intermediate and complete clouds
 		std::string normFile = sysutil::trimPath(cloudFile_, 1) + '/';
@@ -238,23 +238,46 @@ namespace objsearch {
 		ROS_INFO("cloud after filter: %d", (int)cloud->size());
 		ROS_INFO("normals after filter: %d", (int)normals->size());
 
-		pcl::PointCloud<pcl::SHOT352>::Ptr descriptors(new pcl::PointCloud<pcl::SHOT352>());
+		if (featureType_.compare("shot") == 0) {
+		    pcl::PointCloud<pcl::SHOT352>::Ptr descriptors(new pcl::PointCloud<pcl::SHOT352>());
 
-		pcl::SHOTEstimationOMP<pcl::PointXYZRGB, pcl::Normal, pcl::SHOT352> shot;
-		shot.setInputCloud(descriptorLocations);
-		shot.setSearchSurface(cloud);
-		shot.setInputNormals(normals);
+		    pcl::SHOTEstimationOMP<pcl::PointXYZRGB, pcl::Normal, pcl::SHOT352> shot;
+		    shot.setInputCloud(descriptorLocations);
+		    shot.setSearchSurface(cloud);
+		    shot.setInputNormals(normals);
 		
-		// The radius that defines which of the keypoint's neighbors are
-		// described. If too large, there may be clutter, and if too
-		// small, not enough points may be found.
-		shot.setRadiusSearch(shotRadius_);
+		    // The radius that defines which of the keypoint's neighbors are
+		    // described. If too large, there may be clutter, and if too
+		    // small, not enough points may be found.
+		    shot.setRadiusSearch(shotRadius_);
 
-		ROS_INFO("Computing descriptors.");
- 		shot.compute(*descriptors);
-		ROS_INFO("Done.");
+		    ROS_INFO("Computing descriptors.");
+		    shot.compute(*descriptors);
+		    ROS_INFO("Done.");
 
-		writeData<pcl::SHOT352, pcl::PointXYZRGB>(descriptors, descriptorLocations);
+		    writeData<pcl::SHOT352, pcl::PointXYZRGB>(descriptors, descriptorLocations);
+		} else if (featureType_.compare("shotcolor") == 0) {
+		    pcl::PointCloud<pcl::SHOT1344>::Ptr descriptors(new pcl::PointCloud<pcl::SHOT1344>());
+
+		    pcl::SHOTColorEstimationOMP<pcl::PointXYZRGB, pcl::Normal, pcl::SHOT1344> shot;
+		    shot.setInputCloud(descriptorLocations);
+		    shot.setSearchSurface(cloud);
+		    shot.setInputNormals(normals);
+		
+		    // The radius that defines which of the keypoint's neighbors are
+		    // described. If too large, there may be clutter, and if too
+		    // small, not enough points may be found.
+		    shot.setRadiusSearch(shotRadius_);
+
+		    ROS_INFO("Computing descriptors.");
+		    shot.compute(*descriptors);
+		    ROS_INFO("Done.");
+
+		    writeData<pcl::SHOT1344, pcl::PointXYZRGB>(descriptors, descriptorLocations);		    
+		} else {
+		    ROS_INFO("Unknown SHOT descriptor type %s", featureType_.c_str());
+		    exit(1);
+		}
 	    } else if (featureType_.compare("usc") == 0) {
 		// The shape context uses xyz points, so need to convert the cloud into that format
 		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_xyz(new pcl::PointCloud<pcl::PointXYZ>);
