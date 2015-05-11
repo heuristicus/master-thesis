@@ -1,19 +1,20 @@
-\documentclass[11pt,a4paper]{report}
+\documentclass[11pt,a4paper]{kth-mag}
 
-\usepackage{fontspec}
+% \usepackage{fontspec}
 \usepackage[backend=bibtex]{biblatex}
-\usepackage[top=1cm]{geometry}
+% \usepackage[top=1cm]{geometry}
 \usepackage{subfig}
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{moreverb}
-\defaultfontfeatures{Mapping=tex-text}
-\setromanfont[Ligatures={Common},Numbers={Lining}]{Linux Libertine}
+% \defaultfontfeatures{Mapping=tex-text}
+% \setromanfont[Ligatures={Common},Numbers={Lining}]{Linux Libertine}
 
 \bibliography{report.bib}
 
 \author{Michal Staniaszek}
-\title{Object Query for Point Clouds}
+\title{A Comparative Study on the Effect of Interest Point Methods and
+  Descriptors on Feature-Feature Matching for Object Query in Point Clouds}
 
 \begin{document}
 \maketitle
@@ -25,9 +26,26 @@
 \chapter{Introduction}
 Basic introduction to the idea of point clouds and how they are useful, as well
 as something about images and querying them
+
+In chapter~\ref{chap:bg}, we explain some concepts that are important to
+understand the work, provide background information on relevant parts of the
+image processing literature, and attempt to introduce the reader to previous
+work in similar areas. The specific techniques used in our system are described
+in chapter~\ref{chap:devel}, and we also discuss our reasoning behind certain
+steps of the process. Chapter~\ref{chap:impl} deals with the software, and how
+the system was implemented, along with some explanation of how the system
+works. Our experimental setup and the results of the experiments are described
+in chapter~\ref{chap:exp}. We compare the quality of retrieval when different
+methods are used, and also investigate the time taken by the system under
+varying conditions. Finally, we summarise the system and our results in chapter~\ref{chap:conc}.
 \chapter{Background}
-More detailed description of certain things, from the literature study.
-\begin{comment}
+\label{chap:bg}
+In this chapter we will introduce some key ideas relating to the project. While
+some of the techniques described here are not directly used in the
+implementation of our system, they can be useful for context, or to give
+examples of different ways of approaching a similar problem. We discuss methods
+of finding interesting regions in image and point cloud data, and how these
+regions can be represented using descriptors.
 \section{Segmentation}
 Popularised by Comaniciu~\cite{comaniciu2002mean} for use in image segmentation,
 mean shift was first introduced by Fukunaga~\cite{fukunaga1975estimation} in
@@ -95,7 +113,7 @@ Even today the Scale Invariant Feature Transform (SIFT) is among the most
 popular descriptors for 2D images. It is invariant to scale and rotation, and is
 robust to some variation in affine distortion, viewpoint and illumination, and
 is distinctive, allowing for correct matching of single features in large
-databases. There are several stages of computation. Extrama are found in
+databases. There are several stages of computation. Extrema are found in
 different scales to find points invariant to scale and orientation. Keypoints
 are selected at the extrema based on their stability. Image gradients at the
 keypoint are used to define its orientation for future computations. The image
@@ -116,7 +134,7 @@ for fast computation of pixel intensities in an area of the image. SURF takes
 some ideas from SIFT, using the spatial distribution of gradients as a
 descriptor, but integrates over the gradients instead of using individual
 values, which makes it more robust to noise. The resulting descriptor is a 64
-element vector, which means that it is faster to compare than SIFT
+element vector, which means that it is also faster to compare than SIFT
 \cite{bay2008speeded}.
 
 \section{Methods for 3D}
@@ -441,7 +459,7 @@ been integrated into PCL, which is useful.
 A different approach to nearest neighbour search is the balltree, which uses
 hyperspheres in a hierarchy to enclose points in the space
 \cite{omohundro1989five}. Unlike the k-d tree, regions on the same level of the
-tree are allowed to intersect, and no not need to partition the whole space,
+tree are allowed to intersect, and do not need to partition the whole space,
 which gives the balltree its representative power.
 
 The vocabulary tree \cite{nister2006scalable} makes use of techniques from
@@ -459,18 +477,18 @@ clustering scheme, which could not scale to large vocabularies
 spatial correspondences, which improves the retrieval quality.
 
 Boiman et al. \cite{boiman2008defense} introduce the Naive Bayes Nearest
-Neighbour (NBNN) classifier, which seems to be quite relevant. It uses nearest
-neighbour distances in the space of descriptors instead of images, computing
-``image-to-class'' distances without quantising the descriptors. In general,
-quantisation allows for dimensionality reduction, at the expense of the
-discriminative power of descriptors. NBNN ``can exploit the discriminative power
-of both (few) high and (many) low informative descriptors''. The problem here is
-that the classes must be known beforehand, and in our case we do not have that
-information. The local NBNN \cite{mccann2012local} does not do the search based
-on classes. Instead, all the descriptors are merged into a k-d tree on which
-approximate $k$-NN is run to find descriptors in the local region of a query
-descriptor. A distance to classes not present in the $k$-NN region is
-approximated by the distance to the $k+1$th neighbour.
+Neighbour (NBNN) classifier. It uses nearest neighbour distances in the space of
+descriptors instead of images, computing ``image-to-class'' distances without
+quantising the descriptors. In general, quantisation allows for dimensionality
+reduction, at the expense of the discriminative power of descriptors. NBNN ``can
+exploit the discriminative power of both (few) high and (many) low informative
+descriptors''. The problem here is that the classes must be known beforehand,
+and in our case we do not have that information. The local NBNN
+\cite{mccann2012local} does not do the search based on classes. Instead, all the
+descriptors are merged into a k-d tree on which approximate $k$-NN is run to
+find descriptors in the local region of a query descriptor. A distance to
+classes not present in the $k$-NN region is approximated by the distance to the
+$k+1$th neighbour.
 
 % \begin{figure}
 %   \centering
@@ -504,9 +522,9 @@ point pair features to improve recognition performance. Kim et al. use the RGB
 image and corresponding point cloud to improve the hypotheses for segmentation
 \cite{kim2013accurate}. \cite{mueller2013recognition} uses a growing neural gas
 to characterise the shape of parts of objects.
-\end{comment}
 
 \chapter{System Development}
+\label{chap:devel}
 Talk about how different parts of the system were developed, why they are
 required, what benefits they provide, how they work, and so on.
 \section{Preprocessing}
@@ -527,10 +545,12 @@ how the features extraction is done (not particularly complex, probably)
 Query methods, how the database and query object are compared.
 
 \chapter{Implementation}
+\label{chap:impl}
 Description of any parts of the implementation which are non standard or worth a
 mention. Perhaps talk about PCL and version control, as well as documentation
 and some other general software approaches to the system?
 \chapter{Experimental Results}
+\label{chap:exp}
 Description of experiments and experimental results with different
 configurations of the system.
 \section{Segmentation}
@@ -546,6 +566,7 @@ This is evaluated in the previous two sections, but maybe there is more than one
 method of finding the query object. Multi-index tree vs single index tree, for
 example.
 \chapter{Conclusion and Further Work}
+\label{chap:conc}
 Describe what the project was about, what was achieved, summarise the
 experiments, describe what can be improved.
 
