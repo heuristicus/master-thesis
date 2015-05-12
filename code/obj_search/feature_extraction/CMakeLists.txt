@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_ros
   rosutil
   sysutil
+  pclutil
 )
 
 find_package(PCL 1.7 REQUIRED)
@@ -28,5 +29,5 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 add_executable(extract_features src/featureExtraction.cpp)
-target_link_libraries(extract_features ${catkin_LIBRARIES} ${PCL_LIBRARIES} rosutil sysutil)
+target_link_libraries(extract_features ${catkin_LIBRARIES} ${PCL_LIBRARIES} rosutil sysutil pclutil) 
 add_dependencies(extract_features ${catkin_EXPORTED_TARGETS})

@@ -132,6 +132,16 @@ namespace objsearch {
 	    float hue = maxHue - ((float) (value / maxValue) * (maxHue - minHue));
 	    return hsv2rgb(hsv(hue, 100, 100));
 	}
+
+	/** 
+	 * Convert RGB values to intensity values. Assumes each channel has the
+	 * same weighting.
+	 * 
+	 * @return 
+	 */
+	float getRGBIntensityBasic(int r, int g, int b) {
+	    return (r + g + b) / 3;
+	}
     } // namespace pclutil
 } // namespace objsearch
 

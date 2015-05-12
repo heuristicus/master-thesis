@@ -24,10 +24,30 @@ namespace objsearch {
 
 
 	    ROSUtil::getParam(handle, "/feature_extraction/feature_type", featureType_);
-	    ROSUtil::getParam(handle, "/feature_extraction/feature_selection", featureSelection_);
+	    ROSUtil::getParam(handle, "/feature_extraction/feature_selection", interestType_);
 	    
 	    ROSUtil::getParam(handle, "/feature_extraction/downsample_leaf_size", downsampleLeafSize_);
 
+	    // ISS
+	    ROSUtil::getParam(handle, "/feature_extraction/iss_salient_mult", issSalientMult_);
+	    ROSUtil::getParam(handle, "/feature_extraction/iss_non_max_mult", issNonMaxMult_);
+	    ROSUtil::getParam(handle, "/feature_extraction/iss_min_neighbours", issMinNeighbours_);
+	    ROSUtil::getParam(handle, "/feature_extraction/iss_thresh21", issThreshold21_);
+	    ROSUtil::getParam(handle, "/feature_extraction/iss_thresh32", issThreshold32_);
+
+	    // SUSAN
+	    ROSUtil::getParam(handle, "/feature_extraction/susan_nonmax_mult", susanNonMax_);
+	    ROSUtil::getParam(handle, "/feature_extraction/iss_nonmax_mult", susanRadius_);
+	    ROSUtil::getParam(handle, "/feature_extraction/iss_dist_thresh", susanDistThresh_);
+	    ROSUtil::getParam(handle, "/feature_extraction/iss_angular_thresh", susanAngularThresh_);
+	    ROSUtil::getParam(handle, "/feature_extraction/iss_intensity_thresh", susanIntensityThresh_);
+
+	    // harris
+	    ROSUtil::getParam(handle, "/feature_extraction/harris_nonmax", harrisNonMax_);
+	    ROSUtil::getParam(handle, "/feature_extraction/harris_radius", harrisRadius_);
+	    ROSUtil::getParam(handle, "/feature_extraction/harris_thresh", harrisThreshold_);
+	    ROSUtil::getParam(handle, "/feature_extraction/harris_refine", harrisRefine_);
+	    
 	    // SHOT
 	    ROSUtil::getParam(handle, "/feature_extraction/shot_radius", shotRadius_);
 
@@ -154,9 +174,37 @@ namespace objsearch {
 	    // output directory
 	    outPath_ = sysutil::combinePaths(outDir_, dataSubDir_);
 	}
+	
+	// from http://pointclouds.org/documentation/tutorials/correspondence_grouping.php
+	double computeCloudResolution(const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr& cloud) {
+	    double res = 0.0;
+	    int n_points = 0;
+	    int nres;
+	    std::vector<int> indices(2);
+	    std::vector<float> sqr_distances(2);
+	    pcl::search::KdTree<pcl::PointXYZRGB> tree;
+	    tree.setInputCloud(cloud);
+
+	    for (size_t i = 0; i < cloud->size(); ++i) {
+		if (!pcl_isfinite((*cloud)[i].x)) {
+		    continue;
+		}
+		//Considering the second neighbor since the first is the point itself.
+		nres = tree.nearestKSearch(i, 2, indices, sqr_distances);
+		if(nres == 2) {
+		    res += sqrt(sqr_distances[1]);
+		    ++n_points;
+		}
+	    }
+	    if (n_points != 0){
+		res /= n_points;
+	    }
+	    return res;
+	}
 
 	FeatureExtractor::FeatureInfo FeatureExtractor::extractFeatures(){
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+	    pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>());
 	    if (pcl::io::loadPCDFile<pcl::PointXYZRGB>(cloudFile_, *cloud) != -1){
 		ROS_INFO("Loaded cloud from %s", cloudFile_.c_str());
 	    } else {
@@ -171,7 +219,7 @@ namespace objsearch {
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr descriptorLocations(new pcl::PointCloud<pcl::PointXYZRGB>());
 	    
 	    ros::Time selectStart = ros::Time::now();
-	    if (featureSelection_.compare("uniform") == 0) {
+	    if (interestType_.compare("uniform") == 0) {
 		// Get points uniformly across the space using a voxel grid,
 		// ignoring regions which have no points in them.
 		ROS_INFO("Using uniform feature selection with leaf size %f.", downsampleLeafSize_);
@@ -179,8 +227,74 @@ namespace objsearch {
 		vgrid.setInputCloud(cloud);
 		vgrid.setLeafSize(downsampleLeafSize_, downsampleLeafSize_, downsampleLeafSize_);
 		vgrid.filter(*descriptorLocations);
+	    } else if (interestType_.compare("iss") == 0) {
+		ROS_INFO("Using ISS feature selection.");
+		pcl::ISSKeypoint3D<pcl::PointXYZRGB, pcl::PointXYZRGB> iss;
+		iss.setInputCloud(cloud);
+		pcl::search::KdTree<pcl::PointXYZRGB>::Ptr kdtree(new pcl::search::KdTree<pcl::PointXYZRGB>);
+		iss.setSearchMethod(kdtree);
+		double resolution = computeCloudResolution(cloud);
+		ROS_INFO("Cloud resolution is %f", resolution);
+		// see launch file for description of these parameters
+		iss.setSalientRadius(issSalientMult_ * resolution);
+		iss.setNonMaxRadius(issNonMaxMult_ * resolution);
+		iss.setMinNeighbors(issMinNeighbours_);
+		iss.setThreshold21(issThreshold21_);
+		iss.setThreshold32(issThreshold32_);
+
+		iss.compute(*descriptorLocations);
+	    } else if (interestType_.compare("harris") == 0) {
+		ROS_INFO("Using Harris3D feature selection.");
+		loadNormals(normals); // might end up doing this again later on
+				      // if using certain types of features
+
+		// Need to convert to xyzi from xyzrgb
+		pcl::PointCloud<pcl::PointXYZI>::Ptr intensity(new pcl::PointCloud<pcl::PointXYZI>);
+		pcl::PointCloud<pcl::PointXYZI>::Ptr intensityOut(new pcl::PointCloud<pcl::PointXYZI>);
+		intensity->resize(cloud->size());
+		for (int i = 0; i < cloud->size(); i++) {
+		    intensity->points[i].x = cloud->points[i].x;
+		    intensity->points[i].y = cloud->points[i].y;
+		    intensity->points[i].z = cloud->points[i].z;
+		    intensity->points[i].intensity = pclutil::getRGBIntensityBasic(cloud->points[i].r, cloud->points[i].g, cloud->points[i].b);
+		}
+		
+		pcl::HarrisKeypoint3D<pcl::PointXYZI, pcl::PointXYZI> harris;
+		harris.setInputCloud(intensity);
+		harris.setNormals(normals);
+		harris.setThreshold(harrisThreshold_);
+		harris.setRadius(harrisRadius_);
+		harris.setNonMaxSupression(harrisNonMax_);
+		harris.setRefine(harrisRefine_);
+
+		harris.compute(*intensityOut);
+
+		descriptorLocations->resize(intensityOut->size());
+		for (int i = 0; i < intensityOut->size(); i++) {
+		    descriptorLocations->points[i].x = intensityOut->points[i].x;
+		    descriptorLocations->points[i].y = intensityOut->points[i].y;
+		    descriptorLocations->points[i].z = intensityOut->points[i].z;
+		}
+
+		
+	    } else if (interestType_.compare("susan") == 0) {
+		ROS_INFO("Using SUSAN feature selection.");
+		loadNormals(normals); // might end up doing this again later on
+				      // if using certain types of features
+		pcl::SUSANKeypoint<pcl::PointXYZRGB, pcl::PointXYZRGB> susan;
+		susan.setInputCloud(cloud);
+		susan.setNormals(normals);
+		susan.setNonMaxSupression(susanNonMax_);
+		susan.setRadius(susanRadius_);
+		susan.setDistanceThreshold(susanDistThresh_);
+		susan.setAngularThreshold(susanAngularThresh_);
+		susan.setIntensityThreshold(susanIntensityThresh_);
+
+		susan.compute(*descriptorLocations);
+	    } else if (interestType_.compare("sift") == 0) {
+		
 	    } else {
-		ROS_INFO("Unknown feature selection method %s", featureSelection_.c_str());
+		ROS_INFO("Unknown feature selection method %s", interestType_.c_str());
 		exit(1);
 	    }
 	    info.selectTime = (ros::Time::now() - selectStart).toSec();
@@ -194,7 +308,7 @@ namespace objsearch {
 
 	    ros::Time featureStart = ros::Time::now();
 	    if (featureType_.find("shot") != std::string::npos) { // two different shot descriptors with same preprocess
-		pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>());
+
 		loadNormals(normals);
 
 		pcl::PointIndices::Ptr nanIndices(new pcl::PointIndices());
@@ -211,8 +325,8 @@ namespace objsearch {
 		}
 
 		ROS_INFO("nan count: %d", (int)nanIndices->indices.size());
-		ROS_INFO("cloud before filter: %d", (int)cloud->size());
-		ROS_INFO("normals before filter: %d", (int)normals->size());
+		// ROS_INFO("cloud before filter: %d", (int)cloud->size());
+		// ROS_INFO("normals before filter: %d", (int)normals->size());
                 // Modify the main cloud and the normal cloud to remove any
 		// points which have nan values in the normals and will affect
 		// the shot computation
@@ -227,8 +341,8 @@ namespace objsearch {
 		exNorm.setNegative(true); // extract non-nan indices
 		exNorm.filter(*normals);
 
-		ROS_INFO("cloud after filter: %d", (int)cloud->size());
-		ROS_INFO("normals after filter: %d", (int)normals->size());
+		// ROS_INFO("cloud after filter: %d", (int)cloud->size());
+		// ROS_INFO("normals after filter: %d", (int)normals->size());
 
 		if (featureType_.compare("shot") == 0) {
 		    pcl::PointCloud<pcl::SHOT352>::Ptr descriptors(new pcl::PointCloud<pcl::SHOT352>());
@@ -321,7 +435,6 @@ namespace objsearch {
 		ROS_INFO("Done.");
 		writeData<pcl::ShapeContext1980, pcl::PointXYZ>(descriptors, descriptorLocations_xyz);
 	    } else if (featureType_.find("pfh") != std::string::npos) { // point feature histogram, multiple types
-		pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>());
 		loadNormals(normals);
 		
 		if (featureType_.compare("pfh") == 0) {
@@ -355,7 +468,6 @@ namespace objsearch {
 		    
 		    writeData<pcl::FPFHSignature33, pcl::PointXYZRGB>(descriptors, descriptorLocations);
 		} else if (featureType_.compare("pfhrgb") == 0) {
-
 		    pcl::PointCloud<pcl::PFHRGBSignature250>::Ptr descriptors(new pcl::PointCloud<pcl::PFHRGBSignature250>());
 		    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr kdtree(new pcl::search::KdTree<pcl::PointXYZRGB>);
 		    pcl::PFHRGBEstimation<pcl::PointXYZRGB, pcl::Normal, pcl::PFHRGBSignature250> pfhrgb;
@@ -390,14 +502,14 @@ namespace objsearch {
 	    }
 	    pcl::PCDWriter writer;
 	    std::string featureOutFile = sysutil::cleanDirPath(outPath_) + "/features/"
-		+ sysutil::removeExtension(cloudFile_) + "_" + featureType_ + ".pcd";
+		+ sysutil::removeExtension(cloudFile_) + "_" + featureType_ + "_" + interestType_ + ".pcd";
 	    ROS_INFO("Writing computed features to %s", featureOutFile.c_str());
 	    writer.write<DescType>(featureOutFile, *descriptors, true);
 
 	    // output the points at which the descriptors were computed so that they
 	    // can be used later
 	    std::string pointOutFile = sysutil::cleanDirPath(outPath_) + "/features/"
-		+ sysutil::removeExtension(cloudFile_) + "_" + featureType_ + "_points.pcd";
+		+ sysutil::removeExtension(cloudFile_) + "_" + featureType_ + "_" + interestType_ +"_points.pcd";
 	    ROS_INFO("Writing feature computation points to %s", pointOutFile.c_str());
 	    writer.write<PointType>(pointOutFile, *points, true);
 	}

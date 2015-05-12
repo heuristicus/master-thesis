@@ -13,6 +13,7 @@
 
 #include "sysutil/sysutil.hpp"
 #include "rosutil/rosutil.hpp"
+#include "pclutil/colourConversion.hpp"
 
 #include <algorithm>
 #include <string>
@@ -29,6 +30,10 @@
 #include <pcl/features/pfhrgb.h>
 #include <pcl/features/shot_omp.h>
 #include <pcl/features/usc.h>
+#include <pcl/keypoints/iss_3d.h>
+#include <pcl/keypoints/harris_3d.h>
+#include <pcl/keypoints/sift_keypoint.h>
+#include <pcl/keypoints/susan.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/io/pcd_io.h>
@@ -65,9 +70,32 @@ namespace objsearch {
 	    std::string cloudFile_;
 	    std::string outPath_;
 	    std::string featureType_;
-	    std::string featureSelection_;
+	    std::string interestType_;
 
+	    // Uniform sampling
 	    float downsampleLeafSize_;
+
+	    // ISS parameters
+	    float issSalientMult_;
+	    float issNonMaxMult_;
+	    float issMinNeighbours_;
+	    float issThreshold21_;
+	    float issThreshold32_;
+
+	    // SUSAN parameters
+	    bool susanNonMax_;
+	    float susanRadius_;
+	    float susanDistThresh_;
+	    float susanAngularThresh_;
+	    float susanIntensityThresh_;
+
+	    // Harris3d parameters
+	    bool harrisNonMax_;
+	    bool harrisRefine_;
+	    float harrisThreshold_;
+	    float harrisRadius_;
+
+	    // SIFT parameters
 
 	    // Standard SHOT parameters
 	    float shotRadius_;

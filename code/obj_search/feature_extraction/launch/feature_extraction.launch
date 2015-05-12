@@ -24,6 +24,59 @@
   <arg name="downsample_leaf_size" default="0.05"/>
   <param name="/feature_extraction/downsample_leaf_size" value="$(arg downsample_leaf_size)" />
 
+  <!-- Options for ISS feature selection -->
+  <!-- Defaults taken from
+       http://docs.pointclouds.org/trunk/classpcl_1_1_i_s_s_keypoint3_d.html-->
+  <!-- Multiplier for the spherical neighbourhood for scatter matrix
+       computation. This value is multiplied by the resolution of the cloud -->
+  <arg name="iss_salient_mult" default="6"/>
+  <param name="/feature_extraction/iss_salient_mult" value="$(arg iss_salient_mult)" />
+  <!-- Multiplier for the radius of the non-maximum suppression part of ISS.
+       This value is multiplied by the cloud resolution -->
+  <arg name="iss_nonmax_mult" default="4"/>
+  <param name="/feature_extraction/iss_non_max_mult" value="$(arg iss_non_max_mult)" />
+  <!-- Minimum number of neighbours that must be found while using non-max
+       suppression -->
+  <arg name="iss_min_neighbours" default="5"/>
+  <param name="/feature_extraction/iss_min_neighbours" value="$(arg iss_min_neighbours)" />
+  <!-- Upper bound on ratio between second and first eigenvalue -->
+  <arg name="iss_thresh21" default="0.975"/>
+  <param name="/feature_extraction/iss_thresh21" value="$(arg iss_thresh21)" />
+  <!-- Upper bound on ration between third and second eigenvalue -->
+  <arg name="iss_thresh32" default="0.975"/>
+  <param name="/feature_extraction/iss_thresh32" value="$(arg iss_thresh32)" />
+
+  <!-- Options for SUSAN feature selection -->
+  <!-- Do non-max suppression or not -->
+  <arg name="susan_nonmax" default="true"/>
+  <param name="/feature_extraction/susan_nonmax" value="$(arg susan_nonmax)" />
+  <!-- Radius for non-max suppression and normals (if not computed already) -->
+  <arg name="susan_radius" default="0.05"/>
+  <param name="/feature_extraction/susan_radius" value="$(arg susan_radius)" />
+  <!-- Test if nucleus is far enough from the centroid -->
+  <arg name="susan_dist_thresh" default="0.001"/>
+  <param name="/feature_extraction/susan_dist_thresh" value="$(arg susan_dist_thresh)" />
+  <!-- Test if normals are parallel -->
+  <arg name="susan_ang_thresh" default="0.001"/>
+  <param name="/feature_extraction/susan_ang_thresh" value="$(arg susan_ang_thresh)" />
+  <!-- Are points the same colour? -->
+  <arg name="susan_intensity_thresh" default="7"/>
+  <param name="/feature_extraction/susan_intensity_thresh" value="$(arg susan_intensity_thresh)" />
+
+  <!-- Options for harris feature selection -->
+  <!-- Do non-max suppression or not -->
+  <arg name="harris_nonmax" default="true"/>
+  <param name="/feature_extraction/harris_nonmax" value="$(arg harris_nonmax)" />
+  <!-- Radius for non-max suppression and normals (if not computed already) -->
+  <arg name="harris_radius" default="0.05"/>
+  <param name="/feature_extraction/harris_radius" value="$(arg harris_radius)" />
+  <!-- Threshold for filtering weak corners  -->
+  <arg name="harris_thresh" default="0.001"/>
+  <param name="/feature_extraction/harris_thresh" value="$(arg harris_thresh)" />
+  <!-- Refine the keypoints after initial selection. Nonmax must also be enabled -->
+  <arg name="harris_refine" default="true"/>
+  <param name="/feature_extraction/harris_refine" value="$(arg harris_refine)" />
+  
   <!-- Options for the SHOT descriptor -->
   <arg name="shot_radius" default="0.05"/>
   <param name="/feature_extraction/shot_radius" value="$(arg shot_radius)" />
