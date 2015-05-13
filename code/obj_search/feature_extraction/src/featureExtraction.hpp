@@ -96,6 +96,10 @@ namespace objsearch {
 	    float harrisRadius_;
 
 	    // SIFT parameters
+	    float siftMinScale_;
+	    float siftMinContrast_;
+	    int siftOctaves_;
+	    int siftOctaveScales_;
 
 	    // Standard SHOT parameters
 	    float shotRadius_;

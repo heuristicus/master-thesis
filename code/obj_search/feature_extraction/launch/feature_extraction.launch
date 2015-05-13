@@ -34,7 +34,7 @@
   <!-- Multiplier for the radius of the non-maximum suppression part of ISS.
        This value is multiplied by the cloud resolution -->
   <arg name="iss_nonmax_mult" default="4"/>
-  <param name="/feature_extraction/iss_non_max_mult" value="$(arg iss_non_max_mult)" />
+  <param name="/feature_extraction/iss_nonmax_mult" value="$(arg iss_nonmax_mult)" />
   <!-- Minimum number of neighbours that must be found while using non-max
        suppression -->
   <arg name="iss_min_neighbours" default="5"/>
@@ -76,6 +76,20 @@
   <!-- Refine the keypoints after initial selection. Nonmax must also be enabled -->
   <arg name="harris_refine" default="true"/>
   <param name="/feature_extraction/harris_refine" value="$(arg harris_refine)" />
+
+  <!-- Options for SIFT feature selection. -->
+  <!-- Standard deviation of smallest scale in the scale space -->
+  <arg name="sift_min_scale" default="0.05"/>
+  <param name="/feature_extraction/sift_min_scale" value="$(arg sift_min_scale)" />
+  <!-- Number of doublings of scale to compute -->
+  <arg name="sift_octaves" default="4"/>
+  <param name="/feature_extraction/sift_octaves" value="$(arg sift_octaves)" />
+  <!-- Number of scales to compute per octave -->
+  <arg name="sift_octave_scales" default="5"/>
+  <param name="/feature_extraction/sift_octave_scales" value="$(arg sift_octave_scales)" />
+  <arg name="sift_min_contrast" default="0"/>
+  <param name="/feature_extraction/sift_min_contrast" value="$(arg sift_min_contrast)" />
+  
   
   <!-- Options for the SHOT descriptor -->
   <arg name="shot_radius" default="0.05"/>

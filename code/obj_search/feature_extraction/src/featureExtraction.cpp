@@ -30,23 +30,29 @@ namespace objsearch {
 
 	    // ISS
 	    ROSUtil::getParam(handle, "/feature_extraction/iss_salient_mult", issSalientMult_);
-	    ROSUtil::getParam(handle, "/feature_extraction/iss_non_max_mult", issNonMaxMult_);
+	    ROSUtil::getParam(handle, "/feature_extraction/iss_nonmax_mult", issNonMaxMult_);
 	    ROSUtil::getParam(handle, "/feature_extraction/iss_min_neighbours", issMinNeighbours_);
 	    ROSUtil::getParam(handle, "/feature_extraction/iss_thresh21", issThreshold21_);
 	    ROSUtil::getParam(handle, "/feature_extraction/iss_thresh32", issThreshold32_);
 
 	    // SUSAN
-	    ROSUtil::getParam(handle, "/feature_extraction/susan_nonmax_mult", susanNonMax_);
-	    ROSUtil::getParam(handle, "/feature_extraction/iss_nonmax_mult", susanRadius_);
-	    ROSUtil::getParam(handle, "/feature_extraction/iss_dist_thresh", susanDistThresh_);
-	    ROSUtil::getParam(handle, "/feature_extraction/iss_angular_thresh", susanAngularThresh_);
-	    ROSUtil::getParam(handle, "/feature_extraction/iss_intensity_thresh", susanIntensityThresh_);
+	    ROSUtil::getParam(handle, "/feature_extraction/susan_nonmax", susanNonMax_);
+	    ROSUtil::getParam(handle, "/feature_extraction/susan_radius", susanRadius_);
+	    ROSUtil::getParam(handle, "/feature_extraction/susan_dist_thresh", susanDistThresh_);
+	    ROSUtil::getParam(handle, "/feature_extraction/susan_ang_thresh", susanAngularThresh_);
+	    ROSUtil::getParam(handle, "/feature_extraction/susan_intensity_thresh", susanIntensityThresh_);
 
 	    // harris
 	    ROSUtil::getParam(handle, "/feature_extraction/harris_nonmax", harrisNonMax_);
 	    ROSUtil::getParam(handle, "/feature_extraction/harris_radius", harrisRadius_);
 	    ROSUtil::getParam(handle, "/feature_extraction/harris_thresh", harrisThreshold_);
 	    ROSUtil::getParam(handle, "/feature_extraction/harris_refine", harrisRefine_);
+
+	    // SIFT
+	    ROSUtil::getParam(handle, "/feature_extraction/sift_min_scale", siftMinScale_);
+	    ROSUtil::getParam(handle, "/feature_extraction/sift_octaves", siftOctaves_);
+	    ROSUtil::getParam(handle, "/feature_extraction/sift_octave_scales", siftOctaveScales_);
+	    ROSUtil::getParam(handle, "/feature_extraction/sift_min_contrast", siftMinContrast_);
 	    
 	    // SHOT
 	    ROSUtil::getParam(handle, "/feature_extraction/shot_radius", shotRadius_);
@@ -202,6 +208,54 @@ namespace objsearch {
 	    return res;
 	}
 
+	/** 
+	 * Convert the given XYZRGB cloud to XYZI. RGB converted to intensity by
+	 * taking the average of the three channels. Automatically deals with
+	 * NaN values.
+	 * 
+	 * @param in the cloud to convert to XYZI
+	 * @param out This cloud will be populated with the points from the in
+	 * cloud converted to intensity
+	 */
+	void rgbToIntensity(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& in,
+			    pcl::PointCloud<pcl::PointXYZI>::Ptr& out) {
+	    out->resize(in->size());
+	    int nancount = 0;
+	    for (int i = 0; i < (int)in->size(); i++) {
+		if (std::isnan(in->points[i].x)
+		    || std::isnan(in->points[i].y)
+		    || std::isnan(in->points[i].z)){
+		    nancount++;
+		    continue;
+		}
+		out->points[i].x = in->points[i].x;
+		out->points[i].y = in->points[i].y;
+		out->points[i].z = in->points[i].z;
+		out->points[i].intensity = pclutil::getRGBIntensityBasic(in->points[i].r, in->points[i].g, in->points[i].b);
+	    }
+	    // once done, resize the cloud so that there are no empty spaces
+	    // where nan valued points would have been.
+	    out->resize(in->size() - nancount);
+	}
+
+	/** 
+	 * Convert the given XYZI cloud to XYZRGB. The intensity value is
+	 * ignored, so all points have rgb values of 0.
+	 * 
+	 * @param in the cloud to convert to XYZRGB
+	 * @param out This cloud will be populated with the points from the in
+	 * cloud
+	 */
+	void intensityToRGB(const pcl::PointCloud<pcl::PointXYZI>::Ptr& in,
+			    pcl::PointCloud<pcl::PointXYZRGB>::Ptr& out) {
+	    out->resize(in->size());
+	    for (int i = 0; i < (int)in->size(); i++) {
+		out->points[i].x = in->points[i].x;
+		out->points[i].y = in->points[i].y;
+		out->points[i].z = in->points[i].z;
+	    }
+	}
+
 	FeatureExtractor::FeatureInfo FeatureExtractor::extractFeatures(){
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 	    pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>());
@@ -248,16 +302,10 @@ namespace objsearch {
 		loadNormals(normals); // might end up doing this again later on
 				      // if using certain types of features
 
-		// Need to convert to xyzi from xyzrgb
+		// Need to convert to xyzi from xyzrgb, harris doesn't use rgb
 		pcl::PointCloud<pcl::PointXYZI>::Ptr intensity(new pcl::PointCloud<pcl::PointXYZI>);
 		pcl::PointCloud<pcl::PointXYZI>::Ptr intensityOut(new pcl::PointCloud<pcl::PointXYZI>);
-		intensity->resize(cloud->size());
-		for (int i = 0; i < cloud->size(); i++) {
-		    intensity->points[i].x = cloud->points[i].x;
-		    intensity->points[i].y = cloud->points[i].y;
-		    intensity->points[i].z = cloud->points[i].z;
-		    intensity->points[i].intensity = pclutil::getRGBIntensityBasic(cloud->points[i].r, cloud->points[i].g, cloud->points[i].b);
-		}
+		rgbToIntensity(cloud, intensity);
 		
 		pcl::HarrisKeypoint3D<pcl::PointXYZI, pcl::PointXYZI> harris;
 		harris.setInputCloud(intensity);
@@ -268,15 +316,8 @@ namespace objsearch {
 		harris.setRefine(harrisRefine_);
 
 		harris.compute(*intensityOut);
-
-		descriptorLocations->resize(intensityOut->size());
-		for (int i = 0; i < intensityOut->size(); i++) {
-		    descriptorLocations->points[i].x = intensityOut->points[i].x;
-		    descriptorLocations->points[i].y = intensityOut->points[i].y;
-		    descriptorLocations->points[i].z = intensityOut->points[i].z;
-		}
-
 		
+		intensityToRGB(intensityOut, descriptorLocations);
 	    } else if (interestType_.compare("susan") == 0) {
 		ROS_INFO("Using SUSAN feature selection.");
 		loadNormals(normals); // might end up doing this again later on
@@ -292,7 +333,19 @@ namespace objsearch {
 
 		susan.compute(*descriptorLocations);
 	    } else if (interestType_.compare("sift") == 0) {
+		ROS_INFO("Using SIFT feature selection.");
+		// Need to convert to xyzi from xyzrgb, harris doesn't use rgb
+		pcl::PointCloud<pcl::PointXYZI>::Ptr intensity(new pcl::PointCloud<pcl::PointXYZI>);
+		pcl::PointCloud<pcl::PointXYZI>::Ptr intensityOut(new pcl::PointCloud<pcl::PointXYZI>);
+		rgbToIntensity(cloud, intensity);
 		
+		pcl::SIFTKeypoint<pcl::PointXYZI, pcl::PointXYZI> sift;
+		sift.setInputCloud(intensity);
+		sift.setScales(siftMinScale_, siftOctaves_, siftOctaveScales_);
+		sift.setMinimumContrast(siftMinContrast_);
+		sift.compute(*intensityOut);
+
+		intensityToRGB(intensityOut, descriptorLocations);
 	    } else {
 		ROS_INFO("Unknown feature selection method %s", interestType_.c_str());
 		exit(1);
