@@ -45,21 +45,44 @@ realistic proposition, and for some time this was a satisfactory solution.
 However, as the number of accessible data on the internet grew, the system
 became gradually more impractical. It could take minutes or even hours to get a
 result for a query, and the trawling of content caused network slowdowns
-\cite{firstsearch,archieabout,bowman1993research}.
+\cite{firstsearch,archieabout,bowman1993research}. Subsequent work in the area
+led to the development of search engines which were able to search for words in
+pages, and various innovations led this to become the very effective way of
+searching that we know today \cite{brin1998anatomy,pinkerton1994finding}.
 
-Subsequent work in the area led to the development of search engines which were
-able to search for words in pages, and various innovations led this to become
-the very effective way of searching that we know today
-\cite{brin1998anatomy,pinkerton1994finding}. While images have been on the
-internet since the early days, in recent years the advent of affordable digital
-cameras and the ubiquity of mobile phone cameras has led to hundreds of
-thousands of photographs being uploaded to the internet every minute
-\cite{fbipo,photosminute}. At its most basic, image search utilises the same
-techniques as text search, with information being extracted from metadata like
-tags, descriptions and keywords \cite{jing2008pagerank}. More recently, reverse
-image search has become more popular, allowing users to find similar images to
-an example by extracting information from textures and trying to find other
-images which contain similar information \cite{lew2006content}. 
+While images have been on the internet since the early days, in recent years the
+advent of affordable digital cameras and the ubiquity of mobile phone cameras
+has led to hundreds of thousands of photographs being uploaded to the internet
+every minute \cite{fbipo,photosminute}. At its most basic, image search utilises
+the same techniques as text search, with information being extracted from
+metadata like tags, descriptions and keywords \cite{jing2008pagerank}. More
+recently, reverse image search has become more popular, allowing users to find
+similar images to an example by extracting information from textures and trying
+to find other images which contain similar information \cite{lew2006content}.
+There is still much information present in images that cannot currently be
+extracted and represented using image processing techniques, and this is an
+active research area.
+
+An emerging method of data storage that will need to be searchable in the near
+future is 3D models and point clouds. 3D models have been used for a long time
+in computer games, medical imaging, and animation. More recently, developments
+in 3D printing have led to a growing number of websites which distribute models
+to use for printing \cite{3dprintlist}. For many years these sorts of models
+have been created using CAD programs, or in the case of object scanning,
+expensive time-of-flight cameras. The release of the Microsoft Kinect in late
+2010 marked a turning point in the realm of 3D image processing, creating an
+affordable and effective method of gathering 3D data. Many research groups
+quickly purchased the hardware, and much work has been done in the area since. A
+3D equivalent of the popular 2D image processing library OpenCV quickly came
+into existence for use with point clouds, as the data which comes from such 3D
+sensors is known \cite{opencv, pcl}.
+
+In this report, we will describe our approach to a small sub-problem of
+searching in point clouds known as object query. As the name suggests, this is
+the problem of retrieving from a data set objects that are similar to some
+object that we have provided. All data is in the form of point clouds, which
+store 3D positions of points that represent parts of a surface, along with the
+colour at the point.
 
 In chapter~\ref{chap:bg}, we explain some concepts that are important to
 understand the work, provide background information on relevant parts of the
