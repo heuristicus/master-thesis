@@ -74,10 +74,6 @@ namespace objsearch {
 	    std::string match;
 	    ROSUtil::getParam(handle, "/feature_extraction/match", match);
 
-	    // this is used in filename creation for the extracted features and
-	    // locations so that they can be paired up when doing queries
-	    dateTime_ = sysutil::getDateTimeString();
-
 	    std::vector<std::string> roomFiles;
 	    std::string dataOutput;
 	    std::string timeNow = sysutil::getDateTimeString();
@@ -123,6 +119,10 @@ namespace objsearch {
 	    for (auto it = roomFiles.begin(); it != roomFiles.end(); it++) {
 		ROS_INFO("Extracting features from cloud %d of %d",
 			 (int)(it - roomFiles.begin()) + 1, (int)roomFiles.size());
+		// this is used in filename creation for the extracted features and
+		// locations so that they can be paired up when doing queries
+		dateTime_ = sysutil::getDateTimeString();
+		
 		cloudFile_ = *it;
 		initPaths(cloudFile_); // update output paths
 		FeatureInfo info = extractFeatures();
@@ -323,6 +323,9 @@ namespace objsearch {
 
 		iss.compute(*descriptorLocations);
 	    } else if (interestType_.compare("harris") == 0) {
+		// these features suck, for some reason.
+		ROS_INFO("Harris feature selection currently disabled.");
+		exit(1);
 		ROS_INFO("Using Harris3D feature selection.");
 		loadNormals(normals); // might end up doing this again later on
 				      // if using certain types of features
@@ -592,8 +595,9 @@ namespace objsearch {
 
 	/** 
 	 * Creates a file name for the descriptor locations by concatenating the
-	 * parameters used for interest points to the input filename.
-	 * 
+	 * parameters used for interest points to the input filename. An < is
+	 * inserted into the filename, and indicates that the preceding
+	 * characters form the original filename from which the data was extracted.
 	 * 
 	 * @return 
 	 */
@@ -603,30 +607,30 @@ namespace objsearch {
 	    std::string fname = sysutil::cleanDirPath(outPath_) + "/features/"
 		+ sysutil::removeExtension(cloudFile_); 
 	    if (interestType_.compare("uniform") == 0) {
-		fname += std::string("_uniform_ds_" + std::to_string(downsampleLeafSize_)
+		fname += std::string("<points_uniform_ds_" + std::to_string(downsampleLeafSize_)
 				     + "_" + dateTime_ + ".pcd");
 	    } else if (interestType_.compare("iss") == 0) {
-		fname += std::string("_iss_sm_" + std::to_string(issSalientMult_)
+		fname += std::string("<points_iss_sm_" + std::to_string(issSalientMult_)
 				     + "_nm_" + std::to_string(issNonMaxMult_)
 				     + "_mn_" + std::to_string(issMinNeighbours_)
 				     + "_t2_" + std::to_string(issThreshold21_)
 				     + "_t3_" + std::to_string(issThreshold32_)
 				     + "_" + dateTime_ +  ".pcd");
 	    } else if (interestType_.compare("harris") == 0) {
-		fname += std::string("_harris_th_" + std::to_string(harrisThreshold_)
+		fname += std::string("<points_harris_th_" + std::to_string(harrisThreshold_)
 				     + "_rd_" + std::to_string(harrisRadius_)
 				     + "_nm_" + std::to_string(harrisNonMax_)
 				     + "_rf_" + std::to_string(harrisRefine_)
 				     + "_" + dateTime_ + ".pcd");
 	    } else if (interestType_.compare("susan") == 0) {
-		fname += std::string("_susan_nm_" + std::to_string(susanNonMax_)
+		fname += std::string("<points_susan_nm_" + std::to_string(susanNonMax_)
 				     + "_rd_" + std::to_string(susanRadius_)
 				     + "_dt_" + std::to_string(susanDistThresh_)
 				     + "_at_" + std::to_string(susanAngularThresh_)
 				     + "_it_" + std::to_string(susanIntensityThresh_)
 				     + "_" + dateTime_ +  ".pcd");
 	    } else if (interestType_.compare("sift") == 0) {
-		fname += std::string("_sift_ms_" + std::to_string(siftMinScale_)
+		fname += std::string("<points_sift_ms_" + std::to_string(siftMinScale_)
 				     + "_oc_" + std::to_string(siftOctaves_)
 				     + "_os_" + std::to_string(siftOctaveScales_)
 				     + "_mc_" + std::to_string(siftMinContrast_)
@@ -643,8 +647,8 @@ namespace objsearch {
 	    }
 	    pcl::PCDWriter writer;
 	    std::string featureOutFile = sysutil::cleanDirPath(outPath_) + "/features/"
-		+ sysutil::removeExtension(cloudFile_) + "_" + featureType_
-		+ "_" + interestType_ + "_" + dateTime_ + "_"+ ".pcd";
+		+ sysutil::removeExtension(cloudFile_) + "<" + featureType_
+		+ "_" + interestType_ + "_" + dateTime_ + ".pcd";
 	    ROS_INFO("Writing computed features to %s", featureOutFile.c_str());
 	    writer.write<DescType>(featureOutFile, *descriptors, true);
 	}

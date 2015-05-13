@@ -27,7 +27,7 @@ namespace objsearch {
 	    ROSUtil::getParam(handle, "/object_query/x_step_hough", xStepHough_);
 	    ROSUtil::getParam(handle, "/object_query/y_step_hough", yStepHough_);
 	    ROSUtil::getParam(handle, "/object_query/z_step_hough", zStepHough_);
-
+	    
 	    // If output is not specified, set the output directory to be the processed
 	    // data directory specified by the global parameters.
 	    if (std::string("NULL").compare(outDir_) == 0) {
@@ -51,7 +51,46 @@ namespace objsearch {
 	    // output directory. The output will be written to a location for
 	    // the query cloud, for each of the target clouds used.
 	    outPath_ = sysutil::fullDirPath(sysutil::combinePaths(outDir_, dataSubDir_));
-	    queryPointFile_ = sysutil::removeExtension(queryFile_, false) + "_points.pcd";
+	    // the file containing the feature locations of the query file can
+	    // be found in the same directory, with the same date-time stamp. We
+	    // can use a regex to find the corresponding file, of which there
+	    // should be only one. The query file format is something like
+	    // originfile<descriptortype_interesttype_date_time.pcd
+	    // remove the preceding path and the extension from the query file
+	    std::string trimmedName = sysutil::removeExtension(queryFile_, -1);
+	    // we know that the date/time makes up the last 19 characters of the
+	    // string, and we want to remove the preceding underscore as well
+	    std::string dateTime = std::string(trimmedName.begin() + trimmedName.length() - 19,
+					       trimmedName.end());
+	    // remainder of the string containing information about the original
+	    // name, interest and descriptor types
+	    std::string remainder = std::string(trimmedName.begin(), trimmedName.begin() + trimmedName.length() - 20);
+
+	    // we are interested in extracting the interest point type and the original filename
+	    int indicator = remainder.find_last_of('_');
+	    // interest type is the part of the string after the last _
+	    std::string interestType = std::string(remainder, indicator + 1);
+	    indicator = remainder.find_first_of('<');
+	    // the original file name starts at the beginning of the string and
+	    // ends at the first <
+	    std::string originalFname = std::string(remainder.begin(), remainder.begin() + indicator);
+	    
+	    ROS_INFO("datetime is %s", dateTime.c_str());
+	    ROS_INFO("remainder is %s", remainder.c_str());
+	    ROS_INFO("interesttype is %s", interestType.c_str());
+	    ROS_INFO("original filename is %s", originalFname.c_str());
+	    
+	    // now, find files in the directory which have the same interest
+	    // type and date+time. There should be only one, if there are any at
+	    // all.
+	    std::vector<std::string> matches = sysutil::listFilesWithString(sysutil::trimPath(queryFile_, 1), std::regex(".*points_" + interestType + ".*" + dateTime + ".*"));
+
+	    if (matches.size() == 0){
+		ROS_INFO("No matches for descriptor location file of %s", queryFile_.c_str());
+		exit(1);
+	    }
+	    
+	    queryPointFile_ = matches[0];
 	    pcl::PCDReader reader;
 	    pcl::PCLPointCloud2 queryHeader;
 	    reader.readHeader(queryFile_, queryHeader);
@@ -136,10 +175,40 @@ namespace objsearch {
 		return false;
 	    }
 
-	    // define the locations of the files containing the points at which
-	    // features were extracted. Same as the file names, but with
-	    // "_points" added on to the end
-	    targetPointFile_ = sysutil::removeExtension(targetFile_, false) + "_points.pcd";
+	    std::string trimmedName = sysutil::removeExtension(targetFile_, -1);
+	    // we know that the date/time makes up the last 19 characters of the
+	    // string, and we want to remove the preceding underscore as well
+	    std::string dateTime = std::string(trimmedName.begin() + trimmedName.length() - 19,
+					       trimmedName.end());
+	    // remainder of the string containing information about the original
+	    // name, interest and descriptor types
+	    std::string remainder = std::string(trimmedName.begin(), trimmedName.begin() + trimmedName.length() - 20);
+
+	    // we are interested in extracting the interest point type and the original filename
+	    int indicator = remainder.find_last_of('_');
+	    // interest type is the part of the string after the last _
+	    std::string interestType = std::string(remainder, indicator + 1);
+	    indicator = remainder.find_first_of('<');
+	    // the original file name starts at the beginning of the string and
+	    // ends at the first <
+	    std::string originalFname = std::string(remainder.begin(), remainder.begin() + indicator);
+	    
+	    ROS_INFO("datetime is %s", dateTime.c_str());
+	    ROS_INFO("remainder is %s", remainder.c_str());
+	    ROS_INFO("interesttype is %s", interestType.c_str());
+	    ROS_INFO("original filename is %s", originalFname.c_str());
+	    
+	    // now, find files in the directory which have the same interest
+	    // type and date+time. There should be only one, if there are any at
+	    // all.
+	    std::vector<std::string> matches = sysutil::listFilesWithString(sysutil::trimPath(queryFile_, 1), std::regex(".*points_" + interestType + ".*" + dateTime + ".*"));
+
+	    if (matches.size() == 0){
+		ROS_INFO("No matches for descriptor location file of %s", targetFile_.c_str());
+		exit(1);
+	    }
+	    
+	    targetPointFile_ = matches[0];
 
 	    ROS_INFO("Loading target feature points from %s", targetPointFile_.c_str());
 
@@ -376,7 +445,7 @@ namespace objsearch {
 
 		pcl::PointCloud<pcl::PointXYZRGB>::Ptr targetPoints(new pcl::PointCloud<pcl::PointXYZRGB>());
 		typename pcl::PointCloud<DescType>::Ptr targetFeatures(new pcl::PointCloud<DescType>());
-		targetPointFile_ = sysutil::removeExtension(targetClouds_[i], false) + "_points.pcd";
+
 		reader.read(targetClouds_[i], *targetFeatures);
 		reader.read(targetPointFile_, *targetPoints);
 		search->setInputCloud(targetFeatures);
