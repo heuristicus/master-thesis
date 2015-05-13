@@ -74,6 +74,9 @@ namespace objsearch {
 	    std::string match;
 	    ROSUtil::getParam(handle, "/feature_extraction/match", match);
 
+	    // this is used in filename creation for the extracted features and
+	    // locations so that they can be paired up when doing queries
+	    dateTime_ = sysutil::getDateTimeString();
 
 	    std::vector<std::string> roomFiles;
 	    std::string dataOutput;
@@ -256,23 +259,45 @@ namespace objsearch {
 	    }
 	}
 
-	FeatureExtractor::FeatureInfo FeatureExtractor::extractFeatures(){
-	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-	    pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>());
-	    if (pcl::io::loadPCDFile<pcl::PointXYZRGB>(cloudFile_, *cloud) != -1){
-		ROS_INFO("Loaded cloud from %s", cloudFile_.c_str());
-	    } else {
-		ROS_INFO("Could not load cloud from %s", cloudFile_.c_str());
-		exit(1);
-	    }
-	    FeatureInfo info;
-	    info.fname = cloudFile_;
-	    info.originalSize = cloud->size();
-
-	    // Define points at which descriptors should be computed.
-	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr descriptorLocations(new pcl::PointCloud<pcl::PointXYZRGB>());
-	    
+	/** 
+	 * Compute the locations at which features are to be computed using one
+	 * of the various possible methods specified in the parameter file.
+	 * 
+	 * @param cloud The cloud to use to define descriptor locations
+	 * @param descriptorLocations To be populated with descriptor locations based
+	 * on the interest point selection method
+	 * @param info The struct used to contain information about time taken
+	 * by parts of the process. Will be populated with time taken
+	 */
+	void FeatureExtractor::getDescriptorLocations(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
+						      pcl::PointCloud<pcl::PointXYZRGB>::Ptr& descriptorLocations,
+						      FeatureExtractor::FeatureInfo& info){
 	    ros::Time selectStart = ros::Time::now();
+
+	    std::string filePath = makeDescriptorLocationFileName();
+	    // the filename contains the date and time of the running of this
+	    // node, and we wish to ignore that when looking for existing
+	    // descriptor locations computed using this parameter set. The
+	    // datetime string produced by sysutil is of length 19, plus the
+	    // extension is a total of 23. Strip the last 23 characters from the
+	    // the string
+	    std::string fileName = sysutil::trimPath(filePath, -1);
+	    std::string shortFname(fileName.begin(), fileName.begin() + fileName.length() - 23);
+	    // get filenames (if any) that match the string in the directory specified
+	    std::string checkPath = sysutil::trimPath(filePath, 1);
+	    ROS_INFO("Checking path %s for existing files...", checkPath.c_str());
+	    ROS_INFO("Using %s as search string", shortFname.c_str());
+	    std::vector<std::string> matches = sysutil::listFilesWithString(checkPath, shortFname);
+	    if (matches.size() != 0) {
+		ROS_INFO("Found previous computation of descriptor locations with same parameter settings at %s.\n Loading those.", matches[0].c_str());
+		pcl::PCDReader reader;
+		reader.read(matches[0], *descriptorLocations);
+		return;
+	    }
+
+	    ROS_INFO("No previous descriptor location file with the given parameter settings found. Computing new locations.");
+
+	    pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);
 	    if (interestType_.compare("uniform") == 0) {
 		// Get points uniformly across the space using a voxel grid,
 		// ignoring regions which have no points in them.
@@ -353,6 +378,26 @@ namespace objsearch {
 	    info.selectTime = (ros::Time::now() - selectStart).toSec();
 	    info.featureSize = descriptorLocations->size();
 
+	}
+
+	FeatureExtractor::FeatureInfo FeatureExtractor::extractFeatures(){
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+	    pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>());
+	    if (pcl::io::loadPCDFile<pcl::PointXYZRGB>(cloudFile_, *cloud) != -1){
+		ROS_INFO("Loaded cloud from %s", cloudFile_.c_str());
+	    } else {
+		ROS_INFO("Could not load cloud from %s", cloudFile_.c_str());
+		exit(1);
+	    }
+	    FeatureInfo info;
+	    info.fname = cloudFile_;
+	    info.originalSize = cloud->size();
+
+	    // Define points at which descriptors should be computed.
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr descriptorLocations(new pcl::PointCloud<pcl::PointXYZRGB>());
+	    getDescriptorLocations(cloud, descriptorLocations, info);
+	    writeDescriptorLocs<pcl::PointXYZRGB>(descriptorLocations);
+	    
 	    ROS_INFO("Number of points to compute features at: %d", (int)descriptorLocations->size());
 
 	    // get lowercase for the feature type to allow lowercase input as well as
@@ -361,9 +406,7 @@ namespace objsearch {
 
 	    ros::Time featureStart = ros::Time::now();
 	    if (featureType_.find("shot") != std::string::npos) { // two different shot descriptors with same preprocess
-
 		loadNormals(normals);
-
 		pcl::PointIndices::Ptr nanIndices(new pcl::PointIndices());
 		
 		for (size_t i = 0; i < normals->size(); i++) {
@@ -414,7 +457,7 @@ namespace objsearch {
 		    shot.compute(*descriptors);
 		    ROS_INFO("Done.");
 
-		    writeData<pcl::SHOT352, pcl::PointXYZRGB>(descriptors, descriptorLocations);
+		    writeDescriptors<pcl::SHOT352>(descriptors);
 		} else if (featureType_.compare("shotcolor") == 0) {
 		    pcl::PointCloud<pcl::SHOT1344>::Ptr descriptors(new pcl::PointCloud<pcl::SHOT1344>());
 
@@ -432,7 +475,7 @@ namespace objsearch {
 		    shot.compute(*descriptors);
 		    ROS_INFO("Done.");
 
-		    writeData<pcl::SHOT1344, pcl::PointXYZRGB>(descriptors, descriptorLocations);		    
+		    writeDescriptors<pcl::SHOT1344>(descriptors);		    
 		} else {
 		    ROS_INFO("Unknown SHOT descriptor type %s", featureType_.c_str());
 		    exit(1);
@@ -486,7 +529,7 @@ namespace objsearch {
 		ROS_INFO("Computing descriptors.");
 		usc.compute(*descriptors);
 		ROS_INFO("Done.");
-		writeData<pcl::ShapeContext1980, pcl::PointXYZ>(descriptors, descriptorLocations_xyz);
+		writeDescriptors<pcl::ShapeContext1980>(descriptors);
 	    } else if (featureType_.find("pfh") != std::string::npos) { // point feature histogram, multiple types
 		loadNormals(normals);
 		
@@ -504,7 +547,7 @@ namespace objsearch {
 		    pfh.compute(*descriptors);
 		    ROS_INFO("Feature computation done");
 		    
-		    writeData<pcl::PFHSignature125, pcl::PointXYZRGB>(descriptors, descriptorLocations);
+		    writeDescriptors<pcl::PFHSignature125>(descriptors);
 		} else if (featureType_.compare("fpfh") == 0) {
 		    pcl::PointCloud<pcl::FPFHSignature33>::Ptr descriptors(new pcl::PointCloud<pcl::FPFHSignature33>());
 		    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr kdtree(new pcl::search::KdTree<pcl::PointXYZRGB>);
@@ -519,7 +562,7 @@ namespace objsearch {
 		    fpfh.compute(*descriptors);
 		    ROS_INFO("Feature computation done");
 		    
-		    writeData<pcl::FPFHSignature33, pcl::PointXYZRGB>(descriptors, descriptorLocations);
+		    writeDescriptors<pcl::FPFHSignature33>(descriptors);
 		} else if (featureType_.compare("pfhrgb") == 0) {
 		    pcl::PointCloud<pcl::PFHRGBSignature250>::Ptr descriptors(new pcl::PointCloud<pcl::PFHRGBSignature250>());
 		    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr kdtree(new pcl::search::KdTree<pcl::PointXYZRGB>);
@@ -534,7 +577,7 @@ namespace objsearch {
 		    pfhrgb.compute(*descriptors);
 		    ROS_INFO("Feature computation done");
 		    
-		    writeData<pcl::PFHRGBSignature250, pcl::PointXYZRGB>(descriptors, descriptorLocations);
+		    writeDescriptors<pcl::PFHRGBSignature250>(descriptors);
 		} else {
 		    ROS_INFO("Unknown pfh feature type %s", featureType_.c_str());
 		    exit(1);
@@ -547,25 +590,79 @@ namespace objsearch {
 	    return info;
 	}
 
-	template<typename DescType, typename PointType>
-	void FeatureExtractor::writeData(const typename pcl::PointCloud<DescType>::Ptr& descriptors,
-					 const typename pcl::PointCloud<PointType>::Ptr& points){
+	/** 
+	 * Creates a file name for the descriptor locations by concatenating the
+	 * parameters used for interest points to the input filename.
+	 * 
+	 * 
+	 * @return 
+	 */
+	std::string FeatureExtractor::makeDescriptorLocationFileName() {
+	    // long path, file to process with the extension removed - add to
+	    // the end of this
+	    std::string fname = sysutil::cleanDirPath(outPath_) + "/features/"
+		+ sysutil::removeExtension(cloudFile_); 
+	    if (interestType_.compare("uniform") == 0) {
+		fname += std::string("_uniform_ds_" + std::to_string(downsampleLeafSize_)
+				     + "_" + dateTime_ + ".pcd");
+	    } else if (interestType_.compare("iss") == 0) {
+		fname += std::string("_iss_sm_" + std::to_string(issSalientMult_)
+				     + "_nm_" + std::to_string(issNonMaxMult_)
+				     + "_mn_" + std::to_string(issMinNeighbours_)
+				     + "_t2_" + std::to_string(issThreshold21_)
+				     + "_t3_" + std::to_string(issThreshold32_)
+				     + "_" + dateTime_ +  ".pcd");
+	    } else if (interestType_.compare("harris") == 0) {
+		fname += std::string("_harris_th_" + std::to_string(harrisThreshold_)
+				     + "_rd_" + std::to_string(harrisRadius_)
+				     + "_nm_" + std::to_string(harrisNonMax_)
+				     + "_rf_" + std::to_string(harrisRefine_)
+				     + "_" + dateTime_ + ".pcd");
+	    } else if (interestType_.compare("susan") == 0) {
+		fname += std::string("_susan_nm_" + std::to_string(susanNonMax_)
+				     + "_rd_" + std::to_string(susanRadius_)
+				     + "_dt_" + std::to_string(susanDistThresh_)
+				     + "_at_" + std::to_string(susanAngularThresh_)
+				     + "_it_" + std::to_string(susanIntensityThresh_)
+				     + "_" + dateTime_ +  ".pcd");
+	    } else if (interestType_.compare("sift") == 0) {
+		fname += std::string("_sift_ms_" + std::to_string(siftMinScale_)
+				     + "_oc_" + std::to_string(siftOctaves_)
+				     + "_os_" + std::to_string(siftOctaveScales_)
+				     + "_mc_" + std::to_string(siftMinContrast_)
+				     + "_" + dateTime_ + ".pcd");
+	    }
+
+	    return fname;
+	}
+
+	template<typename DescType>
+	void FeatureExtractor::writeDescriptors(const typename pcl::PointCloud<DescType>::Ptr& descriptors){
 	    if (!sysutil::makeDirs(sysutil::cleanDirPath(outPath_) + "/features/")){
 		ROS_INFO("Could not create output directory.");
 	    }
 	    pcl::PCDWriter writer;
 	    std::string featureOutFile = sysutil::cleanDirPath(outPath_) + "/features/"
-		+ sysutil::removeExtension(cloudFile_) + "_" + featureType_ + "_" + interestType_ + ".pcd";
+		+ sysutil::removeExtension(cloudFile_) + "_" + featureType_
+		+ "_" + interestType_ + "_" + dateTime_ + "_"+ ".pcd";
 	    ROS_INFO("Writing computed features to %s", featureOutFile.c_str());
 	    writer.write<DescType>(featureOutFile, *descriptors, true);
-
-	    // output the points at which the descriptors were computed so that they
-	    // can be used later
-	    std::string pointOutFile = sysutil::cleanDirPath(outPath_) + "/features/"
-		+ sysutil::removeExtension(cloudFile_) + "_" + featureType_ + "_" + interestType_ +"_points.pcd";
+	}
+	
+	template<typename PointType>
+	void FeatureExtractor::writeDescriptorLocs(const typename pcl::PointCloud<PointType>::Ptr& points){
+	    if (!sysutil::makeDirs(sysutil::cleanDirPath(outPath_) + "/features/")){
+		ROS_INFO("Could not create output directory.");
+	    }
+	    pcl::PCDWriter writer;
+	    // output the points at which the descriptors were computed so that
+	    // they can be used later. These are independent of the features
+	    // computed, so save them on a per-file basis
+	    std::string pointOutFile = makeDescriptorLocationFileName();
 	    ROS_INFO("Writing feature computation points to %s", pointOutFile.c_str());
 	    writer.write<PointType>(pointOutFile, *points, true);
 	}
+
 
 	void FeatureExtractor::loadNormals(pcl::PointCloud<pcl::Normal>::Ptr& normals){
 	    // load the cloud of normals. Should find a better way of

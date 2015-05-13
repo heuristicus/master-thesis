@@ -54,12 +54,18 @@ namespace objsearch {
 	    FeatureExtractor(int argc, char *argv[]);
 
 	    FeatureInfo extractFeatures();
-	    template<typename DescType, typename PointType>
-	    void writeData(const typename pcl::PointCloud<DescType>::Ptr& descriptors,
-			   const typename pcl::PointCloud<PointType>::Ptr& points);
-	    void initPaths(std::string path);
+	    void getDescriptorLocations(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
+					pcl::PointCloud<pcl::PointXYZRGB>::Ptr& descriptorLocations,
+					FeatureInfo& info);
+
+	    template<typename PointType>
+	    void writeDescriptorLocs(const typename pcl::PointCloud<PointType>::Ptr& points);
+	    template<typename DescType>
+	    void writeDescriptors(const typename pcl::PointCloud<DescType>::Ptr& descriptors);
 	    void writeInfo(std::string outPath, FeatureInfo info, bool append);
 	    void loadNormals(pcl::PointCloud<pcl::Normal>::Ptr& normals);
+	    void initPaths(std::string path);
+	    std::string makeDescriptorLocationFileName();
 	    
 	    // strings to store information about directories and the like for
 	    // saving and retrieving data.
@@ -71,6 +77,7 @@ namespace objsearch {
 	    std::string outPath_;
 	    std::string featureType_;
 	    std::string interestType_;
+	    std::string dateTime_;
 
 	    // Uniform sampling
 	    float downsampleLeafSize_;
