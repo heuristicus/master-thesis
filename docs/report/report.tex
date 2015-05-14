@@ -77,12 +77,31 @@ quickly purchased the hardware, and much work has been done in the area since. A
 into existence for use with point clouds, as the data which comes from such 3D
 sensors is known \cite{opencv, pcl}.
 
-In this report, we will describe our approach to a small sub-problem of
-searching in point clouds known as object query. As the name suggests, this is
-the problem of retrieving from a data set objects that are similar to some
-object that we have provided. All data is in the form of point clouds, which
-store 3D positions of points that represent parts of a surface, along with the
-colour at the point.
+In this report, we will describe our approach the problem of retrieving from a
+data set objects that are similar to some object that we have provided, which we
+will call object query. In essence, we need to extract information from the data
+set and the objects that we are interested in which describes their properties
+in such a way that we can compare the descriptions to see if there are any
+similarities that imply the presence of an object in the data set. While the
+data set could be anything, in our particular case we have data from a project
+which studies long-term robot operation in office environments. The data set
+contains point clouds of various offices taken from the same position over a period
+of approximately a month. Some objects in the data set have also been labelled,
+so there is information about the positions of objects in the clouds.
+
+While this project is not aiming to perform a specific task on an actual robotic
+system, within this context there are applications to which an object query
+system could be applied. Given a data set over long periods of time, the system
+could be used to track the motion of objects over time, and to provide
+information about where an object is likely to be at a certain time. One
+potential application is to help people find objects that have been misplaced.
+
+The project will focus in particular on the implementation of a system which can
+perform object query, and the evaluation of a number of standard methods for
+describing objects, and finding parts of objects that are particularly
+discriminative. While it is possible to describe objects as a whole, we will
+investigate the efficacy of using descriptions of small parts of the object to
+retrieve matches from the data set.
 
 In chapter~\ref{chap:bg}, we explain some concepts that are important to
 understand the work, provide background information on relevant parts of the
@@ -90,19 +109,23 @@ image processing literature, and attempt to introduce the reader to previous
 work in similar areas. The specific techniques used in our system are described
 in chapter~\ref{chap:devel}, and we also discuss our reasoning behind certain
 steps of the process. Chapter~\ref{chap:impl} deals with the software, and how
-the system was implemented, along with some explanation of how the system
-works. Our experimental setup and the results of the experiments are described
-in chapter~\ref{chap:exp}. We compare the quality of retrieval when different
+the system was implemented, along with some explanation of how the system works.
+Our experimental setup and the results of the experiments are described in
+chapter~\ref{chap:exp}. We compare the quality of retrieval when different
 methods are used, and also investigate the time taken by the system under
-varying conditions. Finally, we summarise the system and our results in chapter~\ref{chap:conc}.
+varying conditions. Finally, we summarise the system and our results in
+chapter~\ref{chap:conc}.
 \chapter{Background}
 \label{chap:bg}
 In this chapter we will introduce some key ideas relating to the project. While
-some of the techniques described here are not directly used in the
+some of the techniques mentioned here are not directly used in the
 implementation of our system, they can be useful for context, or to give
-examples of different ways of approaching a similar problem. We discuss methods
-of finding interesting regions in image and point cloud data, and how these
-regions can be represented using descriptors.
+examples of different ways of approaching problems in this area. We discuss
+methods of finding interesting regions in image and point cloud data, and how
+these regions can be represented using descriptors, along with some methods for
+storing descriptors in ways that make it easy and efficient to find
+similarities.
+\section{Point Clouds}
 \section{Segmentation}
 Popularised by Comaniciu~\cite{comaniciu2002mean} for use in image segmentation,
 mean shift was first introduced by Fukunaga~\cite{fukunaga1975estimation} in
