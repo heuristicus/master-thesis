@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <exception>
 
 #include <ros/console.h>
 
@@ -96,7 +97,7 @@ namespace objsearch {
 		file.close();
 	    } else {
 		ROS_INFO("Failed to open file %s", labelfile.c_str());
-		exit(1);
+		throw std::exception();
 	    }
 
 	    // ROS_INFO("----------%s----------", filename.c_str());
@@ -131,8 +132,8 @@ namespace objsearch {
 	    std::sort(matchesTXT.begin(), matchesTXT.end());
 
 	    if (matchesPCD.size() != matchesTXT.size()) {
-		ROS_INFO("Different numbers of .pcd files and .xml files for annotations. Should be the same.");
-		exit(1);
+		ROS_INFO("Different numbers of .pcd files and .txt files for annotations. Should be the same.");
+		throw std::exception();
 	    }
 
 	    typename std::vector<AnnotatedCloud<PointT> > clouds;

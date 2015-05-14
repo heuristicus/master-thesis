@@ -94,12 +94,15 @@ namespace objsearch {
 		ROS_INFO("No matches for %s", match.c_str());
 		exit(1);
 	    }
+
+	    std::sort(roomFiles.begin(), roomFiles.end());
 	    
 	    // Dump parameters used for this run
 	    // dangerous, but otherwise annoying to output all parameters individually.
 	    std::string command("rosparam dump " + dataOutput);
-	    ROS_INFO("Caling system with command %s", command.c_str());
-	    system(command.c_str());
+	    ROS_INFO("Calling system with command %s", command.c_str());
+	    int resp = system(command.c_str());
+	    ROS_INFO("Command returned %d", resp);
 
 	    ROS_INFO("Preprocessing files");
 	    size_t i;
@@ -114,17 +117,30 @@ namespace objsearch {
 	    std::string dataFile = sysutil::fullDirPath(sysutil::trimPath(dataOutput, 1))
 		+ "predata_" + timeNow + ".txt";
 	    // Loop over all the clouds and process them
+	    std::vector<std::string> errors;
 	    for (auto it = roomFiles.begin(); it != roomFiles.end(); it++) {
 		ROS_INFO("----------Processing cloud %d of %d----------\n%s",
 			 (int)(it - roomFiles.begin()) + 1, (int)roomFiles.size(), (*it).c_str());
 		// first, initialise the object's variables to set it to
 		// preprocess the cloud in the iterator is pointing to
 		initPaths(*it);
-		ProcessInfo info = preprocessCloud();
-		writeInfo(dataFile, info, append);
+		try {
+		    ProcessInfo info = preprocessCloud();
+		    writeInfo(dataFile, info, append);
+		} catch (std::exception& e){
+		    ROS_INFO("Exception while processing file %s - skipping.", (*it).c_str());
+		    errors.push_back((*it).c_str());
+		}
+
 		// switch to appending once the first info has been written.
 		append = true;
 	    }
+
+	    ROS_INFO("Errors processing files:");
+	    for (auto it = errors.begin(); it != errors.end(); it++) {
+		ROS_INFO("%s", (*it).c_str());
+	    }
+
 	}
 
 	/** 
@@ -234,8 +250,7 @@ namespace objsearch {
 	    if (!append) {
 		// if not appending, put headers to the columns and the
 		// directory/file the program was run on
-		file << cloudPath_.c_str()
-		     << "#filename n_pre n_downsample n_trim n_rmplane t_load t_downsample"
+		file << "#filename n_pre n_downsample n_trim n_rmplane t_load t_downsample"
 		     << " t_trim t_normals n_plane t_plane" << std::endl;
 	    }
 
@@ -395,6 +410,7 @@ namespace objsearch {
 		    registeredTransform = roomData.vIntermediateRoomCloudTransformsRegistered[cloudNum_];
 		}
 	    }
+	    ROS_INFO("Finished loading cloud.");
 	}
 
 	/** 

@@ -359,7 +359,7 @@ namespace objsearch {
 
 	    // Go through all points in the nearest neighbours
 	    for (size_t i = 0; i < indices.size(); i++) {
-		for (int j = 0; j < indices[i].size(); j++) {
+		for (size_t j = 0; j < indices[i].size(); j++) {
 		    pcl::PointXYZRGB cur = targetPoints->points[indices[i][j]];
 		    grid.at(cur.x, cur.y, cur.z)++;
 		}
