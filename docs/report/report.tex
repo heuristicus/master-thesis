@@ -7,6 +7,8 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{moreverb}
+\setcounter{tocdepth}{3}
+\setcounter{secnumdepth}{3}
 % \defaultfontfeatures{Mapping=tex-text}
 % \setromanfont[Ligatures={Common},Numbers={Lining}]{Linux Libertine}
 
@@ -85,19 +87,20 @@ in such a way that we can compare the descriptions to see if there are any
 similarities that imply the presence of an object in the data set. While the
 data set could be anything, in our particular case we have data from a project
 which studies long-term robot operation in office environments. The data set
-contains point clouds of various offices taken from the same position over a period
+contains point clouds of a single office taken from the same position over a period
 of approximately a month. Some objects in the data set have also been labelled,
 so there is information about the positions of objects in the clouds.
 
 While this project is not aiming to perform a specific task on an actual robotic
 system, within this context there are applications to which an object query
-system could be applied. Given a data set over long periods of time, the system
-could be used to track the motion of objects over time, and to provide
-information about where an object is likely to be at a certain time. One
-potential application is to help people find objects that have been misplaced.
+system could be applied. Given a data set over long periods of time with clouds
+taken at various locations, the system could be used to track the motion of
+objects over time, and to provide information about where an object is likely to
+be at a certain time. One potential application is to help people find objects
+that have been misplaced.
 
 The project will focus in particular on the implementation of a system which can
-perform object query, and the evaluation of a number of standard methods for
+perform object query. It will evaluate a number of standard methods for
 describing objects, and finding parts of objects that are particularly
 discriminative. While it is possible to describe objects as a whole, we will
 investigate the efficacy of using descriptions of small parts of the object to
@@ -117,23 +120,58 @@ varying conditions. Finally, we summarise the system and our results in
 chapter~\ref{chap:conc}.
 \chapter{Background}
 \label{chap:bg}
-In this chapter we will introduce some key ideas relating to the project. While
-some of the techniques mentioned here are not directly used in the
-implementation of our system, they can be useful for context, or to give
-examples of different ways of approaching problems in this area. We discuss
-methods of finding interesting regions in image and point cloud data, and how
-these regions can be represented using descriptors, along with some methods for
-storing descriptors in ways that make it easy and efficient to find
-similarities.
-\section{Point Clouds}
+In this chapter we will introduce some key ideas relating to the project, and
+papers which are related to what we are interested in doing. While some of the
+techniques mentioned here are not directly used in the implementation of our
+system, they can be useful for context, or to give examples of different ways of
+approaching problems in this area. We discuss methods of finding interesting
+regions in image and point cloud data, and how these regions can be represented
+using descriptors, along with some methods for storing descriptors in ways that
+make it easy and efficient to find similarities.
+
 \section{Segmentation}
-Popularised by Comaniciu~\cite{comaniciu2002mean} for use in image segmentation,
-mean shift was first introduced by Fukunaga~\cite{fukunaga1975estimation} in
-1975, and rediscovered by Cheng~\cite{cheng1995mean} in 1995. The technique finds
-stationary points in a density estimate of the feature space, for example pixel
-RGB values, and uses those points to define regions in the space by allocating
-pixels to them. Pixels which follow the gradient of the density to the same
-stationary point are part of the same segment. An example can be seen in
+Segmentation encompasses techniques for splitting an image or a point cloud into
+different parts, or grouping similar parts --- this is essentially two sides of
+the same coin. In terms of images, segmentation might be used to try to find
+background and foreground pixels, or for point clouds, to separate objects from
+the surfaces on which they are resting. There are many different types of
+methods in the area, which approach the problem from different starting points.
+
+\begin{figure}
+  \centerline{
+    \subfloat[Superpixels size 64, 256 and 1024 computed using SLIC \cite{achanta2012slic}]{
+      \includegraphics[height=0.3\textheight]{images/slic}
+    }
+    \subfloat[Supervoxel oversegmentation \cite{papon2013voxel}]{
+      \includegraphics[height=0.3\textheight]{images/supervoxel_comb}
+    }
+  }
+    \caption{Examples of 2D and 3D superpixel segmentations}
+    \label{fig:meanshift}
+\end{figure}
+
+Superpixel clustering is the most common technique used for segmenting images.
+The intent is to create regions in which all pixels have some sort of meaningful
+relationship. Graph based algorithms treat pixels as nodes in a graph, where the
+weights on edges between nodes are related to the similarity between the
+connected pixels --- intensity, proximity and so on \cite{achanta2012slic}. The
+most simple method is to use a threshold on the edge weights to create
+superpixels. Fulkerson et al. use superpixel methods to identify object classes
+in images \cite{fulkerson2009class}. An algorithm which applies the idea of
+superpixels to point clouds to create supervoxels (3D pixels) has also been
+developed \cite{papon2013voxel}.
+
+Gradient ascent based algorithms iteratively improve clusters until some
+criterion for convergence is reached \cite{achanta2012slic}. Popularised by
+Comaniciu~\cite{comaniciu2002mean}, mean shift was first introduced by
+Fukunaga~\cite{fukunaga1975estimation} in 1975, and rediscovered by
+Cheng~\cite{cheng1995mean} in 1995. The technique finds stationary points in a
+density estimate of the feature space, for example pixel RGB values, and uses
+those points to define regions in the space by allocating pixels to them. One
+common way of computing a density estimate is to place Gaussians at the location
+of each pixel, and then to sum the values of all the Gaussians over the entire
+space. Pixels which follow the gradient of the density to the same stationary
+point are part of the same segment. An example can be seen in
 Figure~\ref{fig:meanshift}.
 \begin{figure}[t]
   \centering
@@ -143,6 +181,7 @@ Figure~\ref{fig:meanshift}.
     mean shift. c) Trajectories of mean shift over the density estimate.}
   \label{fig:meanshift}
 \end{figure}
+
 
 Random Sample Consensus (RANSAC) is a technique which uses shape models to find
 ideal models in noisy data. Points in the data set are randomly sampled, and
@@ -156,31 +195,55 @@ segmentation tasks by using it to find planes, cylinders, spheres and so on in
 point clouds. In the case of planes this is particularly useful, as they are
 usually not part of objects of interest, mostly making up walls, floors or
 surfaces on which interesting objects rest. By removing the points corresponding
-to these uninteresting surfaces, segmentation should be made easier. Several
-extensions to RANSAC have been proposed. Maximum Likelihood Estimation Sample
-Consensus (MLESAC) chooses a solution that maximises the likelihood of the model
-instead of just the number of inliers \cite{torr2000mlesac}. M-estimator Sample
-Consensus (MSAC) uses a different cost function to the original implementation,
-additionally scoring the inliers depending on how well they fit the data
-\cite{torr2000mlesac}. The Progressive Sample Consensus (PROSAC) uses prior
-information about the likelihood of input data being an inlier or an outlier to
-limit the sampling pool and greatly reduce computation cost
-\cite{chum2005matching}.
+to these uninteresting surfaces, it should be possible to work only with parts
+of clouds that contain objects of interest.
+
+Several extensions to RANSAC have been proposed. Maximum Likelihood Estimation
+Sample Consensus (MLESAC) chooses a solution that maximises the likelihood of
+the model instead of just the number of inliers \cite{torr2000mlesac}.
+M-estimator Sample Consensus (MSAC) uses a different cost function to the
+original implementation, additionally scoring the inliers depending on how well
+they fit the data \cite{torr2000mlesac}. The Progressive Sample Consensus
+(PROSAC) uses prior information about the likelihood of input data being an
+inlier or an outlier to limit the sampling pool and greatly reduce computation
+cost \cite{chum2005matching}.
 
 
-\section{Methods for 2D}
-While we are not directly interested in 2D descriptors, it may be instructive to
-look at the techniques used in the selection of interest points and the way that
-descriptors are constructed.
-\subsection{Descriptors}
-Van Gool \cite{van1996affine} gives a description of how to use moment
-invariants to recognise planar patterns like labels and signs under affine
-deformations. The moments describe things like the size of the shape and its centre
-of mass, or statistics like the mean and variance of pixel intensities in the
-shape. These moments can be combined in such a way that they are invariant to
-deformations, which is useful to have in a descriptor.
+\section{Interest Points and Saliency}
+Sipiran and Bustos extend the popular Harris detector \cite{harris1988combined}
+to 3D \cite{sipiran2011harris}. Knopp et al. extend the SURF detector to 3D
+\cite{knopp2010hough}.
 
-\subsection{Combined Interest Point Extraction and Descriptors}
+Shilane and Funkhouser introduce a distinctiveness measure over classes of
+meshed objects \cite{shilane2007distinctive}.
+
+A multi-scale signature defined by the heat diffusion properties of an object
+called the Heat Kernel Signature (HKS) \cite{sun2009concise} is used in
+\cite{ovsjanikov2009shape} to retrieve shapes.
+
+\cite{zhong2009intrinsic}
+
+\cite{smith1997susan} extended to 3d by adding normal direction variation to
+intensity variation
+
+\section{Descriptors}
+The problem of describing regions of an image in a compact and useful manner has
+been studied for a long time in the computer vision community. For any given
+point in an image, we would like to create a description which can be used to
+represent the region around the point in some way. This descriptor, or feature,
+can then be compared to other descriptors to see if there is some similarity. If
+the similarity is within a given threshold, then we can assume that the points
+represented by the two descriptors come from the same object, or represent the
+same thing in both images. Thus, it is important to create features which are
+distinct for different regions. In addition, since objects move around and can
+be seen from different sides, or in different lights, an attractive property of
+descriptors is to give similar results for the same region which has been
+transformed in some way. In practice, this is quite difficult to achieve.
+\subsection{2D}
+While 2D descriptors are not directly usable on point clouds, the ideas that
+they use to give effective results can be transferred over to use for 3D
+description.
+
 The Laplacian of Gaussians was introduced by Lindeberg, and uses derivatives
 combined with some other techniques to select interest points.
 \cite{lindeberg1998feature}. This paper also introduces the concept of automatic
@@ -217,20 +280,7 @@ values, which makes it more robust to noise. The resulting descriptor is a 64
 element vector, which means that it is also faster to compare than SIFT
 \cite{bay2008speeded}.
 
-\section{Methods for 3D}
-\subsection{Interest Points and Saliency}
-Sipiran and Bustos extend the popular Harris detector \cite{harris1988combined}
-to 3D \cite{sipiran2011harris}. Knopp et al. extend the SURF detector to 3D
-\cite{knopp2010hough}.
-
-Shilane and Funkhouser introduce a distinctiveness measure over classes of
-meshed objects \cite{shilane2007distinctive}.
-
-A multi-scale signature defined by the heat diffusion properties of an object
-called the Heat Kernel Signature (HKS) \cite{sun2009concise} is used in
-\cite{ovsjanikov2009shape} to retrieve shapes.
-
-\subsection{Descriptors}
+\subsection{3D}
 One early descriptor which remains popular is the spin image. The descriptor is
 generated from a mesh model at oriented points with a surface normal. A plane
 intersecting the normal with a certain width and height is rotated around the
@@ -463,7 +513,13 @@ signatures from various surfaces.
     at $N$. Ref rotates about $N$.}
   \label{fig:pointsig}
 \end{figure}
-\subsection{Combined Interest Point Extraction and Descriptors}
+
+\subsubsection{Descriptors With Interest Point Extraction}
+While many descriptors designed for 2D applications also select interest points
+during an initial step in the process, the 3D descriptors that we have mentioned
+above do not automatically find locations in the cloud which are good points at
+which to compute descriptors.
+
 The Normal Aligned Radial Feature (NARF) is an interest point extraction method
 with a feature descriptor. A score for the image points is determined based on
 the surface changes at the point, and information about borders. An interest
@@ -483,12 +539,13 @@ method.
 The integral volume descriptor is interesting as it combines interest point
 selection and description into one. The descriptor is defined as the volume of
 the intersection of a sphere centred at a point on the surface of an object with
-the inside of the object (Figure~\ref{fig:volint}). Interest points are selected by histogramming the
-descriptor values, identifying bins with a number of points less than a
-specified values, and selecting points from these bins. To ensure features are
-properly spaced, points in a certain radius of already selected points cannot be
-used. By modifying the radius of the sphere used to generate the descriptor,
-interest points at different scales can be selected \cite{gelfand2005robust}.
+the inside of the object (Figure~\ref{fig:volint}). Interest points are selected
+by histogramming the descriptor values, identifying bins with a number of points
+less than a specified values, and selecting points from these bins. To ensure
+features are properly spaced, points in a certain radius of already selected
+points cannot be used. By modifying the radius of the sphere used to generate
+the descriptor, interest points at different scales can be selected
+\cite{gelfand2005robust}.
 
 % \section{Point Matching}
 % In \cite{chui2003new}, Chui and Rangarajan introduce an extension to ICP which
@@ -522,6 +579,7 @@ interest points at different scales can be selected \cite{gelfand2005robust}.
 % is used as a descriptor, and is pose invariant, as seen in
 % Figure~\ref{fig:conform}. The authors say that it should be possible to use the
 % approach in partial model matching.
+
 \section{Storing and Querying Descriptors}
 There are several techniques for storing and querying descriptors, mostly based
 on some form of tree. Recently, the k-d tree\cite{bentley1975multidimensional,
@@ -570,15 +628,6 @@ find descriptors in the local region of a query descriptor. A distance to
 classes not present in the $k$-NN region is approximated by the distance to the
 $k+1$th neighbour.
 
-% \begin{figure}
-%   \centering
-%   \includegraphics[width=0.6\textwidth]{images/nbnn_comp}
-%   \caption{NBNN vs. local NBNN \cite{mccann2012local}. NBNN looks at the nearest
-%   neighbours in all classes, whereas local NBNN just looks at the local region,
-%   regardless of what classes are present in the database.}
-%   \label{fig:nbnncomp}
-% \end{figure}
-
 Funkhouser and Shilane present a method for querying a database of 3D objects
 represented by local shape features \cite{funkhouser2006partial}. Partial
 matches (correspondences) are stored in a priority queue sorted by geometric
@@ -590,26 +639,43 @@ learning from user input \cite{rui2000optimizing}. When retrieved images are
 presented, the user ranks them in terms of relevance, and this rank is then used
 to improve the relevance of future searches.
 
-\section{Other}
-Here are some papers which are interesting and might yield some interesting
-insights or techniques, but do not directly relate to our problem for whatever
-reason.
-
-The convolutional k-means descriptor introduced in \cite{blum2012learned} and
-BRAND descriptor \cite{nascimento2012brand} work on RGB-D images, not directly
-on point clouds. \cite{kim20113d} makes use of the visibility of objects and
-point pair features to improve recognition performance. Kim et al. use the RGB
-image and corresponding point cloud to improve the hypotheses for segmentation
-\cite{kim2013accurate}. \cite{mueller2013recognition} uses a growing neural gas
-to characterise the shape of parts of objects.
-
 \chapter{System Development}
 \label{chap:devel}
-Talk about how different parts of the system were developed, why they are
-required, what benefits they provide, how they work, and so on.
+In this chapter, we will describe the development of the object query system,
+and explain the reasoning behind our choices. The specific methods that are used
+will also be described in more detail, and examples of the output of different
+parts of the system will be shown.
+
 \section{Preprocessing}
-Basic description of what segmentation is, discussion about whether or not it is
-necessary
+The first step in the object query system is to perform some preprocessing on
+the clouds in the data set --- while not strictly necessary, there are some
+benefits to doing so, chief of which is a reduction in computation time. The
+data set that we have consists of 89 clouds of a single room, taken at different
+times during different days of approximately a month of time. The clouds are
+made up of a number of intermediate frames, which are merged into a complete
+cloud using standard registration methods. The cloud provides a view of the room
+which does not include most of the ceiling.
+
+
+\subsection{Downsampling}
+In their merged forms, the clouds on average contain approximately 4,300,000
+points for a room which is around 4m wide, 5.5m deep and 3m high. This number of
+points does not actually provide us with much additional information, since the
+intermediate frames all have the same resolution. As such, we can safely
+downsample the cloud to get a more reasonable number of points.
+
+To downsample, we make use of a voxel grid, which splits the 3D space in which
+the cloud sits into smaller subspaces of equal size called voxels. The width,
+height and depth of voxels in the space can be specified, but we are interested
+in keeping all dimensions the same resolution, and so we specify the parameters
+so that each voxel is a cube. At this stage, we would like to perform a simple
+downsampling to reduce the number of points, but we wish to keep small details
+in the cloud --- something in the realm of a 1cm resolution is ideal in this
+case.
+
+Downsampling with this resolution gives a reduction in size of the clouds of
+on average 
+
 \subsection{Room Rotation and Trimming}
 How the data is gathered, what is done to it at the beginning to remove some points
 \subsection{Normal Extraction}
@@ -618,6 +684,7 @@ it is done. Talk about how normal extraction can help with plane extraction, if
 I do that.
 \subsection{Plane Extraction}
 Basic description of RANSAC or whichever of its extensions I end up using.
+\section{Interest Point Selection}
 \section{Feature Extraction}
 Talk specifically about each of the features used and their good/bad points, and
 how the features extraction is done (not particularly complex, probably)
