@@ -56,7 +56,8 @@ namespace objsearch {
 	    ROSUtil::getParam(handle, "/obj_search/ceiling_z", ceilingZ_);
 
 	    ROSUtil::getParam(handle, "/preprocess/compute_normals", doComputeNormals_);
-	    ROSUtil::getParam(handle, "/preprocess/normal_radius", normalRadius_);
+	    ROSUtil::getParam(handle, "/preprocess/normal_radius_plane", normalRadiusPlane_);
+	    ROSUtil::getParam(handle, "/preprocess/normal_radius_feature", normalRadiusFeature_);
 	    
 	    ROSUtil::getParam(handle, "/preprocess/downsample", doDownsample_);
 	    ROSUtil::getParam(handle, "/preprocess/downsample_leafsize", downsampleLeafSize_);
@@ -71,7 +72,6 @@ namespace objsearch {
 	    // directory, then find all the complete_cloud.pcd files in the
 	    // subdirectories and process them
 	    std::vector<std::string> roomFiles;
-	    std::string dataOutput;
 	    std::string timeNow = sysutil::getDateTimeString();
 	    initPaths(cloudPath_);
 	    
@@ -84,22 +84,22 @@ namespace objsearch {
 		} else { // otherwise, match the string and process those files
 		    roomFiles = sysutil::listFilesWithString(cloudPath_, match, true);
 		}
-		dataOutput = sysutil::fullDirPath(outPath_) + "preparams_" + timeNow + ".yaml";
 	    } else { // is a file, so just process that
-		dataOutput = sysutil::fullDirPath(outPath_) + "preparams_" + timeNow + ".yaml";
 		roomFiles.push_back(cloudPath_);
 	    }
-
+	    std::string dataOutput = sysutil::fullDirPath(outPath_);
+	    ROS_INFO("data output path is %s", dataOutput.c_str());
+	    
 	    if (roomFiles.size() == 0) {
 		ROS_INFO("No matches for %s", match.c_str());
-		exit(1);
+		throw std::exception();
 	    }
 
 	    std::sort(roomFiles.begin(), roomFiles.end());
 	    
 	    // Dump parameters used for this run
 	    // dangerous, but otherwise annoying to output all parameters individually.
-	    std::string command("rosparam dump " + dataOutput);
+	    std::string command("rosparam dump " + dataOutput + "preparams_" + timeNow + ".yaml");
 	    ROS_INFO("Calling system with command %s", command.c_str());
 	    int resp = system(command.c_str());
 	    ROS_INFO("Command returned %d", resp);
@@ -114,8 +114,7 @@ namespace objsearch {
 	    }
 
 	    bool append = false;
-	    std::string dataFile = sysutil::fullDirPath(sysutil::trimPath(dataOutput, 1))
-		+ "predata_" + timeNow + ".txt";
+	    std::string dataFile = dataOutput + "predata_" + timeNow + ".txt";
 	    // Loop over all the clouds and process them
 	    std::vector<std::string> errors;
 	    for (auto it = roomFiles.begin(); it != roomFiles.end(); it++) {
@@ -127,13 +126,12 @@ namespace objsearch {
 		try {
 		    ProcessInfo info = preprocessCloud();
 		    writeInfo(dataFile, info, append);
+		    // switch to appending once the first info has been written.
+		    append = true;
 		} catch (std::exception& e){
 		    ROS_INFO("Exception while processing file %s - skipping.", (*it).c_str());
 		    errors.push_back((*it).c_str());
 		}
-
-		// switch to appending once the first info has been written.
-		append = true;
 	    }
 
 	    ROS_INFO("Errors processing files:");
@@ -251,14 +249,15 @@ namespace objsearch {
 		// if not appending, put headers to the columns and the
 		// directory/file the program was run on
 		file << "#filename n_pre n_downsample n_trim n_rmplane t_load t_downsample"
-		     << " t_trim t_normals n_plane t_plane" << std::endl;
+		     << " t_trim t_normals t_normals_feature n_plane t_plane" << std::endl;
 	    }
 
 	    // output data from the struct
 	    file << info.fname.c_str() << " " << info.originalPoints << " " << info.downsampledPoints
-	    << " " << info.trimmedPoints << " " << info.nonPlanePoints << " "
-	    << info.loadTime << " " << info.downsampleTime << " " << info.trimTime << " "
-	    << info.normalTime << " " << info.numPlanes << " " << info.planeTime << std::endl;
+		 << " " << info.trimmedPoints << " " << info.nonPlanePoints << " "
+		 << info.loadTime << " " << info.downsampleTime << " " << info.trimTime << " "
+		 << info.normalTime << " " << info.featureNormalTime << " "
+		 << info.numPlanes << " " << info.planeTime << std::endl;
 	    file.close();
 	}
 
@@ -287,7 +286,7 @@ namespace objsearch {
 	    if (!sysutil::makeDirs(outPath_)){
 		ROS_INFO("Could not create output directory %s.", outPath_.c_str());
 		perror("Error message");
-		exit(1);
+		throw std::exception();
 	    }
 
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr workingCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
@@ -341,7 +340,7 @@ namespace objsearch {
 	    // need to compute normals before extracting planes
 	    if (doComputeNormals_) {
 		ROS_INFO("Computing normals");
-		computeNormals(workingCloud, normals, cloudTransform);
+		computeNormals(workingCloud, normals, cloudTransform, normalRadiusPlane_);
 
 		// pcl::concatenateFields(*workingCloud, *normals, *cloudWithNormals);
 
@@ -365,8 +364,20 @@ namespace objsearch {
 	    // Only save the normals cloud once it has also been pruned by the plane extraction
 	    if (doComputeNormals_){
 		pcl::PCDWriter writer;
-		std::string outFile = sysutil::fullDirPath(outPath_) + outPrefix_ + "normCloud.pcd";
-		ROS_INFO("Outputting normals to %s", outFile.c_str());
+		std::string outFile = sysutil::fullDirPath(outPath_) + outPrefix_ + "normCloud_plane.pcd";
+		ROS_INFO("Outputting plane normals to %s", outFile.c_str());
+		writer.write<pcl::Normal>(outFile, *normals, true);
+
+		if (std::fabs(normalRadiusFeature_ - normalRadiusPlane_) > 0.00001) {
+		    ros::Time featureNormStart = ros::Time::now();
+		    ROS_INFO("Computing normals for use with features");
+		    // compute an additional set of normals to use when computing features
+		    computeNormals(workingCloud, normals, cloudTransform, normalRadiusFeature_);
+		    info.featureNormalTime = (ros::Time::now() - featureNormStart).toSec();
+		}
+
+		outFile = sysutil::fullDirPath(outPath_) + outPrefix_ + "normCloud_feature.pcd";
+		ROS_INFO("Outputting feature normals to %s", outFile.c_str());
 		writer.write<pcl::Normal>(outFile, *normals, true);
 	    }
 
@@ -484,7 +495,7 @@ namespace objsearch {
 		    pcl_ros::transformPointCloud(*(annotations[i].cloud), *transformedCloud, cloudTransform);
 		    // also need to compute the normals so that the annotated
 		    // clouds can have features computed from them
-		    computeNormals(annotations[i].cloud, normalCloud, cloudTransform);
+		    computeNormals(annotations[i].cloud, normalCloud, cloudTransform, normalRadiusFeature_);
 
 		    // get the file name
 		    std::string nameRoot = sysutil::trimPath(annotations[i].fname, -1);
@@ -699,7 +710,8 @@ namespace objsearch {
 	 */
 	void PreprocessRoom::computeNormals(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 					    pcl::PointCloud<pcl::Normal>::Ptr& normals,
-					    const tf::StampedTransform& cloudTransform)	{
+					    const tf::StampedTransform& cloudTransform,
+					    float radius) {
 	    pcl::NormalEstimationOMP<pcl::PointXYZRGB, pcl::Normal> ne;
 	    
 	    ne.setInputCloud(cloud);
@@ -711,7 +723,7 @@ namespace objsearch {
 			    cloudTransform.getOrigin().getY(),
 			    cloudTransform.getOrigin().getZ());
 	    ne.setSearchMethod(tree);
-	    ne.setRadiusSearch(normalRadius_);
+	    ne.setRadiusSearch(radius);
 	    ne.compute(*normals);
 	}
     } // namespace preprocessing
@@ -720,6 +732,9 @@ namespace objsearch {
 
 
 int main(int argc, char *argv[]) {
-    objsearch::preprocessing::PreprocessRoom rp(argc, argv);
-//    rp.doProcessing();
+    try {
+	objsearch::preprocessing::PreprocessRoom rp(argc, argv);
+    } catch (std::exception& e) {
+	return 1; // fail
+    }
 }

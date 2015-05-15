@@ -53,8 +53,12 @@
 
   <!-- Normal computation parameters. A larger radius means that regions with
        high rate of change of the normal are likely to be smoothed over-->
-  <arg name="normal_radius" default="0.08" />
-  <param name="/preprocess/normal_radius" value="$(arg normal_radius)" />
+  <arg name="normal_radius_plane" default="0.08" />
+  <param name="/preprocess/normal_radius_plane" value="$(arg normal_radius_plane)" />
+  <!-- Compute a separate set of normals for use when computing features, with a
+       smaller radius -->
+  <arg name="normal_radius_feature" default="0.03" />
+  <param name="/preprocess/normal_radius_feature" value="$(arg normal_radius_feature)" />
 
   <!-- Downsampling parameters -->
   <!-- Size to use for all dimensions in the voxel grid -->

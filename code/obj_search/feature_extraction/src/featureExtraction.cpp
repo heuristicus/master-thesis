@@ -678,7 +678,7 @@ namespace objsearch {
 	    } else if (cloudFile_.find("label") != std::string::npos) { // annotation clouds contain the text "label"
 		normFile += sysutil::removeExtension(cloudFile_) + "_normals.pcd";
 	    } else {
-		normFile += "normCloud.pcd";
+		normFile += "normCloud_features.pcd";
 	    }
 
 

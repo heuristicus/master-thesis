@@ -64,6 +64,7 @@ namespace objsearch {
 		double downsampleTime;
 		double trimTime;
 		double normalTime;
+		double featureNormalTime;
 		int numPlanes;
 		double planeTime;
 	    };
@@ -86,7 +87,8 @@ namespace objsearch {
 			       pcl::PointCloud<pcl::Normal>::Ptr& normals);
 	    void computeNormals(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 				pcl::PointCloud<pcl::Normal>::Ptr& normals,
-				const tf::StampedTransform& cloudTransform);
+				const tf::StampedTransform& cloudTransform,
+				float radius);
 
 	    // some constants to use when dealing with filenames and what needs
 	    // to be done to properly process it
@@ -106,6 +108,7 @@ namespace objsearch {
 	    std::string outDir_; // directory to which processed clouds will be output
 	    std::string outPrefix_; // prefix for the output filename, used for intermediate clouds
 	    std::string outPath_;
+
 	    // a string to determine what sort of cloud is being passed in; a
 	    // full cloud, intermediate cloud, or some other random cloud
 	    CloudType type_;
@@ -136,7 +139,8 @@ namespace objsearch {
 	    float floorZ_;
 	    float ceilingZ_;
 
-	    float normalRadius_;
+	    float normalRadiusPlane_;
+	    float normalRadiusFeature_;
 	    float downsampleLeafSize_;
 	    float downsampleIncrement_;
 	    
