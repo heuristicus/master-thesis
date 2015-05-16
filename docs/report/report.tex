@@ -7,6 +7,7 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{moreverb}
+\usepackage[toc,page]{appendix}
 \setcounter{tocdepth}{3}
 \setcounter{secnumdepth}{3}
 % \defaultfontfeatures{Mapping=tex-text}
@@ -294,30 +295,14 @@ shows a visualisation of how the image is generated.
 
 \begin{figure}
   \centering
-  \subfloat{
-    \includegraphics[width=0.11\textwidth]{images/spin1}
-  }
-  \subfloat{
-    \includegraphics[width=0.11\textwidth]{images/spin2}
-  }
-  \subfloat{
-    \includegraphics[width=0.11\textwidth]{images/spin3}
-  }
-  \subfloat{
-    \includegraphics[width=0.11\textwidth]{images/spin4}
-  }
-  \subfloat{
-    \includegraphics[width=0.11\textwidth]{images/spin5}
-  }
-  \subfloat{
-    \includegraphics[width=0.11\textwidth]{images/spin6}
-  }
-  \subfloat{
-    \includegraphics[width=0.11\textwidth]{images/spin7}
-  }
-  \subfloat{
-    \includegraphics[width=0.11\textwidth]{images/spin8}
-  }
+  \subfloat{\includegraphics[width=0.11\textwidth]{images/spin1}}
+  \subfloat{\includegraphics[width=0.11\textwidth]{images/spin2}}
+  \subfloat{\includegraphics[width=0.11\textwidth]{images/spin3}}
+  \subfloat{\includegraphics[width=0.11\textwidth]{images/spin4}}
+  \subfloat{\includegraphics[width=0.11\textwidth]{images/spin5}}
+  \subfloat{\includegraphics[width=0.11\textwidth]{images/spin6}}
+  \subfloat{\includegraphics[width=0.11\textwidth]{images/spin7}}
+  \subfloat{\includegraphics[width=0.11\textwidth]{images/spin8}}
   \caption{Frames from construction of a spin image \cite{johnson1997spin}. The
     image plane spins around the oriented point normal and accumulates points.}
   \label{fig:spinimg}
@@ -650,12 +635,13 @@ parts of the system will be shown.
 The first step in the object query system is to perform some preprocessing on
 the clouds in the data set --- while not strictly necessary, there are some
 benefits to doing so, chief of which is a reduction in computation time. The
-data set that we have consists of 89 clouds of a single room, taken at different
-times during different days of approximately a month of time. The clouds are
-made up of a number of intermediate frames, which are merged into a complete
-cloud using standard registration methods. The cloud provides a view of the room
-which does not include most of the ceiling.
-
+data set that we have consists of around 80 clouds of a single room, taken at
+different times during different days of approximately a month of time. The
+clouds are made up of a number of intermediate frames, which are registered into
+a complete cloud. The robot used to collect the clouds takes several sweeps of
+the room, changing the angle of the camera after each sweep. The clouds are
+constructed using frames taken from a sweep where the camera is pointing
+slightly below the horizontal.
 
 \subsection{Downsampling}
 In their merged forms, the clouds on average contain approximately 4,300,000
@@ -672,9 +658,43 @@ so that each voxel is a cube. At this stage, we would like to perform a simple
 downsampling to reduce the number of points, but we wish to keep small details
 in the cloud --- something in the realm of a 1cm resolution is ideal in this
 case.
+\begin{figure}[h]
+  \centering
+  \centerline{
+    \subfloat[Sofa]{
+      \includegraphics[width=0.60\textwidth]{images/sofa_og}
+      \includegraphics[width=0.60\textwidth]{images/sofa_ds}
+    }\\
+  }
+  \centerline{
+    \subfloat[Desk 1]{
+      \includegraphics[width=0.60\textwidth]{images/johan_og}
+      \includegraphics[width=0.60\textwidth]{images/johan_ds}
+    }\\
+  }
+  \centerline{
+    \subfloat[Desk 2 side]{
+      \includegraphics[width=0.60\textwidth]{images/nils_side_og}
+      \includegraphics[width=0.60\textwidth]{images/nils_side_ds}
+    }\\
+  }
+  \centerline{
+    \subfloat[Desk 2 front]{
+      \includegraphics[width=0.60\textwidth]{images/nils_front_og}
+      \includegraphics[width=0.60\textwidth]{images/nils_front_ds}
+    }\\
+  }
+  \caption{The effect of downsampling. The left column shows the original
+    clouds, the right column clouds downsampled with voxel size of 1cm^3.}
+  \label{fig:downsample_effect}
+\end{figure}
 
-Downsampling with this resolution gives a reduction in size of the clouds of
-on average 
+Downsampling with this resolution gives a reduction in size of the clouds of on
+average 78\%, to approximately 950,000 points.
+Figure~\ref{fig:downsample_effect} shows the effect of the downsampling. While
+there is slight degradation of the textures, this is to some extent a visual
+effect which is viewpoint dependent. Most of the structure in the cloud is
+retained, which is key.
 
 \subsection{Room Rotation and Trimming}
 How the data is gathered, what is done to it at the beginning to remove some points
@@ -691,11 +711,6 @@ how the features extraction is done (not particularly complex, probably)
 \section{Object Query}
 Query methods, how the database and query object are compared.
 
-\chapter{Implementation}
-\label{chap:impl}
-Description of any parts of the implementation which are non standard or worth a
-mention. Perhaps talk about PCL and version control, as well as documentation
-and some other general software approaches to the system?
 \chapter{Experimental Results}
 \label{chap:exp}
 Description of experiments and experimental results with different
@@ -717,6 +732,12 @@ example.
 Describe what the project was about, what was achieved, summarise the
 experiments, describe what can be improved.
 
-
+\begin{appendices}
+  \chapter{Implementation}
+  \label{chap:impl}
+  Description of any parts of the implementation which are non standard or worth a
+  mention. Perhaps talk about PCL and version control, as well as documentation
+  and some other general software approaches to the system?
+\end{appendices}
 \printbibliography
 \end{document}
