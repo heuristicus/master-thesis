@@ -51,8 +51,13 @@ def main():
     results['time_per_plane_mean'] = statistics.mean(time_per_plane)
     results['time_per_plane_std'] = statistics.stdev(time_per_plane)
 
+    downsample_prop = [downsample_pts[i]/orig_pts[i] for i in range(0, len(orig_pts))]
+    downsample_prop_mean = statistics.mean(downsample_prop);
+
     for key in sorted(results):
         print("%s: %s" % (key, results[key]))
+
+    print(downsample_prop_mean)
     
 if __name__ == '__main__':
     main()

@@ -101,45 +101,45 @@ namespace testing {
 	
 	// Make sure the cell centre computation works for all corners of a simple cube
 	TEST_F(PCLUtilTest, grid3d_cellcentre_corners){
-	    pointEqual(frontBottomLeft, cube3.cellCentre(0.1, 0.1, 0.1));
-	    pointEqual(frontBottomRight, cube3.cellCentre(2.1, 0.1, 0.1));
-	    pointEqual(frontTopLeft, cube3.cellCentre(0.1, 0.1, 2.1));
-	    pointEqual(frontTopRight, cube3.cellCentre(2.1, 0.1, 2.1));
+	    pointEqual(frontBottomLeft, cube3.cellCentreFromPoint(0.1, 0.1, 0.1));
+	    pointEqual(frontBottomRight, cube3.cellCentreFromPoint(2.1, 0.1, 0.1));
+	    pointEqual(frontTopLeft, cube3.cellCentreFromPoint(0.1, 0.1, 2.1));
+	    pointEqual(frontTopRight, cube3.cellCentreFromPoint(2.1, 0.1, 2.1));
 	  
-	    pointEqual(backBottomLeft, cube3.cellCentre(0.1, 2.1, 0.1));
-	    pointEqual(backBottomRight, cube3.cellCentre(2.1, 2.1, 0.1));
-	    pointEqual(backTopLeft, cube3.cellCentre(0.1, 2.1, 2.1));
-	    pointEqual(backTopRight, cube3.cellCentre(2.1, 2.1, 2.1));
+	    pointEqual(backBottomLeft, cube3.cellCentreFromPoint(0.1, 2.1, 0.1));
+	    pointEqual(backBottomRight, cube3.cellCentreFromPoint(2.1, 2.1, 0.1));
+	    pointEqual(backTopLeft, cube3.cellCentreFromPoint(0.1, 2.1, 2.1));
+	    pointEqual(backTopRight, cube3.cellCentreFromPoint(2.1, 2.1, 2.1));
 
-	    pointEqual(midBottomLeft, cube3.cellCentre(0.1, 1.1, 0.1));
-	    pointEqual(midBottomRight, cube3.cellCentre(2.1, 1.1, 0.1));
-	    pointEqual(midTopLeft, cube3.cellCentre(0.1, 1.1, 2.1));
-	    pointEqual(midTopRight, cube3.cellCentre(2.1, 1.1, 2.1));
+	    pointEqual(midBottomLeft, cube3.cellCentreFromPoint(0.1, 1.1, 0.1));
+	    pointEqual(midBottomRight, cube3.cellCentreFromPoint(2.1, 1.1, 0.1));
+	    pointEqual(midTopLeft, cube3.cellCentreFromPoint(0.1, 1.1, 2.1));
+	    pointEqual(midTopRight, cube3.cellCentreFromPoint(2.1, 1.1, 2.1));
 	}
 
 	// Make sure the cell centre computation works for all edges of a simple cube
 	TEST_F(PCLUtilTest, grid3d_cellcentre_edges) {
-	    pointEqual(frontBottom, cube3.cellCentre(1.1, 0.1, 0.1));
-	    pointEqual(frontTop, cube3.cellCentre(1.1, 0.1, 2.1));
-	    pointEqual(frontLeft, cube3.cellCentre(0.1, 0.1, 1.1));
-	    pointEqual(frontRight, cube3.cellCentre(2.1, 0.1, 1.1));
+	    pointEqual(frontBottom, cube3.cellCentreFromPoint(1.1, 0.1, 0.1));
+	    pointEqual(frontTop, cube3.cellCentreFromPoint(1.1, 0.1, 2.1));
+	    pointEqual(frontLeft, cube3.cellCentreFromPoint(0.1, 0.1, 1.1));
+	    pointEqual(frontRight, cube3.cellCentreFromPoint(2.1, 0.1, 1.1));
 	  
-	    pointEqual(backBottom, cube3.cellCentre(1.1, 2.1, 0.1));
-	    pointEqual(backTop, cube3.cellCentre(1.1, 2.1, 2.1));
-	    pointEqual(backLeft, cube3.cellCentre(0.1, 2.1, 1.1));
-	    pointEqual(backRight, cube3.cellCentre(2.1, 2.1, 1.1));
+	    pointEqual(backBottom, cube3.cellCentreFromPoint(1.1, 2.1, 0.1));
+	    pointEqual(backTop, cube3.cellCentreFromPoint(1.1, 2.1, 2.1));
+	    pointEqual(backLeft, cube3.cellCentreFromPoint(0.1, 2.1, 1.1));
+	    pointEqual(backRight, cube3.cellCentreFromPoint(2.1, 2.1, 1.1));
 
-	    pointEqual(midBottom, cube3.cellCentre(1.1, 1.1, 0.1));
-	    pointEqual(midTop, cube3.cellCentre(1.1, 1.1, 2.1));
-	    pointEqual(midLeft, cube3.cellCentre(0.1, 1.1, 1.1));
-	    pointEqual(midRight, cube3.cellCentre(2.1, 1.1, 1.1));
+	    pointEqual(midBottom, cube3.cellCentreFromPoint(1.1, 1.1, 0.1));
+	    pointEqual(midTop, cube3.cellCentreFromPoint(1.1, 1.1, 2.1));
+	    pointEqual(midLeft, cube3.cellCentreFromPoint(0.1, 1.1, 1.1));
+	    pointEqual(midRight, cube3.cellCentreFromPoint(2.1, 1.1, 1.1));
 	}
 	
 	// Make sure the cell centre computation works for the centre of a simple cube
 	TEST_F(PCLUtilTest, grid3d_cellcentre_centre) {
-	    pointEqual(frontCentre, cube3.cellCentre(1.1, 0.1, 1.1));
-	    pointEqual(backCentre, cube3.cellCentre(1.1, 2.1, 1.1));
-	    pointEqual(midCentre, cube3.cellCentre(1.1, 1.1, 1.1));
+	    pointEqual(frontCentre, cube3.cellCentreFromPoint(1.1, 0.1, 1.1));
+	    pointEqual(backCentre, cube3.cellCentreFromPoint(1.1, 2.1, 1.1));
+	    pointEqual(midCentre, cube3.cellCentreFromPoint(1.1, 1.1, 1.1));
 	}
 
 	TEST_F(PCLUtilTest, grid3d_allcentres_box) {
@@ -186,7 +186,7 @@ namespace testing {
 
 	TEST_F(PCLUtilTest, grid3d_cellcentre_box){
 	    for (size_t i = 0; i < boxCentres.size(); i++) {
-		pointEqual(boxCentres[i], box.cellCentre(boxCentres[i]));
+		pointEqual(boxCentres[i], box.cellCentreFromPoint(boxCentres[i]));
 	    }
 	}
 

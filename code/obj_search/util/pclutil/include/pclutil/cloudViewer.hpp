@@ -5,11 +5,16 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 #include <pcl/visualization/cloud_viewer.h>
+#include <pcl/visualization/interactor_style.h>
 
+#include <string>
 #include <iostream>
 
 namespace objsearch {
     namespace pclutil {
+
+	std::string viewerHelp("-n cloud normals : display a cloud with its normals.\n"
+			       "-c cloud camera_params : display a cloud, viewing it from the specified camera params");
 
 	pcl::visualization::PCLVisualizer::Ptr createVisualiser() {
 	    pcl::visualization::PCLVisualizer::Ptr viewer(new pcl::visualization::PCLVisualizer("Cloud Viewer"));

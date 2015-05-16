@@ -1,10 +1,14 @@
 #ifndef GRID_3D_HPP
 #define GRID_3D_HPP
 
+#include <algorithm>
 #include <cmath>
 #include <vector>
 
+#include "colourConversion.hpp"
+
 #include <pcl/point_types.h>
+#include <pcl/io/pcd_io.h>
 
 namespace objsearch {
     namespace pclutil {
@@ -22,8 +26,10 @@ namespace objsearch {
 	    std::vector<int> values_; // store value in each cell
 
 	    int indexFromDimIndices(int x, int y, int z);
-	    pcl::PointXYZ cellCentre(float x, float y, float z);
-	    pcl::PointXYZ cellCentre(const pcl::PointXYZ& point);
+	    pcl::PointXYZ cellCentreFromIndex(int index);
+	    pcl::PointXYZ cellCentreFromIndex(int x, int y, int z);
+	    pcl::PointXYZ cellCentreFromPoint(const pcl::PointXYZ& point);
+	    pcl::PointXYZ cellCentreFromPoint(float x, float y, float z);
 	    std::vector<pcl::PointXYZ> allCentres();
 	    int& at(int index);
 	    int& at(float x, float y, float z);
@@ -31,6 +37,12 @@ namespace objsearch {
 	    int pointIndex(float x, float y, float z);
 	    int pointIndex(const pcl::PointXYZ& point);
 	    void indexUnflatten(int index, int& x, int& y, int& z);
+	    std::pair<pcl::PointXYZ, int> getMax();
+	    std::pair<pcl::PointXYZ, int> getMin();
+	    int getValuesTotal();
+	    int getEmptyTotal();
+	    size_t size();
+	    void toPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud);
 	};
     } // namespace pclutil
 } // namespace objsearch

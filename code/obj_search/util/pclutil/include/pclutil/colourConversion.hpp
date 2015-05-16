@@ -1,5 +1,5 @@
-#ifndef COLOUR_CONVERSION_H
-#define COLOUR_CONVERSION_H
+#ifndef COLOUR_CONVERSION_HPP
+#define COLOUR_CONVERSION_HPP
 
 #include <cmath>
 
@@ -145,4 +145,4 @@ namespace objsearch {
     } // namespace pclutil
 } // namespace objsearch
 
-#endif // COLOUR_CONVERSION_H
+#endif // COLOUR_CONVERSION_HPP

@@ -50,6 +50,7 @@ add_dependencies(cloud_bounds ${catkin_EXPORTED_TARGETS} src/cloudBounds.cpp)
 add_executable(pfhtest src/pfhtest.cpp)
 target_link_libraries(pfhtest ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-add_library(pclutil src/annotationExtract.cpp src/cloudBounds.cpp src/cloudViewer.cpp src/pointValidation.cpp src/grid3d.cpp src/colourConversion.cpp)
+# also includes colourConversion.hpp, within grid3d. if it is included in this list a multiple definition error happens even though include guards exist in both files.
+add_library(pclutil src/annotationExtract.cpp src/cloudBounds.cpp src/cloudViewer.cpp src/pointValidation.cpp src/grid3d.cpp)
 # need to link pcl libraries, otherwise stuff (visualiser, other PCL stuff) breaks in objectQuery
 target_link_libraries(pclutil ${catkin_LIBRARIES} ${PCL_LIBRARIES} sysutil)

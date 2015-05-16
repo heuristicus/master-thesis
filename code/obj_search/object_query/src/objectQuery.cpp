@@ -343,7 +343,7 @@ namespace objsearch {
 	 * which we wish to place votes
 	 * @param distances The distances to the points
 	 */
-	void ObjectQuery::houghVoting(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetPoints,
+	pclutil::Grid3D ObjectQuery::houghVoting(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetPoints,
 				      const std::vector<std::vector<int> >& indices,
 				      const std::vector<std::vector<float> >& distances) {
 	    // to construct the grid, need to know the bounds of the target
@@ -364,36 +364,8 @@ namespace objsearch {
 		    grid.at(cur.x, cur.y, cur.z)++;
 		}
 	    }
-	    int maxVal = *std::max_element(grid.values_.begin(), grid.values_.end());
-	    std::vector<pcl::PointXYZ> centres = grid.allCentres();
-	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr voteCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
-	    ROS_INFO("Maximum votes in a single region %d", maxVal);
-	    ROS_INFO("Total votes %d", std::accumulate(grid.values_.begin(), grid.values_.end(), 0));
-	    ROS_INFO("Total cells %d", (int)grid.values_.size());
-	    int empty = 0;
-	    for (size_t i = 0; i < centres.size(); i++) {
-		if (grid.at(i) == 0) {
-		    empty++;
-		    continue;
-		}
-		pcl::PointXYZRGB np;
-		np.x = centres[i].x;
-		np.y = centres[i].y;
-		np.z = centres[i].z;
-		pclutil::rgb colour = pclutil::getHeatColour(grid.at(i), maxVal);
-		np.r = colour.r * 255;
-		np.g = colour.g * 255;
-		np.b = colour.b * 255;
-		
-		voteCloud->push_back(np);
-	    }
-	    ROS_INFO("Total empty cells %d", empty);
 
-	    std::string out = std::string(sysutil::fullDirPath(outPath_) + "testhough.pcd");
-	    ROS_INFO("Hough done, outputting to %s", out.c_str());
-
-	    pcl::PCDWriter writer;
-	    writer.write<pcl::PointXYZRGB>(out, *voteCloud, true);
+	    return grid;
 	}
 
 	/** 
@@ -469,7 +441,29 @@ namespace objsearch {
 		}
 		ROS_INFO("Finished finding neighbours");
 
-		houghVoting(targetPoints, nearest, square_dists);
+		// do hough voting using the computed neighbours
+		pclutil::Grid3D grid = houghVoting(targetPoints, nearest, square_dists);
+
+		// find the point in the hough grid with the maximum value -
+		// this should indicate the point in the target cloud which most
+		// closely matches the query object
+		std::pair<pcl::PointXYZ, int> maxPoint = grid.getMax();
+		int total = grid.getValuesTotal();
+		int empty = grid.getEmptyTotal();
+		int size = grid.size();
+		ROS_INFO("Hough grid has size %d, containing %d votes. %d cells have no votes.",
+			 size, total, empty);
+		ROS_INFO("Max point has %d votes.", maxPoint.second);
+		std::string out = std::string(sysutil::fullDirPath(outPath_) + "houghVotes.pcd");
+		pcl::PointCloud<pcl::PointXYZRGB>::Ptr voteCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+		// convert the grid to a point cloud with rgb values
+		// representing the number of votes in each cell
+		grid.toPointCloud(voteCloud);
+		ROS_INFO("Hough done, outputting to %s", out.c_str());
+
+		pcl::PCDWriter writer;
+		writer.write<pcl::PointXYZRGB>(out, *voteCloud, true);
+
 
 		exit(1);
 		annotatePointsOBB(sysutil::trimPath(targetPointFile_, 2), targetPoints, indicesTarget, labelsTarget);

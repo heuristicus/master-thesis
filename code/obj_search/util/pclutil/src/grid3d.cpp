@@ -118,16 +118,34 @@ namespace objsearch {
 	    return x + width_ * (y + z * depth_);
 	}
 
+	/** 
+	 * Get the centre of the cell with the given index
+	 * 
+	 * @param ind 
+	 * 
+	 * @return 
+	 */
+	pcl::PointXYZ Grid3D::cellCentreFromIndex(int ind){
+	    int x, y, z;
+	    indexUnflatten(ind, x, y, z);
+	    return cellCentreFromIndex(x, y, z);
+	}
+
+	pcl::PointXYZ Grid3D::cellCentreFromIndex(int x, int y, int z){
+	    return pcl::PointXYZ(xStep_/2 + x * xStep_ + xOffset_,
+				 yStep_/2 + y * yStep_ + yOffset_,
+				 zStep_/2 + z * zStep_ + zOffset_);
+	}
 
 	/** 
-	 * 
+	 * Get the centre of the cell which contains the given point
 	 * 
 	 * @param point 
 	 * 
 	 * @return 
 	 */
-	pcl::PointXYZ Grid3D::cellCentre(const pcl::PointXYZ& point){
-	    return cellCentre(point.x, point.y, point.z);
+	pcl::PointXYZ Grid3D::cellCentreFromPoint(const pcl::PointXYZ& point){
+	    return cellCentreFromPoint(point.x, point.y, point.z);
 	}
 
 	/** 
@@ -139,7 +157,7 @@ namespace objsearch {
 	 * 
 	 * @return 
 	 */
-	pcl::PointXYZ Grid3D::cellCentre(float x, float y, float z){
+	pcl::PointXYZ Grid3D::cellCentreFromPoint(float x, float y, float z){
 	    pcl::PointXYZ point;
 	    // the second part gives the minimum point in the cell on that axis,
 	    // centre is where half the step for that axis is added
@@ -156,15 +174,10 @@ namespace objsearch {
 	 */
 	std::vector<pcl::PointXYZ> Grid3D::allCentres() {
 	    std::vector<pcl::PointXYZ> centres;
-	    for (int z = 0; z < height_; z++) {
-		for (int y = 0; y < depth_; y++) {
-		    for (int x = 0; x < width_; x++) {
-			centres.push_back(pcl::PointXYZ(xStep_/2 + x * xStep_ + xOffset_,
-							yStep_/2 + y * yStep_ + yOffset_,
-							zStep_/2 + z * zStep_ + zOffset_));
-		    }
-		}
+	    for (size_t i = 0; i < values_.size(); i++) {
+		centres.push_back(cellCentreFromIndex(i));
 	    }
+
 	    return centres;
 	}
 	
@@ -215,6 +228,93 @@ namespace objsearch {
 	    z = std::floor(index / (width_ * depth_));
 	    y = (int)std::floor(index / width_) % depth_;
 	    x = index % x;
+	}
+
+	/** 
+	 * Get the centre of the cell with the maximum value, and the count in
+	 * that cell.
+	 * 
+	 * @return 
+	 */
+	std::pair<pcl::PointXYZ, int> Grid3D::getMax() {
+	    auto it = std::max_element(values_.begin(), values_.end());
+
+	    // compute the index of the max point by subtracting the two
+	    // iterators
+	    return std::pair<pcl::PointXYZ, int>(cellCentreFromIndex(values_.end() - it), *it);
+	}
+
+	/** 
+	 * Get the centre of the cell with the minimum value, and the count in
+	 * that cell.
+	 * 
+	 * @return 
+	 */
+	std::pair<pcl::PointXYZ, int> Grid3D::getMin() {
+	    auto it = std::min_element(values_.begin(), values_.end());
+	    
+	    return std::pair<pcl::PointXYZ, int>(cellCentreFromIndex(values_.end() - it), *it);
+	}
+
+	/** 
+	 * Get the sum of all values in the grid
+	 * 
+	 * @return 
+	 */
+	int Grid3D::getValuesTotal() {
+	    return std::accumulate(values_.begin(), values_.end(), 0);
+	}
+
+	/** 
+	 * Get the total number of cells in the grid which have value zero
+	 * 
+	 * @return 
+	 */
+	int Grid3D::getEmptyTotal() {
+	    int empty = 0;
+	    for (auto it = values_.begin(); it != values_.end(); it++) {
+		if (*it == 0) {
+		    empty++;
+		}
+	    }
+
+	    return empty;
+	}
+
+	/** 
+	 * The size of the grid in terms of number of cells.
+	 * 
+	 * @return 
+	 */
+	size_t Grid3D::size() {
+	    return values_.size();
+	}
+
+	/** 
+	 * Output this grid to a pointcloud. Each cell in the grid will be
+	 * represented by its centre, and will be coloured according to the
+	 * value inside that cell. Cells with high values are red, low values
+	 * are blue.
+	 * 
+	 * @param cloud 
+	 */
+	void Grid3D::toPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud) {
+	    std::vector<pcl::PointXYZ> centres = allCentres();
+
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr voteCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
+	    int maxVal = getMax().second;
+	    for (size_t i = 0; i < centres.size(); i++) {
+		pcl::PointXYZRGB np;
+		np.x = centres[i].x;
+		np.y = centres[i].y;
+		np.z = centres[i].z;
+		rgb colour = getHeatColour(at(i), maxVal);
+		np.r = colour.r * 255;
+		np.g = colour.g * 255;
+		np.b = colour.b * 255;
+		
+		voteCloud->push_back(np);
+	    }
 	}
 
     } // namespace pclutil

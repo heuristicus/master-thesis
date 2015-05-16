@@ -8,7 +8,6 @@
 #include "pclutil/cloudViewer.hpp"
 #include "pclutil/pointValidation.hpp"
 #include "pclutil/grid3d.hpp"
-#include "pclutil/colourConversion.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -51,7 +50,7 @@ namespace objsearch {
 	    void annotatePointsOBB(
 		std::string dir, const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 		std::vector<int>& indices, std::vector<std::string>& labels);
-	    void houghVoting(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetPoints,
+	    pclutil::Grid3D houghVoting(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetPoints,
 			     const std::vector<std::vector<int> >& indices,
 			     const std::vector<std::vector<float> >& distances);
 	private:
