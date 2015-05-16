@@ -63,6 +63,7 @@ namespace objsearch {
 		double loadTime;
 		double downsampleTime;
 		double trimTime;
+		double annotationTime;
 		double normalTime;
 		double featureNormalTime;
 		int numPlanes;
@@ -79,6 +80,7 @@ namespace objsearch {
 	    void transformAndRemoveFloorCeiling(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 						const tf::StampedTransform& cloudTransform,
 						const tf::StampedTransform& registeredTransform);
+	    void processAnnotations(const tf::StampedTransform& cloudTransform);
 	    int extractPlanes(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 			       pcl::PointCloud<pcl::Normal>::Ptr& normals);
 	    template<typename SegmentationType>

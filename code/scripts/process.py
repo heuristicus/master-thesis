@@ -2,9 +2,33 @@
 import sys
 import statistics
 
+def results_to_tex(results, addheader=False):
+    number_line = ""
+    if (addheader):
+        number_line += "Original & Downsampled & Trimmed & Num planes & Points on planes & After preprocessing\\\\\hline\n"
+    
+    number_line += str(results['orig_pts_mean']) + "\pm" + str(results['orig_pts_std']) + " & "
+    number_line += str(results['downsample_pts_mean']) + "\pm" + str(results['downsample_pts_std']) + " & "
+    number_line += str(results['trim_pts_mean']) + "\pm" + str(results['trim_pts_std']) + " & "
+    number_line += "%.2f" % results['num_planes_mean']  + "\pm" +  "%.2f" % results['num_planes_std'] + "&"
+    number_line += str(results['plane_pts_mean']) + "\pm" + str(results['plane_pts_std']) + " & "
+    number_line += str(results['final_pts_mean']) + "\pm" + str(results['final_pts_std']) + "\\\\"
+
+    time_line = ""
+    if (addheader):
+        time_line += "Load & Downsample & Trim & Normals & Planes & per plane time \\\\\hline\n"
+    time_line += "%.2f" % results['load_time_mean']  + "\pm" +  "%.2f" % results['load_time_std'] + " & "
+    time_line += "%.2f" % results['downsample_time_mean']  + "\pm" +  "%.2f" % results['downsample_time_std'] + " & "
+    time_line += "%.2f" % results['trim_time_mean']  + "\pm" +  "%.2f" % results['trim_time_std'] + " & "
+    time_line += "%.2f" % results['normals_time_mean']  + "\pm" +  "%.2f" % results['normals_time_std'] + " & "
+    time_line += "%.2f" % results['plane_time_mean']  + "\pm" +  "%.2f" % results['plane_time_std'] + " & "
+    time_line += "%.2f" % results['time_per_plane_mean']  + "\pm" +  "%.2f" % results['time_per_plane_std']
+    time_line += "\\\\"
+    return number_line, time_line
+
 def main():
-    fname = sys.argv[1];
-    f = open(fname, 'r');
+    fname = sys.argv[1]
+    f = open(fname, 'r')
 
     data = []
     # read from the data file into a list, splitting on the space delimiter
@@ -12,7 +36,8 @@ def main():
         data.append(line.split(' '))
 
     nfiles = len(data)
-    filerange = range(1, nfiles);
+    ncols = len(data[0])
+    filerange = range(1, nfiles)
     results = dict() # store results in a dictionary
     
     # get each column of data, ignoring the first row containing column headings
@@ -20,22 +45,32 @@ def main():
     downsample_pts = [int(data[i][2]) for i in filerange]
     trim_pts = [int(data[i][3]) for i in filerange]
     plane_pts = [int(data[i][4]) for i in filerange]
-    num_planes = [int(data[i][9]) for i in filerange]
     load_time = [float(data[i][5]) for i in filerange]
     downsample_time = [float(data[i][6]) for i in filerange]
     trim_time = [float(data[i][7]) for i in filerange]
     normals_time = [float(data[i][8]) for i in filerange]
+    num_planes = [int(data[i][9]) for i in filerange]
     plane_time = [float(data[i][10]) for i in filerange]
-    time_per_plane = [plane_time[i]/num_planes[i] for i in range(0, nfiles - 1)]
 
-    results['orig_pts_mean'] = statistics.mean(orig_pts)
-    results['orig_pts_std'] = statistics.stdev(orig_pts)
-    results['downsample_pts_mean'] = statistics.mean(downsample_pts)
-    results['downsample_pts_std'] = statistics.stdev(downsample_pts)
-    results['trim_pts_mean'] = statistics.mean(trim_pts)
-    results['trim_pts_std'] = statistics.stdev(trim_pts)
-    results['plane_pts_mean'] = statistics.mean(plane_pts)
-    results['plane_pts_std'] = statistics.stdev(plane_pts)
+    if (ncols > 11):
+        feature_normal_time = [float(data[i][11]) for i in filerange]
+    if (ncols > 12):
+        annotation_time = [float(data[i][12]) for i in filerange]
+    # average time to extract each plane
+    time_per_plane = [plane_time[i]/num_planes[i] for i in range(0, nfiles - 1)]
+    # size of clouds after preprocessing
+    final_size = [trim_pts[i]-plane_pts[i] for i in range(0, len(orig_pts))]
+    # relative size of original and downsampled
+    downsample_prop = [downsample_pts[i]/orig_pts[i] for i in range(0, len(orig_pts))]
+
+    results['orig_pts_mean'] = int(statistics.mean(orig_pts))
+    results['orig_pts_std'] = int(statistics.stdev(orig_pts))
+    results['downsample_pts_mean'] = int(statistics.mean(downsample_pts))
+    results['downsample_pts_std'] = int(statistics.stdev(downsample_pts))
+    results['trim_pts_mean'] = int(statistics.mean(trim_pts))
+    results['trim_pts_std'] = int(statistics.stdev(trim_pts))
+    results['plane_pts_mean'] = int(statistics.mean(plane_pts))
+    results['plane_pts_std'] = int(statistics.stdev(plane_pts))
     results['num_planes_mean'] = statistics.mean(num_planes)
     results['num_planes_std'] = statistics.stdev(num_planes)
     results['load_time_mean'] = statistics.mean(load_time)
@@ -51,13 +86,24 @@ def main():
     results['time_per_plane_mean'] = statistics.mean(time_per_plane)
     results['time_per_plane_std'] = statistics.stdev(time_per_plane)
 
-    downsample_prop = [downsample_pts[i]/orig_pts[i] for i in range(0, len(orig_pts))]
-    downsample_prop_mean = statistics.mean(downsample_prop);
+    if (ncols > 11):
+        results['feature_normal_time_mean'] = statistics.mean(feature_normal_time)
+        results['feature_normal_time_std'] = statistics.stdev(feature_normal_time)
+    if (ncols > 12):
+        results['annotation_time_mean'] = statistics.mean(annotation_time)
+        results['annotation_time_std'] = statistics.stdev(annotation_time)
+    
+    downsample_prop_mean = statistics.mean(downsample_prop)
+    
+    results['final_pts_mean'] = int(statistics.mean(final_size))
+    results['final_pts_std'] = int(statistics.stdev(final_size))
 
     for key in sorted(results):
         print("%s: %s" % (key, results[key]))
 
-    print(downsample_prop_mean)
+    texed = results_to_tex(results, True)
+    print(texed[0])
+    print(texed[1])
     
 if __name__ == '__main__':
     main()

@@ -276,15 +276,16 @@ namespace objsearch {
 		// if not appending, put headers to the columns and the
 		// directory/file the program was run on
 		file << "#filename n_pre n_downsample n_trim n_rmplane t_load t_downsample"
-		     << " t_trim t_normals t_normals_feature n_plane t_plane" << std::endl;
+		     << " t_trim t_annot t_normals t_normals_feature n_plane t_plane" << std::endl;
 	    }
 
 	    // output data from the struct
 	    file << info.fname.c_str() << " " << info.originalPoints << " " << info.downsampledPoints
 		 << " " << info.trimmedPoints << " " << info.nonPlanePoints << " "
 		 << info.loadTime << " " << info.downsampleTime << " " << info.trimTime << " "
-		 << info.normalTime << " " << info.featureNormalTime << " "
-		 << info.numPlanes << " " << info.planeTime << std::endl;
+		 << info.normalTime << " " << info.numPlanes << " "
+		 << info.planeTime << " " << info.featureNormalTime << " "
+		 << info.annotationTime << std::endl;
 	    file.close();
 	}
 
@@ -330,13 +331,14 @@ namespace objsearch {
 		// Workaround to avoid issues with the "Leaf size is too small
 		// for the input dataset. Integer indices would overflow."
 		// warning which results in no downsampling. Try increasing the
-		// leaf size until the downsampling works correctly.
-		while (workingCloud->size() == originalCloud->size()) {
-		    downsampleLeafSize_ += downsampleIncrement_; // increase by 0.5mm each loop
-		    ROS_INFO("Retrying with leaf size %f", downsampleLeafSize_);
-		    sor.setLeafSize(downsampleLeafSize_, downsampleLeafSize_,
-				    downsampleLeafSize_);
-		    sor.filter(*workingCloud);
+		// leaf size until the downsampling works correctly. No, just throw an exception
+		if (workingCloud->size() == originalCloud->size()) {
+		    throw sysutil::objsearchexception("Downsampling leaf size was too small.");
+		    // float tempLeafSize = downsampleLeafSize_ + downsampleIncrement_; // increase by 0.5mm each loop
+		    // ROS_INFO("Retrying with leaf size %f", tempLeafSize);
+		    // sor.setLeafSize(tempLeafSize, tempLeafSize,
+		    // 		    tempLeafSize);
+		    // sor.filter(*workingCloud);
 		}
 		
 		ROS_INFO("Points after downsample: %d", (int)workingCloud->size());
@@ -359,6 +361,12 @@ namespace objsearch {
 		ROS_INFO("Cloud size after trim: %d", (int)workingCloud->size());
 		info.trimmedPoints = workingCloud->size();
 		info.trimTime = (ros::Time::now() - trimStart).toSec();
+	    }
+
+	    ros::Time annotationStart = ros::Time::now();
+	    if (doRotateAnnotations_ && type_ == CloudType::FULL){ // only put the annotations into the full cloud reference frame
+		processAnnotations(cloudTransform);
+		info.annotationTime = (ros::Time::now() - annotationStart).toSec();
 	    }
 
 	    pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>());
@@ -530,43 +538,45 @@ namespace objsearch {
 	    writer.write<pcl::PointXYZRGB>(sysutil::fullDirPath(cloudDir_) + outPrefix_
 					   + "trimmedRoom.pcd", *cloud, true);
 
-	    if (doRotateAnnotations_ && type_ == CloudType::FULL){ // only put the annotations into the full cloud reference frame
-		ROS_INFO("Processing annotations...");
-		std::vector<pclutil::AnnotatedCloud<pcl::PointXYZRGB> > annotations
-		    = pclutil::getRawAnnotatedClouds<pcl::PointXYZRGB>(cloudDir_);
-		pcl::PointCloud<pcl::Normal>::Ptr normalCloud(new pcl::PointCloud<pcl::Normal>());
-		
-		for (size_t i = 0; i < annotations.size(); i++) {
-		    ROS_INFO("%s", annotations[i].fname.c_str());
-		    // annotations start off in the same frame as the complete
-		    // cloud, so just apply the same transform as is applied to
-		    // everything else
-		    pcl_ros::transformPointCloud(*(annotations[i].cloud), *transformedCloud, cloudTransform);
-		    // also need to compute the normals so that the annotated
-		    // clouds can have features computed from them
-		    computeNormals(annotations[i].cloud, normalCloud, cloudTransform, normalRadiusFeature_);
-
-		    // get the file name
-		    std::string nameRoot = sysutil::trimPath(annotations[i].fname, -1);
-		    // remove the extension and another bit of the annotation
-		    // string preceding the label number to make the base string
-		    // on top of which the actual label will be placed.
-		    std::string base = std::string(nameRoot.begin(),
-						   nameRoot.begin() + nameRoot.find_last_of('_'));
-
-		    // no prefix for the annotations, they are the same whether
-		    // the cloud input is intermediate or the complete cloud
-		    writer.write<pcl::PointXYZRGB>(sysutil::fullDirPath(outPath_) + 
-						   base + "_" + annotations[i].label + ".pcd",
-						   *(transformedCloud), true);
-		    // also write the clouds of normals for annotations
-		    writer.write<pcl::Normal>(sysutil::fullDirPath(outPath_) + 
-						   base + "_" + annotations[i].label + "_normals.pcd",
-						   *(normalCloud), true);
-		}
-	    }
-	    
 	    ROS_INFO("Done");
+	}
+
+	void PreprocessRoom::processAnnotations(const tf::StampedTransform& cloudTransform){
+	    ROS_INFO("Processing annotations...");
+	    pcl::PCDWriter writer;
+	    std::vector<pclutil::AnnotatedCloud<pcl::PointXYZRGB> > annotations
+		= pclutil::getRawAnnotatedClouds<pcl::PointXYZRGB>(cloudDir_);
+	    pcl::PointCloud<pcl::Normal>::Ptr normalCloud(new pcl::PointCloud<pcl::Normal>());
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformedCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+		
+	    for (size_t i = 0; i < annotations.size(); i++) {
+		ROS_INFO("%s", annotations[i].fname.c_str());
+		// annotations start off in the same frame as the complete
+		// cloud, so just apply the same transform as is applied to
+		// everything else
+		pcl_ros::transformPointCloud(*(annotations[i].cloud), *transformedCloud, cloudTransform);
+		// also need to compute the normals so that the annotated
+		// clouds can have features computed from them
+		computeNormals(annotations[i].cloud, normalCloud, cloudTransform, normalRadiusFeature_);
+
+		// get the file name
+		std::string nameRoot = sysutil::trimPath(annotations[i].fname, -1);
+		// remove the extension and another bit of the annotation
+		// string preceding the label number to make the base string
+		// on top of which the actual label will be placed.
+		std::string base = std::string(nameRoot.begin(),
+					       nameRoot.begin() + nameRoot.find_last_of('_'));
+
+		// no prefix for the annotations, they are the same whether
+		// the cloud input is intermediate or the complete cloud
+		writer.write<pcl::PointXYZRGB>(sysutil::fullDirPath(outPath_) + 
+					       base + "_" + annotations[i].label + ".pcd",
+					       *(transformedCloud), true);
+		// also write the clouds of normals for annotations
+		writer.write<pcl::Normal>(sysutil::fullDirPath(outPath_) + 
+					  base + "_" + annotations[i].label + "_normals.pcd",
+					  *(normalCloud), true);
+	    }
 	}
 
 	/** 
