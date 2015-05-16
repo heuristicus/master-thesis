@@ -22,9 +22,25 @@
 #include <sys/stat.h>
 #include <vector>
 #include <queue>
+#include <exception>
 
 namespace objsearch {
     namespace sysutil {
+
+	/**
+	 * @class objsearchexception Class for exceptions thrown by the objsearch package
+	 */
+	class objsearchexception : public std::exception {
+	public:
+	    objsearchexception(std::string _error) : error_(_error) {}
+	    virtual const char* what() const throw() {
+		return error_.c_str();
+	    }
+	    
+	private:
+	    std::string error_;
+	    
+	};
 
 	/** 
 	 * Store information about files and directories in a given directory.

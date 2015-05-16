@@ -6,6 +6,12 @@
   <param name="/preprocess/output_dir" value="$(arg output)" />
   <arg name="cloud" />
   <param name="/preprocess/cloud" value="$(arg cloud)" />
+
+  <!-- Use this to set an offset on the index of clouds to preprocess, useful if
+       something crashes in the middle of a preprocessing run on lots of files -->
+  <arg name="cloud_offset" default="0"/>
+  <param name="/preprocess/cloud_offset" value="$(arg cloud_offset)" />
+  
   <!-- Use this when a directory is passed to cloud - the clouds which contain
        the given string will be processed -->
   <arg name="match" default="NULL"/>
@@ -50,6 +56,24 @@
   <param name="/preprocess/ceiling_offset" value="$(arg ceiling_offset)" />
   <arg name="floor_offset" default="0.2" />
   <param name="/preprocess/floor_offset" value="$(arg floor_offset)" />
+
+  <!-- Additional cutoffs that can be used to filter points in the cloud. These
+       filters are applied after the cloud is transformed -->
+  <!-- Set to true to perfrom additional filtering -->
+  <arg name="filter_y" default="false" />
+  <param name="/preprocess/filter_y" value="$(arg filter_y)" />
+  <arg name="y_filter_max" default="NULL" />
+  <param name="/preprocess/y_filter_max" value="$(arg y_filter_max)" />
+  <arg name="y_filter_min" default="NULL" />
+  <param name="/preprocess/y_filter_min" value="$(arg y_filter_min)" />
+  <!-- Set this to true to perform the filtering -->
+  <arg name="filter_x" default="false" />
+  <param name="/preprocess/filter_x" value="$(arg filter_x)" />
+  <!-- Defaults are set for the annotated dataset -->
+  <arg name="x_filter_max" default="-1" />
+  <param name="/preprocess/x_filter_max" value="$(arg x_filter_max)" />
+  <arg name="x_filter_min" default="-10" />
+  <param name="/preprocess/x_filter_min" value="$(arg x_filter_min)" />
 
   <!-- Normal computation parameters. A larger radius means that regions with
        high rate of change of the normal are likely to be smoothed over-->

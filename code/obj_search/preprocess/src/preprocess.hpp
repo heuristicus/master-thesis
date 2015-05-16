@@ -114,7 +114,8 @@ namespace objsearch {
 	    CloudType type_;
 
 	    int cloudNum_; // the number of the intermediate cloud (or -1 if not working on an intermediate)
-	    
+	    int cloudOffset_;
+
 	    // flags for executing different parts of preprocessing
 	    bool doExtractPlanes_;
 	    bool doTrimCloud_;
@@ -122,6 +123,10 @@ namespace objsearch {
 	    bool doComputeNormals_;
 	    bool doDownsample_;
             bool savePlanes_; // save individual planes or just the combined cloud
+	    // additional filtering on x and y dimensions after the transform is applied
+	    bool filterX_;
+	    bool filterY_;
+	    
 
 	    // plane extraction parameters
 	    float ransacDistanceThresh_;
@@ -138,6 +143,12 @@ namespace objsearch {
 	    float ceilingOffset_;
 	    float floorZ_;
 	    float ceilingZ_;
+
+	    // additional filter parameters
+	    float xFilterMax_;
+	    float xFilterMin_;
+	    float yFilterMax_;
+	    float yFilterMin_;
 
 	    float normalRadiusPlane_;
 	    float normalRadiusFeature_;

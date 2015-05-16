@@ -47,6 +47,7 @@ namespace objsearch {
 	    ROSUtil::getParam(handle, "/preprocess/min_plane_points_intermediate", minPlanePointsIntermediate_);
 	    ROSUtil::getParam(handle, "/preprocess/plane_skip_limit", planeSkipLimit_);
 	    ROSUtil::getParam(handle, "/preprocess/save_planes", savePlanes_);
+	    ROSUtil::getParam(handle, "/preprocess/cloud_offset", cloudOffset_);
 
 	    ROSUtil::getParam(handle, "/preprocess/trim_cloud", doTrimCloud_);
 	    ROSUtil::getParam(handle, "/preprocess/rotate_annotations", doRotateAnnotations_);
@@ -55,6 +56,19 @@ namespace objsearch {
 	    ROSUtil::getParam(handle, "/obj_search/floor_z", floorZ_);
 	    ROSUtil::getParam(handle, "/obj_search/ceiling_z", ceilingZ_);
 
+	    ROSUtil::getParam(handle, "/preprocess/filter_x", filterX_);
+	    ROSUtil::getParam(handle, "/preprocess/filter_y", filterY_);
+	    
+	    if (filterX_) {
+		ROSUtil::getParam(handle, "/preprocess/x_filter_max", xFilterMax_);
+		ROSUtil::getParam(handle, "/preprocess/x_filter_min", xFilterMin_);
+	    }
+
+	    if (filterY_) {
+		ROSUtil::getParam(handle, "/preprocess/y_filter_max", yFilterMax_);
+		ROSUtil::getParam(handle, "/preprocess/y_filter_min", yFilterMin_);
+	    }
+	    
 	    ROSUtil::getParam(handle, "/preprocess/compute_normals", doComputeNormals_);
 	    ROSUtil::getParam(handle, "/preprocess/normal_radius_plane", normalRadiusPlane_);
 	    ROSUtil::getParam(handle, "/preprocess/normal_radius_feature", normalRadiusFeature_);
@@ -92,11 +106,19 @@ namespace objsearch {
 	    
 	    if (roomFiles.size() == 0) {
 		ROS_INFO("No matches for %s", match.c_str());
-		throw std::exception();
+		throw sysutil::objsearchexception("No room files found");
+	    }
+
+	    if (cloudOffset_ > (int)roomFiles.size()) {
+		ROS_INFO("Specified offset is larger than the number of clouds");
+		throw sysutil::objsearchexception("Offset exceeds number of clouds");
 	    }
 
 	    std::sort(roomFiles.begin(), roomFiles.end());
-	    
+
+	    // make the data output directory
+	    sysutil::makeDirs(dataOutput);
+
 	    // Dump parameters used for this run
 	    // dangerous, but otherwise annoying to output all parameters individually.
 	    std::string command("rosparam dump " + dataOutput + "preparams_" + timeNow + ".yaml");
@@ -115,9 +137,10 @@ namespace objsearch {
 
 	    bool append = false;
 	    std::string dataFile = dataOutput + "predata_" + timeNow + ".txt";
-	    // Loop over all the clouds and process them
+	    // Loop over all the clouds and process them. If there is an offset
+	    // specified, then we skip a number of clouds
 	    std::vector<std::string> errors;
-	    for (auto it = roomFiles.begin(); it != roomFiles.end(); it++) {
+	    for (auto it = roomFiles.begin() + cloudOffset_; it != roomFiles.end(); it++) {
 		ROS_INFO("----------Processing cloud %d of %d----------\n%s",
 			 (int)(it - roomFiles.begin()) + 1, (int)roomFiles.size(), (*it).c_str());
 		// first, initialise the object's variables to set it to
@@ -130,15 +153,19 @@ namespace objsearch {
 		    append = true;
 		} catch (std::exception& e){
 		    ROS_INFO("Exception while processing file %s - skipping.", (*it).c_str());
-		    errors.push_back((*it).c_str());
+		    ROS_INFO("%s", e.what());
+		    errors.push_back(*it + " - " + e.what());
 		}
 	    }
 
 	    ROS_INFO("Errors processing files:");
-	    for (auto it = errors.begin(); it != errors.end(); it++) {
-		ROS_INFO("%s", (*it).c_str());
+	    if (errors.size() == 0){
+		ROS_INFO("None.");
+	    } else {
+		for (auto it = errors.begin(); it != errors.end(); it++) {
+		    ROS_INFO("%s", (*it).c_str());
+		}
 	    }
-
 	}
 
 	/** 
@@ -286,7 +313,7 @@ namespace objsearch {
 	    if (!sysutil::makeDirs(outPath_)){
 		ROS_INFO("Could not create output directory %s.", outPath_.c_str());
 		perror("Error message");
-		throw std::exception();
+		throw sysutil::objsearchexception(std::string("Could not create output directory for the file " + outPath_).c_str());
 	    }
 
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr workingCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
@@ -471,6 +498,28 @@ namespace objsearch {
 	    // filter the values outside the thresholds and put the rest of the
 	    // points back into the cloud.
 	    pass.filter(*cloud);
+
+	    if (filterX_) {
+		ROS_INFO("Applying additional filtering to x dimension");
+		pass.setInputCloud(cloud);
+		pass.setFilterFieldName("x");
+		// a little bit above the floor, and a little below the ceiling are our limits
+		pass.setFilterLimits(xFilterMin_, xFilterMax_);
+		// filter the values outside the thresholds and put the rest of the
+		// points back into the cloud.
+		pass.filter(*cloud);
+	    }
+
+	    if (filterY_) {
+		ROS_INFO("Applying additional filtering to y dimension");
+		pass.setInputCloud(cloud);
+		pass.setFilterFieldName("y");
+		// a little bit above the floor, and a little below the ceiling are our limits
+		pass.setFilterLimits(yFilterMin_, yFilterMax_);
+		// filter the values outside the thresholds and put the rest of the
+		// points back into the cloud.
+		pass.filter(*cloud);
+	    }
 
 	    pcl::PCDWriter writer;
 	    ROS_INFO("Writing transformed cloud...");
@@ -661,6 +710,10 @@ namespace objsearch {
 	    ROS_INFO("Remaining points size after loop: %d",
 		     (int)intermediateCloud->size());
 
+	    if ((int)allPlanes->size() == 0) {
+		return 0;
+	    }
+	    
 	    // Make sure to swap out the fully filtered intermediate cloud into
 	    // the cloud that will be visible outside
 	    cloud.swap(intermediateCloud);
@@ -735,6 +788,7 @@ int main(int argc, char *argv[]) {
     try {
 	objsearch::preprocessing::PreprocessRoom rp(argc, argv);
     } catch (std::exception& e) {
+	std::cout << e.what() << std::endl;
 	return 1; // fail
     }
 }

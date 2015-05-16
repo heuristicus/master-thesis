@@ -2,6 +2,7 @@
 #define ANNOTATION_EXTRACT_H
 
 #include <algorithm>
+#include <map>
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -97,7 +98,7 @@ namespace objsearch {
 		file.close();
 	    } else {
 		ROS_INFO("Failed to open file %s", labelfile.c_str());
-		throw std::exception();
+		throw sysutil::objsearchexception("Failed to find file containing annotation label");
 	    }
 
 	    // ROS_INFO("----------%s----------", filename.c_str());
@@ -117,7 +118,7 @@ namespace objsearch {
 	 * 
 	 * @param filePath Path to the directory containing the raw clouds and their labels.
 	 * 
-	 * @return 
+	 * @return A vector of annotated point clouds with labels extracted from the files
 	 */
 	template <typename PointT>
 	std::vector<AnnotatedCloud<PointT> > getRawAnnotatedClouds(std::string filePath) {
@@ -131,14 +132,79 @@ namespace objsearch {
 		filePath, std::regex(".*label.*txt"));
 	    std::sort(matchesTXT.begin(), matchesTXT.end());
 
+	    // if the number of files is not the same, we need to process only
+	    // those files which can be paired up
 	    if (matchesPCD.size() != matchesTXT.size()) {
-		ROS_INFO("Different numbers of .pcd files and .txt files for annotations. Should be the same.");
-		throw std::exception();
-	    }
+		ROS_INFO("Could not find label for one of the annotation clouds");
+		throw sysutil::objsearchexception(".txt and .pcd file mismatch for annotations");
+		// std::cout << "before remap" << std::endl;
+		// for (size_t i = 0; i < std::max(matchesTXT.size(), matchesPCD.size()); i++) {
+		//     if (matchesTXT.size() -1 < i) {
+		// 	std::cout << "*----*   - " << std::endl;
+		//     } else {
+		// 	std::cout << matchesTXT[i] << " - ";
+		//     }
 
+		//     if (matchesPCD.size() -1 < i) {
+		// 	std::cout << "*----*" << std::endl;
+		//     } else {
+		// 	std::cout << matchesPCD[i] << std::endl;
+		//     }
+		// }
+		
+		// std::map<std::string, int> duplimap;
+		// // insert elements from both the vectors into the map, stripping
+		// // off the extension so that the strings will match.
+		// for (size_t i = 0; i < matchesPCD.size(); i++) {
+		//     // each of these elements will be unique, so don't need to
+		//     // check the return value of insert. Retain the path when
+		//     // removing the extension
+		//     duplimap.insert(std::pair<std::string,int>(
+		// 			sysutil::removeExtension(matchesPCD[i], false), 0));
+		    
+		// }
+
+		// for (size_t i = 0; i < matchesTXT.size(); i++) {
+		//     // attempt to insert the key into the map
+		//     std::pair<std::map<std::string, int>::iterator,bool> ret;
+		//     ret = duplimap.insert(std::pair<std::string,int>(
+		// 			      sysutil::removeExtension(matchesTXT[i], false), 0));
+		//     // if the key already existed, then increment the int it
+		//     // holds to indicate that this is a paired element
+		//     if (ret.second == false) {
+		// 	ret.first->second++;
+		//     }
+		// }
+
+		// // now we should have a map where unpaired elements have a value
+		// // of 0. Iterate through it and repopulate the vectors with
+		// // elements which are paired.
+		// matchesTXT.clear();
+		// matchesPCD.clear();
+		// for (auto it = duplimap.begin(); it != duplimap.end(); it++) {
+		//     if (it->second == 1) {
+		// 	// if paired, put the strings into the vectors, putting
+		// 	// the extensions back on.
+		// 	matchesTXT.push_back(it->first + ".txt");
+		// 	matchesPCD.push_back(it->first + ".pcd");
+		//     }
+		// }
+
+		// std::cout << "after remap" << std::endl;
+		// for (size_t i = 0; i < matchesTXT.size(); i++) {
+		//     std::cout << matchesTXT[i] << " - " << matchesPCD[i] << std::endl;
+		// }
+
+
+	    }
+	    
 	    typename std::vector<AnnotatedCloud<PointT> > clouds;
 
 	    pcl::PCDReader reader;
+	    // loop through the vectors, creating annotation clouds where the
+	    // two files match up. In most cases this should be simple, with
+	    // both i and j increasing at the same rate, but if there is a
+	    // mismatch, one of the indices will skip ahead to ignore the file
 	    for (size_t i = 0; i < matchesPCD.size(); i++) {
 		clouds.push_back(getRawAnnotatedCloud<PointT>(matchesPCD[i], matchesTXT[i],
 							      reader));
