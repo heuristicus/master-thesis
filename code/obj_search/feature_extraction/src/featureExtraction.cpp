@@ -21,7 +21,7 @@ namespace objsearch {
 	    ROSUtil::getParam(handle, "/obj_search/processed_data_dir", processedDir_);
 	    ROSUtil::getParam(handle, "/obj_search/raw_data_dir", rawDir_);
 	    ROSUtil::getParam(handle, "/feature_extraction/output_dir", outDir_);
-
+	    ROSUtil::getParam(handle, "/feature_extraction/cloud_offset", cloudOffset_);
 
 	    ROSUtil::getParam(handle, "/feature_extraction/feature_type", featureType_);
 	    ROSUtil::getParam(handle, "/feature_extraction/feature_selection", interestType_);
@@ -75,7 +75,6 @@ namespace objsearch {
 	    ROSUtil::getParam(handle, "/feature_extraction/match", match);
 
 	    std::vector<std::string> roomFiles;
-	    std::string dataOutput;
 	    std::string timeNow = sysutil::getDateTimeString();
 	    initPaths(cloudFile_);
 	    
@@ -87,22 +86,35 @@ namespace objsearch {
 		} else { // otherwise, match the string and process those files
 		    roomFiles = sysutil::listFilesWithString(cloudFile_, match, true);
 		}
-		dataOutput = sysutil::fullDirPath(outPath_) + "featureparams_" + timeNow + ".yaml";
 	    } else { // is a file, so just process that
-		dataOutput = sysutil::fullDirPath(outPath_) + "featureparams_" + timeNow + ".yaml";
 		roomFiles.push_back(cloudFile_);
 	    }
 
 	    if (roomFiles.size() == 0) {
 		ROS_INFO("No matches for %s", match.c_str());
-		exit(1);
+		throw sysutil::objsearchexception("No room files found");
+	    }
+
+	    if (cloudOffset_ > (int)roomFiles.size()) {
+		ROS_INFO("Specified offset is larger than the number of clouds");
+		throw sysutil::objsearchexception("Offset exceeds number of clouds");
+	    }
+
+	    std::sort(roomFiles.begin(), roomFiles.end());
+
+	    std::string dataOutput = sysutil::fullDirPath(outPath_);
+	    ROS_INFO("data output path is %s", dataOutput.c_str());
+	    if (!sysutil::makeDirs(dataOutput)) {
+		ROS_INFO("Could not create output directory");
+		throw sysutil::objsearchexception("Could not create output directory");
 	    }
 
 	    // Dump parameters used for this run
 	    // dangerous, but otherwise annoying to output all parameters individually.
-	    std::string command("rosparam dump " + dataOutput);
-	    ROS_INFO("Caling system with command %s", command.c_str());
-	    system(command.c_str());
+	    std::string command("rosparam dump " + dataOutput + "featureparams_" + timeNow + ".yaml");
+	    ROS_INFO("Calling system with command %s", command.c_str());
+	    int ret = system(command.c_str());
+	    ROS_INFO("System command returned %d", ret);
 
 	    // print some information about what files will be processed
 	    size_t i;
@@ -114,20 +126,27 @@ namespace objsearch {
 	    }
 
 	    bool append = false;
-	    std::string dataFile = sysutil::fullDirPath(sysutil::trimPath(dataOutput, 1))
-		+ "featuredata_" + timeNow + ".txt";
-	    for (auto it = roomFiles.begin(); it != roomFiles.end(); it++) {
-		ROS_INFO("Extracting features from cloud %d of %d",
-			 (int)(it - roomFiles.begin()) + 1, (int)roomFiles.size());
+	    std::string dataFile = dataOutput + "featuredata_" + timeNow + ".txt";
+	    std::vector<std::string> errors;
+	    for (auto it = roomFiles.begin() + cloudOffset_; it != roomFiles.end(); it++) {
+		ROS_INFO("----------Extracting features from cloud %d of %d----------\n%s",
+			 (int)(it - roomFiles.begin()) + 1, (int)roomFiles.size(), (*it).c_str());
 		// this is used in filename creation for the extracted features and
 		// locations so that they can be paired up when doing queries
 		dateTime_ = sysutil::getDateTimeString();
 		
-		cloudFile_ = *it;
-		initPaths(cloudFile_); // update output paths
-		FeatureInfo info = extractFeatures();
-		writeInfo(dataFile, info, append);
-		append = true;
+		// first, initialise the object's variables to set it to
+		// preprocess the cloud in the iterator is pointing to
+		initPaths(*it);
+		try {
+		    FeatureInfo info = extractFeatures();
+		    writeInfo(dataFile, info, append);
+		    append = true;
+		} catch (std::exception& e){
+		    ROS_INFO("Exception while processing file %s - skipping.", (*it).c_str());
+		    ROS_INFO("%s", e.what());
+		    errors.push_back(*it + " - " + e.what());
+		}
 	    }
 	}
 
@@ -163,6 +182,8 @@ namespace objsearch {
 	    if (sysutil::isDir(path)) {
 		toTrim = 0;
 	    }
+	    cloudFile_ = path;
+	    
 	    // If the given cloud file corresponds to a file in the processed data directory,
 	    // extract the remaining directories in the path of the file so that the
 	    // data can be put into the output directory with the same path.
@@ -182,6 +203,7 @@ namespace objsearch {
 	    // initialised, then clouds are simply output to the top level
 	    // output directory
 	    outPath_ = sysutil::combinePaths(outDir_, dataSubDir_);
+
 	}
 	
 	// from http://pointclouds.org/documentation/tutorials/correspondence_grouping.php
@@ -325,7 +347,7 @@ namespace objsearch {
 	    } else if (interestType_.compare("harris") == 0) {
 		// these features suck, for some reason.
 		ROS_INFO("Harris feature selection currently disabled.");
-		exit(1);
+		throw sysutil::objsearchexception("Harris feature selection disabled.");
 		ROS_INFO("Using Harris3D feature selection.");
 		loadNormals(normals); // might end up doing this again later on
 				      // if using certain types of features
@@ -376,7 +398,7 @@ namespace objsearch {
 		intensityToRGB(intensityOut, descriptorLocations);
 	    } else {
 		ROS_INFO("Unknown feature selection method %s", interestType_.c_str());
-		exit(1);
+		throw sysutil::objsearchexception("Unknown feature selection method.");
 	    }
 	    info.selectTime = (ros::Time::now() - selectStart).toSec();
 	    info.featureSize = descriptorLocations->size();
@@ -386,11 +408,12 @@ namespace objsearch {
 	FeatureExtractor::FeatureInfo FeatureExtractor::extractFeatures(){
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 	    pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>());
+	    ROS_INFO("Loading cloud from %s", cloudFile_.c_str());
 	    if (pcl::io::loadPCDFile<pcl::PointXYZRGB>(cloudFile_, *cloud) != -1){
 		ROS_INFO("Loaded cloud from %s", cloudFile_.c_str());
 	    } else {
 		ROS_INFO("Could not load cloud from %s", cloudFile_.c_str());
-		exit(1);
+		throw sysutil::objsearchexception("Could not load cloud from " + cloudFile_);
 	    }
 	    FeatureInfo info;
 	    info.fname = cloudFile_;
@@ -481,7 +504,7 @@ namespace objsearch {
 		    writeDescriptors<pcl::SHOT1344>(descriptors);		    
 		} else {
 		    ROS_INFO("Unknown SHOT descriptor type %s", featureType_.c_str());
-		    exit(1);
+		    throw sysutil::objsearchexception("Unknown SHOT descriptor type.");
 		}
 	    } else if (featureType_.compare("usc") == 0) {
 		// The shape context uses xyz points, so need to convert the cloud into that format
@@ -582,12 +605,12 @@ namespace objsearch {
 		    
 		    writeDescriptors<pcl::PFHRGBSignature250>(descriptors);
 		} else {
-		    ROS_INFO("Unknown pfh feature type %s", featureType_.c_str());
-		    exit(1);
+		    ROS_INFO("Unknown pfh descriptor type %s", featureType_.c_str());
+		    throw sysutil::objsearchexception("Unknown pfh descriptor type.");
 		}
 	    } else {
 		ROS_ERROR("%s is not a valid feature type.", featureType_.c_str());
-		exit(1);
+		throw sysutil::objsearchexception("Unknown descriptor type.");
 	    }
 	    info.featureTime = (ros::Time::now() - featureStart).toSec();
 	    return info;
@@ -678,7 +701,7 @@ namespace objsearch {
 	    } else if (cloudFile_.find("label") != std::string::npos) { // annotation clouds contain the text "label"
 		normFile += sysutil::removeExtension(cloudFile_) + "_normals.pcd";
 	    } else {
-		normFile += "normCloud_features.pcd";
+		normFile += "normCloud_feature.pcd";
 	    }
 
 
@@ -686,7 +709,7 @@ namespace objsearch {
 		ROS_INFO("Loaded cloud from %s", normFile.c_str());
 	    } else {
 		ROS_INFO("Could not load cloud from %s", normFile.c_str());
-		exit(1);
+		throw sysutil::objsearchexception("Could not load normals from " + normFile);
 	    }
 	}
 

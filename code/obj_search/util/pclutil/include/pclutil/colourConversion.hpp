@@ -142,6 +142,21 @@ namespace objsearch {
 	float getRGBIntensityBasic(int r, int g, int b) {
 	    return (r + g + b) / 3;
 	}
+
+	/** 
+	 * Convert a hex representation of RGB colour to its rgb representation.
+	 * 
+	 * @param hex hex colour in the form 0xRRGGBB
+	 * @param r 
+	 * @param g 
+	 * @param b 
+	 */
+	void hexToRGB(int hex, int& r, int& g, int& b) {
+	    r = ((hex >> 16) & 0xFF);  // Extract the RR byte
+	    g = ((hex >> 8) & 0xFF);   // Extract the GG byte
+	    b = ((hex) & 0xFF);        // Extract the BB byte
+	}
+	
     } // namespace pclutil
 } // namespace objsearch
 

@@ -117,7 +117,10 @@ namespace objsearch {
 	    std::sort(roomFiles.begin(), roomFiles.end());
 
 	    // make the data output directory
-	    sysutil::makeDirs(dataOutput);
+	    if (!sysutil::makeDirs(dataOutput)) {
+		ROS_INFO("Could not create output directory");
+		throw sysutil::objsearchexception("Could not create output directory");
+	    }
 
 	    // Dump parameters used for this run
 	    // dangerous, but otherwise annoying to output all parameters individually.

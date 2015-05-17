@@ -5,17 +5,23 @@
   <param name="/feature_extraction/input_cloud" value="$(arg cloud)" />
   <arg name="output" default="NULL"/>
   <param name="/feature_extraction/output_dir" value="$(arg output)" />
+
+  <!-- Use this to set an offset on the index of clouds to preprocess, useful if
+       something crashes in the middle of a preprocessing run on lots of files -->
+  <arg name="cloud_offset" default="0"/>
+  <param name="/feature_extraction/cloud_offset" value="$(arg cloud_offset)" />
+
   <!-- Use this when a directory is passed to cloud - the clouds which contain
        the given string will be processed -->
   <arg name="match" default="NULL"/>
   <param name="/feature_extraction/match" value="$(arg match)" />
 
-  <!-- Defines the type of descriptor to use. Options are shot, usc -->
+  <!-- Defines the type of descriptor to use. Options are shot, usc, shotcolor, pfh, fpfh, pfhrgb-->
   <arg name="feature" default="SHOT"/>
   <param name="/feature_extraction/feature_type" value="$(arg feature)" />
 
   <!-- Defines which method is used to find the points at which descriptors will
-       be computed. Options are uniform-->
+       be computed. Options are uniform, sift, susan, iss, harris (disabled)-->
   <arg name="feature_selection" default="uniform"/>
   <param name="/feature_extraction/feature_selection" value="$(arg feature_selection)" />
   
@@ -112,7 +118,7 @@
   <arg name="usc_local_radius" default="0.05"/>
   <param name="/feature_extraction/usc_local_radius" value="$(arg usc_local_radius)" />
 
-  <!-- Options for the FPFH descriptor -->
+  <!-- Options for the PFH descriptor -->
   <!-- This value should be larger than the radius used to compute the normals
        for the cloud being described -->
   <arg name="fpfh_radius" default="0.05"/>

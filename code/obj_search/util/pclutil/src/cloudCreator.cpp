@@ -1,11 +1,15 @@
 #include <random>
 #include <cmath>
 #include <limits>
+#include <string>
+
+#include "sysutil/sysutil.hpp"
 
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/io/io.h>
 #include <pcl/io/pcd_io.h>
+#include <pcl/features/normal_3d_omp.h>
 
 void createSphere(const int npoints, const float radius) {
 
@@ -16,7 +20,7 @@ void createPlaneSegment(const int npoints, const pcl::Normal& normal){
 }
 
 void createBox(const int npoints, const pcl::PointXYZ& centre,
-	       const pcl::PointXYZ& dimRange,
+	       const pcl::PointXYZ& dimRange, float normalRadius, std::string outputFile,
 	       int r = -1, int g = -1, int b = -1){
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
     std::default_random_engine generator;
@@ -63,9 +67,9 @@ void createBox(const int npoints, const pcl::PointXYZ& centre,
 	// Generate an additional three random values to determine whether the
 	// sign of the dimensions will be flipped, to ensure that all sides of
 	// the box are evenly populated.
-	if (invert(generator)){ point[0] = -point[0]; }
-	if (invert(generator)){ point[1] = -point[1]; }
-	if (invert(generator)){ point[2] = -point[2]; }
+	// if (invert(generator)){ point[0] = -point[0]; }
+	// if (invert(generator)){ point[1] = -point[1]; }
+	// if (invert(generator)){ point[2] = -point[2]; }
 
 	pcl::PointXYZRGB p;
 	p.x = point[0];
@@ -79,10 +83,26 @@ void createBox(const int npoints, const pcl::PointXYZ& centre,
     }
 
     pcl::PCDWriter writer;
-    writer.write<pcl::PointXYZRGB>("/home/michal/Dropbox/study/university/kth/thesis/data/test/box.pcd", *cloud, true);
+    writer.write<pcl::PointXYZRGB>(outputFile, *cloud, true);
+
+    // compute normals too
+    pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);
+    pcl::NormalEstimationOMP<pcl::PointXYZRGB, pcl::Normal> ne;
+	    
+    ne.setInputCloud(cloud);
+	   	    
+    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>());
+    // set the viewpoint to be a little away from one of the corners
+    ne.setViewPoint(2, 2, 2);
+    ne.setSearchMethod(tree);
+    ne.setRadiusSearch(normalRadius);
+    ne.compute(*normals);
+
+    writer.write<pcl::Normal>(std::string(objsearch::sysutil::removeExtension(outputFile, false) + "normals.pcd"), *normals, true);
 }
 
 int main(int argc, char *argv[]) {
-    createBox(std::stoi(argv[1]), pcl::PointXYZ(0, 0, 0), pcl::PointXYZ(1, 1, 1));
+    // args - number of points, output file name
+    createBox(std::stoi(argv[1]), pcl::PointXYZ(0, 0, 0), pcl::PointXYZ(1, 1, 1), std::stof(argv[2]), argv[3]);
     return 0;
 }

@@ -78,6 +78,7 @@ namespace objsearch {
 	    std::string featureType_;
 	    std::string interestType_;
 	    std::string dateTime_;
+	    int cloudOffset_;
 
 	    // Uniform sampling
 	    float downsampleLeafSize_;
