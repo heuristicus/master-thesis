@@ -641,7 +641,18 @@ clouds are made up of a number of intermediate frames, which are registered into
 a complete cloud. The robot used to collect the clouds takes several sweeps of
 the room, changing the angle of the camera after each sweep. The clouds are
 constructed using frames taken from a sweep where the camera is pointing
-slightly below the horizontal.
+slightly below the horizontal. Examples of the raw clouds can be seen in
+Figure~\ref{fig:orig}.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.49\textwidth]{images/orig_side}
+  \includegraphics[width=0.49\textwidth]{images/orig_top}
+  \includegraphics[width=0.49\textwidth]{images/orig_diag_left}
+  \includegraphics[width=0.49\textwidth]{images/orig_diag_right}
+  \caption{Sample raw cloud viewed from several angles}
+  \label{fig:orig}
+\end{figure}
 
 \subsection{Downsampling}
 In their merged forms, the clouds on average contain approximately 4,300,000
@@ -658,7 +669,24 @@ so that each voxel is a cube. At this stage, we would like to perform a simple
 downsampling to reduce the number of points, but we wish to keep small details
 in the cloud --- something in the realm of a 1cm resolution is ideal in this
 case.
-\begin{figure}[h]
+
+Downsampling with a 1cm resolution gives a reduction in size of the clouds of on
+average 78\%, to approximately 950,000 points.
+Figure~\ref{fig:downsample_effect} shows the effect of the downsampling. While
+there is slight degradation of the textures, this is to some extent a visual
+effect which is viewpoint dependent. Most of the structure in the cloud is
+retained, which is key. This step is important, as it greatly affects the speed
+of computation of subsequent steps in the system, but it is a trade off. If the
+downsampling resolution is too low, then we lose a lot of information about the
+surface structure of parts of the cloud, and this is likely to lead to worse
+performance when trying to find matches. How tolerant we are to low resolution
+also depends on the kinds of objects that we are interested in finding. If we do
+not care about smaller objects, then even with a lower resolution the results
+should still be satisfactory. However, a lower resolution likely means that it
+will be necessary to look at larger regions of space in order to describe
+points. We will investigate the effects of this in chapter~\ref{chap:exp}.
+
+\begin{figure}
   \centering
   \centerline{
     \subfloat[Sofa]{
@@ -689,19 +717,64 @@ case.
   \label{fig:downsample_effect}
 \end{figure}
 
-Downsampling with this resolution gives a reduction in size of the clouds of on
-average 78\%, to approximately 950,000 points.
-Figure~\ref{fig:downsample_effect} shows the effect of the downsampling. While
-there is slight degradation of the textures, this is to some extent a visual
-effect which is viewpoint dependent. Most of the structure in the cloud is
-retained, which is key.
+\subsection{Transformation and Trimming}
+Once the cloud has been downsampled, there is a little more that needs to be
+done in order to get the cloud into a convenient form. The raw data that we have
+has clouds which have their origin at the position of the camera while the room
+was being scanned. Our data is a subset of a larger dataset which contains
+clouds of more than one room --- if we were to use the data without applying any
+additional transformations, all the clouds would sit on top of each other at the
+origin, whereas we would ideally like to have them in their true position
+relative to the origin. The robot collecting data knows its position, so this
+information is stored.
 
-\subsection{Room Rotation and Trimming}
-How the data is gathered, what is done to it at the beginning to remove some points
-\subsection{Normal Extraction}
-Normal and plane extraction section order depends partly on the order in which
-it is done. Talk about how normal extraction can help with plane extraction, if
-I do that.
+As mentioned before, each cloud is a combination of a number of intermediate
+frames, each of which has corresponding information about the pose of the camera
+when the frame was taken, which we can use to transform the complete cloud into
+its actual position in space.
+
+An added benefit of this transformation is that it allows us to remove the floor
+and ceiling by using a simple thresholding filter on the $z$ axis, as the floor
+of the cloud is now aligned with the $x$-$y$ plane of the global reference
+frame, as opposed to being aligned with the cloud's rotated reference frame
+(Figure~\ref{fig:orig_transformed}) The threshold for the ceiling can be
+determined by measuring the ceiling height, and the floor is assumed to be a
+$z=0$. We add a small offset to each of the values to ensure that the parts are
+correctly removed even if there is some noise.
+
+Although we would like the system to be as generic as possible, the particular
+subset of clouds that we are using have a large number of points outside the
+room which do not give any useful information. To this end, we also include
+additional filters on the $x$ axis to remove these points.
+Figure~\ref{fig:trimmed} shows the end result of this step.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{images/orig_transformed}
+  \caption{Original cloud and the transformed cloud. The original cloud
+    is on the right. The coordinate axis shows the global reference frame ---
+    none of the axes are aligned for the original cloud, but the transformed
+    cloud is well aligned with the $x$-$y$ plane.}
+  \label{fig:orig_transformed}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.49\textwidth]{images/trimmed_side}
+  \includegraphics[width=0.49\textwidth]{images/trimmed_top}
+  \includegraphics[width=0.49\textwidth]{images/trimmed_diag_left}
+  \includegraphics[width=0.49\textwidth]{images/trimmed_diag_right}
+  \caption{Result of trimming step. Transformed cloud is blue, trimmed is green.}
+  \label{fig:trimmed}
+\end{figure}
+\subsection{Normal Computation}
+In this step, normals are computed for each point in the cloud. The normal at a
+point is the vector which is perpendicular to the curvature of the surface at
+that point. 
+
+Normal and plane extraction section order
+depends partly on the order in which it is done. Talk about how normal
+extraction can help with plane extraction, if I do that.
 \subsection{Plane Extraction}
 Basic description of RANSAC or whichever of its extensions I end up using.
 \section{Interest Point Selection}
@@ -716,6 +789,31 @@ Query methods, how the database and query object are compared.
 Description of experiments and experimental results with different
 configurations of the system.
 \section{Segmentation}
+\begin{table}
+  \centering
+  \centerline{
+    \begin{tabular}{c|cccccc}
+      &Original & Downsampled & Trimmed & Num planes & Points on planes & After preprocessing\\\hline
+      Default & 4344879\pm125893 & 964004\pm114379 & 810469\pm97833 & 7.10\pm1.48&456273\pm56508 & 354195\pm77925\\
+      dt 0.02 & 4348571\pm124781 & 718345\pm246373 & 599503\pm208953 & 7.99\pm3.07&492154\pm152830 & 107348\pm64374\\
+    \end{tabular}
+  }
+  \caption{Average number of points in various stages of preprocessing.}
+  \label{tbl:preprocess_num}
+\end{table}
+
+\begin{table}
+  \centering
+  \centerline{
+    \begin{tabular}{c|cccccc}
+      &loadtime & downsample time & trim time & normals time & plane time & per plane time \\\hline
+      default & 1.91\pm0.58 & 1.08\pm0.31 & 20.12\pm13.56 & 30.95\pm10.88 & 221.62\pm130.12 & 31.36\pm16.09\\
+      dt 0.02 & 2.45\pm1.25 & 1.18\pm0.17 & 0.16\pm0.06 & 21.65\pm13.36 & 235.50\pm118.06 & 29.08\pm7.50\\
+    \end{tabular}
+  }
+  \caption{Average time taken for various stages of preprocessing.}
+  \label{tbl:preprocess_time}
+\end{table}
 Apply different segmentation methods/parts of the segmentation method, and see
 how they affect the overall system performance, as well as the time taken to
 complete the segmentation.
