@@ -107,6 +107,9 @@ discriminative. While it is possible to describe objects as a whole, we will
 investigate the efficacy of using descriptions of small parts of the object to
 retrieve matches from the data set.
 
+Something about why why the problem is interesting as opposed to model matching
+or somesuch
+
 In chapter~\ref{chap:bg}, we explain some concepts that are important to
 understand the work, provide background information on relevant parts of the
 image processing literature, and attempt to introduce the reader to previous
@@ -686,6 +689,9 @@ should still be satisfactory. However, a lower resolution likely means that it
 will be necessary to look at larger regions of space in order to describe
 points. We will investigate the effects of this in chapter~\ref{chap:exp}.
 
+Show some of the objects which are made up of slices due to viewing angle -
+downsampling can reduce this slicing effect.
+
 \begin{figure}
   \centering
   \centerline{
@@ -750,7 +756,7 @@ Figure~\ref{fig:trimmed} shows the end result of this step.
 
 \begin{figure}
   \centering
-  \includegraphics[width=\textwidth]{images/orig_transformed}
+  \includegraphics[width=0.8\textwidth]{images/orig_transformed}
   \caption{Original cloud and the transformed cloud. The original cloud
     is on the right. The coordinate axis shows the global reference frame ---
     none of the axes are aligned for the original cloud, but the transformed
@@ -767,10 +773,40 @@ Figure~\ref{fig:trimmed} shows the end result of this step.
   \caption{Result of trimming step. Transformed cloud is blue, trimmed is green.}
   \label{fig:trimmed}
 \end{figure}
-\subsection{Normal Computation}
-In this step, normals are computed for each point in the cloud. The normal at a
+\subsection{Normal Estimation}
+In this step, normals are estimated for each point in the cloud. The normal at a
 point is the vector which is perpendicular to the curvature of the surface at
-that point. 
+that point. By estimating normals for clouds, we can get some more information
+about the surface structure of the cloud. Normals are used in several parts of
+the system, including by feature selection methods and features. They are also
+used in the plane extraction step to increase accuracy.
+
+There are many ways of estimating normals, but the method we use is formulated
+as a least squares plane fitting problem, which is used to estimate the normal
+of the plane tangent to the surface at the point at which the normal is to be
+computed \cite{RusuDoctoralDissertation}. The computation gives an ambiguous
+result in terms of the sign of the normal. To correct for this, a viewpoint is
+needed, which serves to define what sign is used. Perhaps the most important
+thing to note is that the normal must be computed using points in a
+neighbourhood; either within a certain radius, or the nearest $k$ points. The
+neighbourhood determines the scale factor that results. A small neighbourhood
+gives a small scale factor, and a large neighbourhood a large scale factor. A
+large scale factor can be bad if the objects that one is trying to examine have
+regions where the rate of change of surface curvature is high, such as at the
+corners of tables. It results in the smearing of edges and the suppression of
+fine detail \cite{RusuDoctoralDissertation}. Figure~\ref{fig:normal_corner}
+shows an example of the effect of different neighbourhood sizes on the results.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.49\textwidth]{images/normals_comb}
+  \caption{Example of the smoothing effect of normal computation radius. From
+    bottom to top, 0.01, 0.025, 0.5, 0.2, 0.25, 0.5cm radius. Normals are
+    indicated by orange lines. Note the tendency of normals with higher radius to
+    tilt as they approach the corner. Normals on the top section are slightly
+    skewed due to perspective.}
+  \label{fig:normal_corner}
+\end{figure}
 
 Normal and plane extraction section order
 depends partly on the order in which it is done. Talk about how normal
@@ -794,7 +830,7 @@ configurations of the system.
   \centerline{
     \begin{tabular}{c|cccccc}
       &Original & Downsampled & Trimmed & Num planes & Points on planes & After preprocessing\\\hline
-      Default & 4344879\pm125893 & 964004\pm114379 & 810469\pm97833 & 7.10\pm1.48&456273\pm56508 & 354195\pm77925\\
+      Default&4344879\pm125893 & 964004\pm114379 & 810469\pm97833 & 7.10\pm1.48&456273\pm56508 & 354195\pm77925\\
       dt 0.02 & 4348571\pm124781 & 718345\pm246373 & 599503\pm208953 & 7.99\pm3.07&492154\pm152830 & 107348\pm64374\\
     \end{tabular}
   }
@@ -806,8 +842,8 @@ configurations of the system.
   \centering
   \centerline{
     \begin{tabular}{c|cccccc}
-      &loadtime & downsample time & trim time & normals time & plane time & per plane time \\\hline
-      default & 1.91\pm0.58 & 1.08\pm0.31 & 20.12\pm13.56 & 30.95\pm10.88 & 221.62\pm130.12 & 31.36\pm16.09\\
+      &Load & Downsample & Trim & Normals & Planes & per plane time \\\hline
+      Default & 1.91\pm0.58 & 1.08\pm0.31 & 20.12\pm13.56 & 30.95\pm10.88 & 221.62\pm130.12 & 31.36\pm16.09\\
       dt 0.02 & 2.45\pm1.25 & 1.18\pm0.17 & 0.16\pm0.06 & 21.65\pm13.36 & 235.50\pm118.06 & 29.08\pm7.50\\
     \end{tabular}
   }
