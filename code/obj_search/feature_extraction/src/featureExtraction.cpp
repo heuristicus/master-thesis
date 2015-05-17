@@ -165,8 +165,7 @@ namespace objsearch {
 	    if (!append) {
 		// if not appending, put headers to the columns and the
 		// directory/file the program was run on
-		file << cloudFile_.c_str()
-		     << "#filename n_pre n_feature t_select t_feature" << std::endl;
+		file << "#filename n_pre n_feature t_select t_feature" << std::endl;
 	    }
 
 	    // output data from the struct
@@ -720,5 +719,5 @@ namespace objsearch {
 
 int main(int argc, char *argv[]) {
     objsearch::featureExtraction::FeatureExtractor fe(argc, argv);
-    return 0;
+    ros::shutdown();
 }

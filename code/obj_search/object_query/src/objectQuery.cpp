@@ -587,6 +587,5 @@ namespace objsearch {
 
 int main(int argc, char *argv[]) {
     objsearch::objectquery::ObjectQuery oq(argc, argv);
-    
-    return 0;
+    exit(1); // exit to terminate ros
 }

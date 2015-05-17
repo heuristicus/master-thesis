@@ -67,9 +67,9 @@ void createBox(const int npoints, const pcl::PointXYZ& centre,
 	// Generate an additional three random values to determine whether the
 	// sign of the dimensions will be flipped, to ensure that all sides of
 	// the box are evenly populated.
-	// if (invert(generator)){ point[0] = -point[0]; }
-	// if (invert(generator)){ point[1] = -point[1]; }
-	// if (invert(generator)){ point[2] = -point[2]; }
+	if (invert(generator)){ point[0] = -point[0]; }
+	if (invert(generator)){ point[1] = -point[1]; }
+	if (invert(generator)){ point[2] = -point[2]; }
 
 	pcl::PointXYZRGB p;
 	p.x = point[0];

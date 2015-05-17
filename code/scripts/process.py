@@ -6,6 +6,8 @@ def results_to_tex(results, addheader=False):
     number_line = ""
     if (addheader):
         number_line += "Original & Downsampled & Trimmed & Num planes & Points on planes & After preprocessing\\\\\hline\n"
+    else:
+        number_line += "\n"
     
     number_line += str(results['orig_pts_mean']) + "\pm" + str(results['orig_pts_std']) + " & "
     number_line += str(results['downsample_pts_mean']) + "\pm" + str(results['downsample_pts_std']) + " & "
@@ -17,6 +19,9 @@ def results_to_tex(results, addheader=False):
     time_line = ""
     if (addheader):
         time_line += "Load & Downsample & Trim & Normals & Planes & per plane time \\\\\hline\n"
+    else:
+        time_line += "\n"
+        
     time_line += "%.2f" % results['load_time_mean']  + "\pm" +  "%.2f" % results['load_time_std'] + " & "
     time_line += "%.2f" % results['downsample_time_mean']  + "\pm" +  "%.2f" % results['downsample_time_std'] + " & "
     time_line += "%.2f" % results['trim_time_mean']  + "\pm" +  "%.2f" % results['trim_time_std'] + " & "
@@ -26,10 +31,8 @@ def results_to_tex(results, addheader=False):
     time_line += "\\\\"
     return number_line, time_line
 
-def main():
-    fname = sys.argv[1]
+def processFile(fname):
     f = open(fname, 'r')
-
     data = []
     # read from the data file into a list, splitting on the space delimiter
     for i, line in enumerate(f):
@@ -56,8 +59,9 @@ def main():
         feature_normal_time = [float(data[i][11]) for i in filerange]
     if (ncols > 12):
         annotation_time = [float(data[i][12]) for i in filerange]
+        
     # average time to extract each plane
-    time_per_plane = [plane_time[i]/num_planes[i] for i in range(0, nfiles - 1)]
+    time_per_plane = [(plane_time[i]/num_planes[i] if num_planes[i] != 0 else plane_time[i]) for i in range(0, nfiles - 1)]
     # size of clouds after preprocessing
     final_size = [trim_pts[i]-plane_pts[i] for i in range(0, len(orig_pts))]
     # relative size of original and downsampled
@@ -98,13 +102,35 @@ def main():
     results['final_pts_mean'] = int(statistics.mean(final_size))
     results['final_pts_std'] = int(statistics.stdev(final_size))
 
-    for key in sorted(results):
-        print("%s: %s" % (key, results[key]))
+    return results
 
-    texed = results_to_tex(results, True)
-    print(texed[0])
-    print(texed[1])
+    # for key in sorted(results):
+    #     print("%s: %s" % (key, results[key]))
+
+    # texed = results_to_tex(results, True)
+    # print(texed[0])
+    # print(texed[1])
     
+def main():
+    args = sys.argv[1:]
+    results = []
+    # go through all the filenames and extract results from each one
+    for fname in args:
+        print("Processing %s" % fname)
+        results.append(processFile(fname))
+
+    numbers = ""
+    times = ""
+    addhead = True
+    for result in results:
+        textuple = results_to_tex(result, addhead)
+        numbers += textuple[0]
+        times += textuple[1]
+        addhead = False
+
+    print(numbers)
+    print(times)
+
 if __name__ == '__main__':
     main()
 

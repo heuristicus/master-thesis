@@ -1,7 +1,13 @@
 #include "pclutil/cloudViewer.hpp"
 
+// blue, yellow, magenta, orange
+//static const std::vector<int> colours({0x0279ff, 0xf2ff00, 0xff0074, 0xff9a00});
+// dark blue, light blue, purple, dark yellow
+//static const std::vector<int> colours({0x3403ff, 0x0271ff, 0xae01ff, 0xffcf00});
+// pastel blue, green, purple, yellow
+static const std::vector<int> colours({0x6275df, 0x52e57e, 0xc852dc, 0xffd05b});
 
-void viewNormals(std::string cloudFile, std::string normalFile) {
+void viewNormals(std::string cloudFile, std::string normalFile, std::string cameraFile="NULL") {
     pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>());
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
 
@@ -10,14 +16,25 @@ void viewNormals(std::string cloudFile, std::string normalFile) {
     reader.read(normalFile, *normals);
 
     boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer ("Cloud Viewer"));
-    viewer->setBackgroundColor(0, 0, 0);
+    viewer->setBackgroundColor(1, 1, 1);
+
+
     pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(cloud);
     viewer->addPointCloud<pcl::PointXYZRGB>(cloud, rgb, "cloud");
-    viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "cloud");
+    viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "cloud");
+    if (cameraFile.compare("NULL") != 0){
+	viewer->loadCameraParameters(cameraFile);
+    } else {
+	viewer->initCameraParameters();
+    }
     
-    viewer->addPointCloudNormals<pcl::PointXYZRGB, pcl::Normal>(cloud, normals, 10, 0.15, "normals");
+    viewer->addPointCloudNormals<pcl::PointXYZRGB, pcl::Normal>(cloud, normals, 10, 0.05, "normals");
+
+    int r, g, b;
+    objsearch::pclutil::hexToRGB(colours[3], r, g, b);
+    viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, r/255.0, g/255.0, b/255.0, "normals"); 
 	    
-    viewer->initCameraParameters();
+
 	    
     while (!viewer->wasStopped()) {
     	viewer->spinOnce(100);
@@ -26,12 +43,7 @@ void viewNormals(std::string cloudFile, std::string normalFile) {
 }
 
 void viewClouds(std::vector<std::string> cloudFiles, bool cameraFile, bool colour, bool showOrigin) {
-    // blue, yellow, magenta, orange
-    //static const std::vector<int> colours({0x0279ff, 0xf2ff00, 0xff0074, 0xff9a00});
-    // dark blue, light blue, purple, dark yellow
-    //static const std::vector<int> colours({0x3403ff, 0x0271ff, 0xae01ff, 0xffcf00});
-    // pastel blue, green, purple, yellow
-    static const std::vector<int> colours({0x6275df, 0x52e57e, 0xc852dc, 0xffd05b});
+
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
 
     pcl::PCDReader reader;
@@ -63,7 +75,10 @@ void viewClouds(std::vector<std::string> cloudFiles, bool cameraFile, bool colou
     }
     if (cameraFile) {
 	viewer->loadCameraParameters(cloudFiles.back());
+    } else {
+	viewer->initCameraParameters();
     }
+    
     viewer->setShowFPS(false);
 
     while (!viewer->wasStopped()) {
@@ -100,7 +115,11 @@ int main(int argc, char *argv[]) {
     }
 
     if (req[1] == 'n') {
-	viewNormals(argv[2], argv[3]);
+	if (req.find('c') != std::string::npos){
+	    viewNormals(argv[2], argv[3], argv[4]);
+	} else {
+	    viewNormals(argv[2], argv[3]);
+	}
     } else if (req[1] == 'm') {
 	std::vector<std::string> clouds;
 	for (int i = 2; i < argc; i++) {

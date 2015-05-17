@@ -344,6 +344,10 @@ namespace objsearch {
 	    if (isDir(path)) {
 		return true;
 	    }
+
+	    if (isFile(path)) {
+		path = cleanDirPath(trimPath(path, 1));
+	    }
 	
 	    int trimNum = 0; // start off by trimming nothing
 	    std::string tPath; // store a trimmed path here
@@ -368,6 +372,7 @@ namespace objsearch {
 	    // creating the child. If an error occurs, change the return value to
 	    // indicate that some error occurred.
 	    while (!toCreate.empty()) {
+		std::cout << toCreate.back() << std::endl;
 		int r = mkdir(toCreate.back().c_str(), S_IRWXU | S_IRWXG | S_IROTH);
 		if (r == -1) {
 		    std::cout << "Did not mkdir " << path << ": ";

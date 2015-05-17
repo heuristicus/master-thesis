@@ -551,16 +551,24 @@ namespace objsearch {
 		= pclutil::getRawAnnotatedClouds<pcl::PointXYZRGB>(cloudDir_);
 	    pcl::PointCloud<pcl::Normal>::Ptr normalCloud(new pcl::PointCloud<pcl::Normal>());
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformedCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-		
+
+	    pcl::VoxelGrid<pcl::PointXYZRGB> sor;
 	    for (size_t i = 0; i < annotations.size(); i++) {
 		ROS_INFO("%s", annotations[i].fname.c_str());
+		// first need to downsample to get the annotation clouds looking
+		// like the others
+		sor.setInputCloud(annotations[i].cloud);
+		sor.setLeafSize(downsampleLeafSize_, downsampleLeafSize_,
+				downsampleLeafSize_);
+		sor.filter(*(annotations[i].cloud));
+	
 		// annotations start off in the same frame as the complete
 		// cloud, so just apply the same transform as is applied to
 		// everything else
 		pcl_ros::transformPointCloud(*(annotations[i].cloud), *transformedCloud, cloudTransform);
 		// also need to compute the normals so that the annotated
 		// clouds can have features computed from them
-		computeNormals(annotations[i].cloud, normalCloud, cloudTransform, normalRadiusFeature_);
+		computeNormals(transformedCloud, normalCloud, cloudTransform, normalRadiusFeature_);
 
 		// get the file name
 		std::string nameRoot = sysutil::trimPath(annotations[i].fname, -1);
@@ -804,4 +812,5 @@ int main(int argc, char *argv[]) {
 	std::cout << e.what() << std::endl;
 	return 1; // fail
     }
+    ros::shutdown();
 }
