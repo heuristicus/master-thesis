@@ -33,5 +33,5 @@
   <arg name="regions" default="false"/>
   <param name="/object_query/output_regions" value="$(arg regions)" />
   
-  <node name="object_query" pkg="object_query" type="query_object" output="screen" />
+  <node name="object_query" pkg="object_query" type="query_object" output="screen" required="true"/>
 </launch>

@@ -108,5 +108,5 @@
   <param name="/preprocess/compute_normals" value="$(arg normals)" />
 
 
-  <node name="preprocess" pkg="preprocess" type="preprocess" output="screen" />
+  <node name="preprocess" pkg="preprocess" type="preprocess" output="screen" required="true"/>
 </launch>

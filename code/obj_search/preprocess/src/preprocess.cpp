@@ -603,13 +603,13 @@ namespace objsearch {
 	int PreprocessRoom::extractPlanes(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 					   pcl::PointCloud<pcl::Normal>::Ptr& normals){
 	    if (doComputeNormals_){
-		pcl::SACSegmentationFromNormals<pcl::PointXYZRGB, pcl::Normal> seg;
+		pcl::SACSegmentationFromNormals<pcl::PointXYZRGB, pcl::Normal> seg(true);
 		seg.setModelType(pcl::SACMODEL_NORMAL_PLANE);
 		seg.setInputNormals(normals);
 		seg.setEpsAngle(0.25);
 		return extractPlanes(seg, cloud, normals);
 	    } else {
-		pcl::SACSegmentation<pcl::PointXYZRGB> seg;
+		pcl::SACSegmentation<pcl::PointXYZRGB> seg(true);
 		seg.setModelType(pcl::SACMODEL_PLANE);
 		return extractPlanes(seg, cloud, normals);
 	    }

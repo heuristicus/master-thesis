@@ -130,5 +130,5 @@
   <arg name="pfhrgb_radius" default="0.05"/>
   <param name="/feature_extraction/pfhrgb_radius" value="$(arg pfhrgb_radius)" />
   
-  <node name="feature_extraction" pkg="feature_extraction" type="extract_features" output="screen" />
+  <node name="feature_extraction" pkg="feature_extraction" type="extract_features" output="screen" required="true"/>
 </launch>
