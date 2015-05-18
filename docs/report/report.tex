@@ -4,6 +4,7 @@
 \usepackage[backend=bibtex]{biblatex}
 % \usepackage[top=1cm]{geometry}
 \usepackage{subfig}
+\usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{moreverb}
@@ -647,6 +648,11 @@ constructed using frames taken from a sweep where the camera is pointing
 slightly below the horizontal. Examples of the raw clouds can be seen in
 Figure~\ref{fig:orig}.
 
+We also have a number of subsets of the raw cloud which represent objects in the
+raw cloud. These annotation clouds are generally quite small, varying in size
+from 134 points to 14,149. We also apply some preprocessing steps for these
+clouds.
+
 \begin{figure}
   \centering
   \includegraphics[width=0.49\textwidth]{images/orig_side}
@@ -655,6 +661,23 @@ Figure~\ref{fig:orig}.
   \includegraphics[width=0.49\textwidth]{images/orig_diag_right}
   \caption{Sample raw cloud viewed from several angles}
   \label{fig:orig}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \subfloat[backpack1]{\includegraphics[width=0.30\textwidth]{images/annotations/original/backpack1_front_ut}}
+  \subfloat[backpack2]{\includegraphics[width=0.30\textwidth]{images/annotations/original/backpack2_front_ut}}
+  \subfloat[helmet]{\includegraphics[width=0.30\textwidth]{images/annotations/original/helmet_front_ut}}\\
+  \subfloat[chair3]{\includegraphics[width=0.30\textwidth]{images/annotations/original/chair3_front_ut}}
+  \subfloat[pillow3]{\includegraphics[width=0.30\textwidth]{images/annotations/original/pillow3_front_ut}}
+  \subfloat[laptop1]{\includegraphics[width=0.30\textwidth]{images/annotations/original/laptop1_front_ut}}\\
+  \subfloat[laptop2]{\includegraphics[width=0.30\textwidth]{images/annotations/original/laptop2_front_ut}}
+  \subfloat[hanger\_jacket]{\includegraphics[width=0.30\textwidth]{images/annotations/original/hanger_jacket_front_ut}}
+  \subfloat[trash\_bin]{\includegraphics[width=0.30\textwidth]{images/annotations/original/trash_bin_front_ut}}\\
+  \subfloat[chair1]{\includegraphics[width=0.30\textwidth]{images/annotations/original/chair1_front_ut}}
+  \subfloat[chair2]{\includegraphics[width=0.30\textwidth]{images/annotations/original/chair2_front_ut}}
+  \caption{Selection of objects from the dataset.}
+  \label{fig:objects_ut}
 \end{figure}
 
 \subsection{Downsampling}
@@ -724,6 +747,16 @@ downsampling can reduce this slicing effect.
 \end{figure}
 
 \subsection{Transformation and Trimming}
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.8\textwidth]{images/orig_transformed}
+  \caption{Original cloud and the transformed cloud. The original cloud
+    is on the right. The coordinate axis shows the global reference frame ---
+    none of the axes are aligned for the original cloud, but the transformed
+    cloud is well aligned with the $x$-$y$ plane.}
+  \label{fig:orig_transformed}
+\end{figure}
+
 Once the cloud has been downsampled, there is a little more that needs to be
 done in order to get the cloud into a convenient form. The raw data that we have
 has clouds which have their origin at the position of the camera while the room
@@ -756,30 +789,118 @@ Figure~\ref{fig:trimmed} shows the end result of this step.
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.8\textwidth]{images/orig_transformed}
-  \caption{Original cloud and the transformed cloud. The original cloud
-    is on the right. The coordinate axis shows the global reference frame ---
-    none of the axes are aligned for the original cloud, but the transformed
-    cloud is well aligned with the $x$-$y$ plane.}
-  \label{fig:orig_transformed}
-\end{figure}
-
-\begin{figure}
-  \centering
-  \includegraphics[width=0.49\textwidth]{images/trimmed_side}
-  \includegraphics[width=0.49\textwidth]{images/trimmed_top}
-  \includegraphics[width=0.49\textwidth]{images/trimmed_diag_left}
-  \includegraphics[width=0.49\textwidth]{images/trimmed_diag_right}
+  \includegraphics[width=0.45\textwidth]{images/trimmed_side}
+  \includegraphics[width=0.45\textwidth]{images/trimmed_top}
+  \includegraphics[width=0.45\textwidth]{images/trimmed_diag_left}
+  \includegraphics[width=0.45\textwidth]{images/trimmed_diag_right}
   \caption{Result of trimming step. Transformed cloud is blue, trimmed is green.}
   \label{fig:trimmed}
 \end{figure}
+
+\subsection{Plane Extraction}
+Having extracted normals from the cloud, we come to what is the most costly
+preprocessing step. Due to the structured nature of our dataset, the number of
+planes present in the clouds is quite high. While the presence of planes can be
+used to define surfaces and the like, in our system we are not interested in
+using the planes for anything in particular, and as such removing them from the
+cloud is good, because we remove a large portion of points in the clouds which
+are not be parts of any object, speeding up computation time of subsequent
+steps. An example of the result of this step can be seen in
+Figure~\ref{fig:plane_extr}.
+
+\begin{figure}
+  \centering
+  
+  \caption{Example of the result of plane extraction.}
+  \label{fig:plane_extr}
+\end{figure}
+
+Plane extraction is done by running RANSAC multiple times with a plane model. A
+plane can be described by its general form equation
+\begin{equation}
+  \label{eq:1}
+  ax+by+cz+d=0
+\end{equation}
+where the normal vector $\mathbf{n}$ is defined by the coefficients $a$, $b$ and
+$c$. To get the model coefficients, RANSAC samples three points ($p_1,p_2$ and
+$p_3$) from the input cloud. From these three points, the normal is computed
+using the cross product \cite{planeeq}
+
+\begin{equation}
+  \label{eq:2}
+  \mathbf{n}=(p_2-p_1)\times(p_3-p_1)
+\end{equation}
+
+Once the plane coefficients have been computed, we must find the inlier points of this
+plane model, based on their distance to the plane. The perpendicular distance of
+a point $p$ to a plane is
+\begin{equation}
+  \label{eq:3}
+  D=\frac{\mathbf{n}\cdot p + d}{\mid \mathbf{n} \mid}
+\end{equation}
+
+A point is considered to be an inlier if $D<D_t$, where $D_t$ is some threshold
+on the distance. The RANSAC algorithm repeats the point sampling $n$ times,
+storing the plane coefficients and number of inliers. At the end of the process,
+the best plane the one with the largest number of inliers.
+
+While this simple formulation can work well, there can be issues where the
+planes that are extracted are not actually planes, due to there being regions in
+the cloud where there can be a large number of inliers, but no actual plane, as
+seen in Figure~\ref{fig:planenormal}. This effect can be mitigated by including
+a single additional step to the inlier check, which also looks at the angle
+between the plane normal and the normal at the point, computed by
+\begin{equation}
+  \label{eq:5}
+  \theta=\cos^{-1}(\mathbf{n}\cdot p)
+\end{equation}
+
+A point is then considered an inlier only if it passes the distance threshold
+check and $\theta<\theta_t$, where $\theta_t$ is the threshold on the angle.
+This simple addition gives much more consistent results.
+
+The RANSAC implementation that we are working with uses only a single distance
+computation
+\begin{align}
+  \label{eq:6}
+  D_a&=w\theta + (1-w)D\\
+  w&=(1-p_c)w_n
+\end{align}
+where $p_c$ is the curvature at the point $p$, and $w_n$ is a predefined weight
+on the distance between the point and plane normals. $p_c\rightarrow 0$ on flat
+surfaces, so in these regions the normal will have a higher influence on the
+aggregate distance $D_a$, whereas in regions of high curvature the euclidean
+distance will be more important. Inliers are points where $D_a<T$.
+
+\begin{figure}
+  \centering
+  
+  \caption{RANSAC with basic plane model and with plane-normal model.}
+  \label{fig:planenormal}
+\end{figure}
+
+When extracting planes, we use several parameters in addition to the aggregate
+distance threshold $T$ to tweak the behaviour. The main aim of the additional
+parameters is to prevent planes which are too small from being extracted. We
+set a hard limit on the total number of planes which can be extracted, and also
+define a threshold on the minimum number of points $N_{\min}$ in a plane.
+\begin{equation}
+  \label{eq:7}
+  N_{\min}=\max(\eta N_{\text{trim}},\, N_{\text{fixed}})
+\end{equation}
+where $\eta$ is a small positive positive value. Since we are dealing with large
+clouds, a suitable range of values is $\left[0.02,0.05\right]$.
+$N_{\text{trim}}$ is the number of points in the trimmed cloud.
+$N_{\text{fixed}}$ is a fixed value. We choose the maximum of the two values to
+ensure that fluctuations in the cloud size are compensated for.
+
 \subsection{Normal Estimation}
 In this step, normals are estimated for each point in the cloud. The normal at a
 point is the vector which is perpendicular to the curvature of the surface at
 that point. By estimating normals for clouds, we can get some more information
 about the surface structure of the cloud. Normals are used in several parts of
-the system, including by feature selection methods and features. They are also
-used in the plane extraction step to increase accuracy.
+the system, including by feature selection methods and features. As mentioned
+above, they are also used in the plane extraction step to increase accuracy.
 
 There are many ways of estimating normals, but the method we use is formulated
 as a least squares plane fitting problem, which is used to estimate the normal
@@ -800,25 +921,85 @@ shows an example of the effect of different neighbourhood sizes on the results.
 \begin{figure}
   \centering
   \includegraphics[width=0.49\textwidth]{images/normals_comb}
-  \caption{Example of the smoothing effect of normal computation radius. From
+  \caption{Example of the smoothing effect of normal estimation radius. From
     bottom to top, 0.01, 0.025, 0.5, 0.2, 0.25, 0.5cm radius. Normals are
-    indicated by orange lines. Note the tendency of normals with higher radius to
-    tilt as they approach the corner. Normals on the top section are slightly
+    indicated by orange lines. Note the tendency of normals with higher radius
+    to tilt as they approach the corner. Normals on the top section are slightly
     skewed due to perspective.}
   \label{fig:normal_corner}
 \end{figure}
 
-Normal and plane extraction section order
-depends partly on the order in which it is done. Talk about how normal
-extraction can help with plane extraction, if I do that.
-\subsection{Plane Extraction}
-Basic description of RANSAC or whichever of its extensions I end up using.
+Include figure with annotation objects with different normal radius
+
+During preprocessing we compute two different sets of normals using different
+settings for the radius. One set is for use with plane extraction, which has a
+higher value for the radius, somewhat mitigating the effect of noise on the
+normals, and resulting in less patchy extraction of planes
+(Figure~\ref{fig:plane_normrad}).
+
+\begin{figure}
+  \centering
+  
+  \caption{Planes extracted with different settings for the normal radius}
+  \label{fig:plane_normrad}
+\end{figure}
+
+\subsection{Annotations}
+To ensure that the annotations for each cloud are in a similar form, we apply
+the downsampling, transformation and normal extraction steps. The downsampling
+step is particularly important here, as the raw annotations have issues with a
+``slicing'' effect caused by the positioning of the camera when the frames were
+taken, and its depth resolution (Figure~\ref{fig:slicing}). Using the raw clouds
+to compute features would most likely result in worse performance as the surface
+structure of the cloud is essentially a series of stacked planes, which would
+lead to finding similar points anywhere where there is a flat surface.
+
+\begin{figure}
+  \centering
+  \subfloat[Before downsampling]{
+    \label{fig:slicing}
+  }
+  \subfloat[After downsampling]{}
+  \caption{Annotations original and downsampled}
+  \label{fig:annotation_ds}
+\end{figure}
 \section{Interest Point Selection}
+Once the preprocessing step has been completed, we can move on to computing
+features from the processed clouds. First, however, we need to choose the points
+at which the features will be computed. The idea of interest point selection is
+to choose points in the cloud which are better in some way than other points for
+feature extraction --- which points these are depends on the method used. In this
+section we will describe in some detail the methods that we use.
+
+\subsection{Uniform}
+The first and most obvious method of selecting points for feature extraction is
+not to try to select interesting points at all, but to simply spread points
+uniformly over the space. With this method, one would expect to extract a larger
+number of points than with targeted methods, and since the entire space is
+covered, it is unlikely that there will be any omissions of points that are
+interesting.
+
+The problem with having a large number of points is that this results in more
+features having to be computed and compared in later stages.
+
+To compute the uniform points, we simply downsample the cloud once more. The
+size of the voxels used determines the spread of the points over the space ---
+the behaviour of this method is determined entirely by a single parameter.
+\subsection{ISS}
+\subsection{SUSAN}
+\subsection{SIFT}
+\subsection{Harris}
 \section{Feature Extraction}
 Talk specifically about each of the features used and their good/bad points, and
 how the features extraction is done (not particularly complex, probably)
+\subsection{SHOT}
+\subsection{SHOTCOLOR}
+\subsection{USC}
+\subsection{PFH}
+\subsection{FPFH}
+\subsection{PFHRGB}
+
 \section{Object Query}
-Query methods, how the database and query object are compared.
 
 \chapter{Experimental Results}
 \label{chap:exp}
