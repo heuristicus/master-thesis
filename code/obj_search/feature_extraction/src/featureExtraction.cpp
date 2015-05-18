@@ -109,28 +109,39 @@ namespace objsearch {
 		throw sysutil::objsearchexception("Could not create output directory");
 	    }
 
+	    std::string dataFile = dataOutput + "featuredata_" + featureType_ + "_" + interestType_+ "_" + timeNow + ".txt";
 	    // Dump parameters used for this run
 	    // dangerous, but otherwise annoying to output all parameters individually.
-	    std::string command("rosparam dump " + dataOutput + "featureparams_" + timeNow + ".yaml");
+	    std::string command("rosparam dump " + dataFile);
 	    ROS_INFO("Calling system with command %s", command.c_str());
 	    int ret = system(command.c_str());
 	    ROS_INFO("System command returned %d", ret);
 
-	    // print some information about what files will be processed
-	    size_t i;
-	    for (i = 0; i < 10 && i < roomFiles.size(); i++) {
-		ROS_INFO("%s", roomFiles[i].c_str());
-	    }
-	    if (i >= 10) {
-		ROS_INFO("And more...");
-	    }
 
-	    bool append = false;
-	    std::string dataFile = dataOutput + "featuredata_" + timeNow + ".txt";
+	    // dirty, dirty hack to make sure that no feature files or
+	    // normal files are read as data. Also because regex support in
+	    // standard C++11 totally sucks for some reason
+	    auto eraseHack = [](std::string s){
+		if (s.find_first_of('<') != std::string::npos
+		    || s.find("normals") != std::string::npos) {
+		    return true;
+		}
+		return false;
+	    };
+
+	    roomFiles.erase(std::remove_if(roomFiles.begin(), roomFiles.end(), eraseHack), roomFiles.end());
+	    
+	    bool first = true;
 	    std::vector<std::string> errors;
 	    for (auto it = roomFiles.begin() + cloudOffset_; it != roomFiles.end(); it++) {
+		
+		if ((*it).find_first_of('<') != std::string::npos
+		    || (*it).find("normals") != std::string::npos) {
+		    continue;
+		}
 		ROS_INFO("----------Extracting features from cloud %d of %d----------\n%s",
 			 (int)(it - roomFiles.begin()) + 1, (int)roomFiles.size(), (*it).c_str());
+
 		// this is used in filename creation for the extracted features and
 		// locations so that they can be paired up when doing queries
 		dateTime_ = sysutil::getDateTimeString();
@@ -140,8 +151,8 @@ namespace objsearch {
 		initPaths(*it);
 		try {
 		    FeatureInfo info = extractFeatures();
-		    writeInfo(dataFile, info, append);
-		    append = true;
+		    writeInfo(dataFile, info, first);
+		    first = false;
 		} catch (std::exception& e){
 		    ROS_INFO("Exception while processing file %s - skipping.", (*it).c_str());
 		    ROS_INFO("%s", e.what());
@@ -150,21 +161,18 @@ namespace objsearch {
 	    }
 	}
 
-	void FeatureExtractor::writeInfo(std::string outPath, FeatureInfo info, bool append) {
+	void FeatureExtractor::writeInfo(std::string outPath, FeatureInfo info, bool first) {
 	    std::ofstream file;
-	    if (append){
-		file.open(outPath, std::ios::app);
-	    } else {
-		file.open(outPath);
-	    }
+	    file.open(outPath, std::ios::app);
 
 	    // write the column headers: filename for the information output,
 	    // number of points before modification, number of points selected
 	    // for feature computation, time taken for selection, time taken for
 	    // feature computation
-	    if (!append) {
+	    if (first) {
 		// if not appending, put headers to the columns and the
 		// directory/file the program was run on
+		file << "BEGIN_DATA" << std::endl;
 		file << "#filename n_pre n_feature t_select t_feature" << std::endl;
 	    }
 

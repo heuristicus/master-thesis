@@ -167,7 +167,7 @@ namespace objsearch {
 	std::vector<std::string> listFilesWithString(std::string path, std::string s,
 						     bool recursive) {
 	    // convert the string to a regex and pass it to the main function
-	    std::regex r = std::regex(std::string(".*" + s + ".*"));
+	    std::regex r = std::regex(std::string(".*" + s + ".*"), std::regex_constants::extended);
 	    return listFilesWithString(path, r, recursive);
 	}
 

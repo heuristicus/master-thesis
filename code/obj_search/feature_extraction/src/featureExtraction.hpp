@@ -62,7 +62,7 @@ namespace objsearch {
 	    void writeDescriptorLocs(const typename pcl::PointCloud<PointType>::Ptr& points);
 	    template<typename DescType>
 	    void writeDescriptors(const typename pcl::PointCloud<DescType>::Ptr& descriptors);
-	    void writeInfo(std::string outPath, FeatureInfo info, bool append);
+	    void writeInfo(std::string outPath, FeatureInfo info, bool first);
 	    void loadNormals(pcl::PointCloud<pcl::Normal>::Ptr& normals);
 	    void initPaths(std::string path);
 	    std::string makeDescriptorLocationFileName();
