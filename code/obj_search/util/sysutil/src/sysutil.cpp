@@ -345,10 +345,15 @@ namespace objsearch {
 		return true;
 	    }
 
-	    if (isFile(path)) {
-		path = cleanDirPath(trimPath(path, 1));
+	    path = cleanDirPath(path); // make sure there is no trailing slash
+
+	    // check if the basename is a file by looking for a '.'. This means
+	    // that you can't create hidden directories, but that shouldn't
+	    // matter.
+	    if (trimPath(path, -1).find('.') != std::string::npos) {
+		path = trimPath(path, -1);
 	    }
-	
+
 	    int trimNum = 0; // start off by trimming nothing
 	    std::string tPath; // store a trimmed path here
 	    std::vector<std::string> toCreate; // store the paths we need to create here
@@ -358,7 +363,7 @@ namespace objsearch {
 	    // vector and create them in reverse order so that the parent directory
 	    // always exists when creating a child.
 	    while (!isDir(tPath = trimPath(path, trimNum++))){
-		toCreate.push_back(tPath);
+		toCreate.push_back(cleanDirPath(tPath));
 	    }
 
 	    // If no directories were added to the vector then we aren't going to create any
@@ -372,7 +377,6 @@ namespace objsearch {
 	    // creating the child. If an error occurs, change the return value to
 	    // indicate that some error occurred.
 	    while (!toCreate.empty()) {
-		std::cout << toCreate.back() << std::endl;
 		int r = mkdir(toCreate.back().c_str(), S_IRWXU | S_IRWXG | S_IROTH);
 		if (r == -1) {
 		    std::cout << "Did not mkdir " << path << ": ";

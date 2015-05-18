@@ -59,7 +59,7 @@
 
   <!-- Additional cutoffs that can be used to filter points in the cloud. These
        filters are applied after the cloud is transformed -->
-  <!-- Set to true to perfrom additional filtering -->
+  <!-- Set to true to perform additional filtering -->
   <arg name="filter_y" default="false" />
   <param name="/preprocess/filter_y" value="$(arg filter_y)" />
   <arg name="y_filter_max" default="NULL" />

@@ -2,32 +2,33 @@
 import sys
 import statistics
 
+# to convert to better format, use org-table-convert-region and org-table-transpose-at-point
 def results_to_tex(results, addheader=False):
     number_line = ""
     if (addheader):
-        number_line += "Original & Downsampled & Trimmed & Num planes & Points on planes & After preprocessing\\\\\hline\n"
+        number_line += "Original Downsampled Trimmed NPlanes Planes Final\\\\\hline\n"
     else:
         number_line += "\n"
     
-    number_line += str(results['orig_pts_mean']) + "\pm" + str(results['orig_pts_std']) + " & "
-    number_line += str(results['downsample_pts_mean']) + "\pm" + str(results['downsample_pts_std']) + " & "
-    number_line += str(results['trim_pts_mean']) + "\pm" + str(results['trim_pts_std']) + " & "
-    number_line += "%.2f" % results['num_planes_mean']  + "\pm" +  "%.2f" % results['num_planes_std'] + "&"
-    number_line += str(results['plane_pts_mean']) + "\pm" + str(results['plane_pts_std']) + " & "
+    number_line += str(results['orig_pts_mean']) + "\pm" + str(results['orig_pts_std']) + " "
+    number_line += str(results['downsample_pts_mean']) + "\pm" + str(results['downsample_pts_std']) + " "
+    number_line += str(results['trim_pts_mean']) + "\pm" + str(results['trim_pts_std']) + " "
+    number_line += "%.2f" % results['num_planes_mean']  + "\pm" +  "%.2f" % results['num_planes_std'] + " "
+    number_line += str(results['plane_pts_mean']) + "\pm" + str(results['plane_pts_std']) + " "
     number_line += str(results['final_pts_mean']) + "\pm" + str(results['final_pts_std']) + "\\\\"
 
     time_line = ""
     if (addheader):
-        time_line += "Load & Downsample & Trim & Normals & Planes & per plane time \\\\\hline\n"
+        time_line += "Load Downsample Trim Normals Planes \\\\\hline\n"
     else:
         time_line += "\n"
-        
-    time_line += "%.2f" % results['load_time_mean']  + "\pm" +  "%.2f" % results['load_time_std'] + " & "
-    time_line += "%.2f" % results['downsample_time_mean']  + "\pm" +  "%.2f" % results['downsample_time_std'] + " & "
-    time_line += "%.2f" % results['trim_time_mean']  + "\pm" +  "%.2f" % results['trim_time_std'] + " & "
-    time_line += "%.2f" % results['normals_time_mean']  + "\pm" +  "%.2f" % results['normals_time_std'] + " & "
-    time_line += "%.2f" % results['plane_time_mean']  + "\pm" +  "%.2f" % results['plane_time_std'] + " & "
-    time_line += "%.2f" % results['time_per_plane_mean']  + "\pm" +  "%.2f" % results['time_per_plane_std']
+
+    time_line += "%.2f" % results['load_time_mean']  + "\pm" +  "%.2f" % results['load_time_std'] + " "
+    time_line += "%.2f" % results['downsample_time_mean']  + "\pm" +  "%.2f" % results['downsample_time_std'] + " "
+    time_line += "%.2f" % results['trim_time_mean']  + "\pm" +  "%.2f" % results['trim_time_std'] + " "
+    time_line += "%.2f" % results['normals_time_mean']  + "\pm" +  "%.2f" % results['normals_time_std'] + " "
+    time_line += "%.2f" % results['plane_time_mean']  + "\pm" +  "%.2f" % results['plane_time_std'] + " "
+    time_line += "%.2f" % results['time_per_plane_mean']  + "\pm" +  "%.2f" % results['time_per_plane_std'] + " "
     time_line += "\\\\"
     return number_line, time_line
 

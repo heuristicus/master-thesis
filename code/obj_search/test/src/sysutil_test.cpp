@@ -260,5 +260,30 @@ namespace testing {
 	    rmdir("/tmp/ob_search");
 	}
 
+	TEST(sysutilTest, makeDirs_trailingslash){
+	    std::string testDir("/tmp/ob_search/tstdir/");
+	    ASSERT_TRUE(makeDirs(testDir));
+	    ASSERT_TRUE(isDir("/tmp/ob_search"));
+	    ASSERT_TRUE(isDir("/tmp/ob_search/tstdir"));
+	    rmdir("/tmp/ob_search/tstdir");
+	    rmdir("/tmp/ob_search");
+	}
+
+	TEST(sysutilTest, makeDirs_file){
+	    std::string testDir("/tmp/ob_search/tstdir/item/chain/file.txt");
+	    ASSERT_TRUE(makeDirs(testDir));
+	    ASSERT_TRUE(isDir("/tmp/ob_search"));
+	    ASSERT_TRUE(isDir("/tmp/ob_search/tstdir"));
+	    ASSERT_TRUE(isDir("/tmp/ob_search/tstdir/item"));
+	    ASSERT_TRUE(isDir("/tmp/ob_search/tstdir/item/chain"));
+	    ASSERT_FALSE(isDir("/tmp/ob_search/tstdir/item/chain/file.txt"));
+	    rmdir("/tmp/ob_search/tstdir/item/chain/file.txt");
+	    rmdir("/tmp/ob_search/tstdir/item/chain");
+	    rmdir("/tmp/ob_search/tstdir/item");
+	    rmdir("/tmp/ob_search/tstdir");
+	    rmdir("/tmp/ob_search");	    
+	}
+
+
     } // namespace sysutil
 } // namespace testing
