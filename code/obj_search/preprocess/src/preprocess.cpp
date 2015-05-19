@@ -730,17 +730,7 @@ namespace objsearch {
 	    ROS_INFO("All planes size after loop: %d", (int)allPlanes->size());
 	    ROS_INFO("Remaining points size after loop: %d",
 		     (int)intermediateCloud->size());
-
-	    if ((int)allPlanes->size() == 0) {
-		return 0;
-	    }
-	    
-	    // Make sure to swap out the fully filtered intermediate cloud into
-	    // the cloud that will be visible outside
-	    cloud.swap(intermediateCloud);
-	    
 	    ROS_INFO("Outputting results to: %s", outPath_.c_str());
-
 
 	    // add a suffix so that it is possible to match intermediate or
 	    // complete clouds easier with simple regex
@@ -748,25 +738,36 @@ namespace objsearch {
 	    if (type_ == CloudType::INTERMEDIATE) {
 		suffix = "_inter";
 	    }
-	    // Write the extracted planes and the remaining points to separate files
-	    writer.write<pcl::PointXYZRGB>(sysutil::fullDirPath(outPath_)
-					   + outPrefix_ + "allPlanes" + suffix + ".pcd",
-					   *allPlanes, true);
+
+	    // Make sure to swap out the fully filtered intermediate cloud into
+	    // the cloud that will be visible outside
+	    cloud.swap(intermediateCloud);
+	    
+	    // always save the cloud as nonplanes, even if no planes were extracted.
 	    writer.write<pcl::PointXYZRGB>(sysutil::fullDirPath(outPath_)
 					   + outPrefix_ + "nonPlanes" + suffix + ".pcd",
 					   *cloud, true);
-	    ROS_INFO("Done");
 
-	    // colour the inliers so we can tell them apart easily
-	    for (auto it = allPlanes->begin(); it != allPlanes->end(); it++) {
-		it->r = 255;
-		it->b = 255;
+	    // if some planes were extracted, write them to a file
+	    if (allPlanes->size() != 0) {
+		// Write the extracted planes and the remaining points to separate files
+		writer.write<pcl::PointXYZRGB>(sysutil::fullDirPath(outPath_)
+					       + outPrefix_ + "allPlanes" + suffix + ".pcd",
+					       *allPlanes, true);
 	    }
 
-	    // After the process is finished, combine the extracted planes and the other
-	    // points together again so that they can be displayed
-	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr fullCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-	    *fullCloud = *allPlanes + *remainingPoints;
+	    ROS_INFO("Done");
+
+	    // // colour the inliers so we can tell them apart easily
+	    // for (auto it = allPlanes->begin(); it != allPlanes->end(); it++) {
+	    // 	it->r = 255;
+	    // 	it->b = 255;
+	    // }
+
+	    // // After the process is finished, combine the extracted planes and the other
+	    // // points together again so that they can be displayed
+	    // pcl::PointCloud<pcl::PointXYZRGB>::Ptr fullCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+	    // *fullCloud = *allPlanes + *remainingPoints;
 
 	    // number of planes extracted.
 	    return nplanes + 1 - skipped;

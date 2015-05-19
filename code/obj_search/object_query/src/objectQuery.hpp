@@ -38,6 +38,12 @@ namespace objsearch {
 
 	class ObjectQuery {
 	public:
+	    struct QueryInfo {
+		std::string fname;
+		float queryTime;
+		float houghTime;
+	    };
+	    
 	    ObjectQuery(int argc, char *argv[]);
 
 	    bool initAndCheckPaths(std::string path);

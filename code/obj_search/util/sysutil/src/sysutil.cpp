@@ -92,7 +92,8 @@ namespace objsearch {
 	    while (!directories.empty()) {
 		std::string curDir = directories.front();
 		directories.pop();
-		if ((dir = opendir(curDir.c_str())) != NULL) {
+		dir = opendir(curDir.c_str());
+		if (dir != NULL) {
 		    while ((ent = readdir(dir)) != NULL) {
 			// ignore current and parent dirs
 			if (strcmp(ent->d_name, ".") == 0 
@@ -116,6 +117,7 @@ namespace objsearch {
 		    perror("");
 		    std::cout << "Error processing " << path.c_str() << std::endl;
 		}
+		closedir(dir);
 	    }
 	    return c;
 	}

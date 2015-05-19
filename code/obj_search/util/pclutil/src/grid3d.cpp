@@ -64,7 +64,6 @@ namespace objsearch {
 	    xOffset_ = _xOffset;
 	    yOffset_ = _yOffset;
 	    zOffset_ = _zOffset;
-	    
 
 	    width_ = std::ceil(xDim_/xStep_);
 	    height_ = std::ceil(zDim_/zStep_); 
@@ -115,6 +114,12 @@ namespace objsearch {
 	 */
 	int Grid3D::indexFromDimIndices(int x, int y, int z) {
 	    // http://stackoverflow.com/questions/7367770/how-to-flatten-or-index-3d-array-in-1d-array
+	    if (x >= width_ || y > depth_ || z > height_){
+		std::string error("Dimension exceeds limit\nxmax = " + std::to_string(width_) + ", x = " + std::to_string(x)
+				  + "\nymax = " + std::to_string(depth_) + ", y = " + std::to_string(y)
+				  + "\nzmax = " + std::to_string(height_) + ", z = " + std::to_string(z));
+		throw sysutil::objsearchexception(error);
+	    }
 	    return x + width_ * (y + z * depth_);
 	}
 
@@ -131,6 +136,15 @@ namespace objsearch {
 	    return cellCentreFromIndex(x, y, z);
 	}
 
+	/** 
+	 * Get the centre of a cell specified by its 3d indices
+	 * 
+	 * @param x 
+	 * @param y 
+	 * @param z 
+	 * 
+	 * @return 
+	 */
 	pcl::PointXYZ Grid3D::cellCentreFromIndex(int x, int y, int z){
 	    return pcl::PointXYZ(xStep_/2 + x * xStep_ + xOffset_,
 				 yStep_/2 + y * yStep_ + yOffset_,
@@ -161,9 +175,9 @@ namespace objsearch {
 	    pcl::PointXYZ point;
 	    // the second part gives the minimum point in the cell on that axis,
 	    // centre is where half the step for that axis is added
-	    point.x = xOffset_ + xStep_/2 + std::floor((x - xOffset_)/xStep_) * xStep_;
-	    point.y = yOffset_ + yStep_/2 + std::floor((y - yOffset_)/yStep_) * yStep_;
-	    point.z = zOffset_ + zStep_/2 + std::floor((z - zOffset_)/zStep_) * zStep_;
+	    point.x = xOffset_ + xStep_/2 + std::floor((x + xOffset_)/xStep_) * xStep_;
+	    point.y = yOffset_ + yStep_/2 + std::floor((y + yOffset_)/yStep_) * yStep_;
+	    point.z = zOffset_ + zStep_/2 + std::floor((z + zOffset_)/zStep_) * zStep_;
 	    return point;
 	}
 
@@ -177,7 +191,6 @@ namespace objsearch {
 	    for (size_t i = 0; i < values_.size(); i++) {
 		centres.push_back(cellCentreFromIndex(i));
 	    }
-
 	    return centres;
 	}
 	
@@ -225,9 +238,13 @@ namespace objsearch {
 	 * @param z 3d z index
 	 */
 	void Grid3D::indexUnflatten(int index, int& x, int& y, int& z) {
+	    if (index >= (int)values_.size()) {
+		std::string error("Index is out of bounds. Vector length: " + std::to_string(values_.size()) + " requested index: " + std::to_string(index));
+		throw sysutil::objsearchexception(error);
+	    }
 	    z = std::floor(index / (width_ * depth_));
 	    y = (int)std::floor(index / width_) % depth_;
-	    x = index % x;
+	    x = index % width_;
 	}
 
 	/** 
@@ -300,10 +317,12 @@ namespace objsearch {
 	 */
 	void Grid3D::toPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud) {
 	    std::vector<pcl::PointXYZ> centres = allCentres();
-
-	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr voteCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
 	    int maxVal = getMax().second;
 	    for (size_t i = 0; i < centres.size(); i++) {
+		int value = at(i);
+		if (value == 0) {
+		    continue;
+		}
 		pcl::PointXYZRGB np;
 		np.x = centres[i].x;
 		np.y = centres[i].y;
@@ -312,8 +331,7 @@ namespace objsearch {
 		np.r = colour.r * 255;
 		np.g = colour.g * 255;
 		np.b = colour.b * 255;
-		
-		voteCloud->push_back(np);
+		cloud->push_back(np);
 	    }
 	}
 

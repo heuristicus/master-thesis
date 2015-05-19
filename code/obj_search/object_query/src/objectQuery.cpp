@@ -35,7 +35,7 @@ namespace objsearch {
 	    }
 
 	    // Query info is always the same, so initialise everything here.
-	    // Stuff about the target will be initialised every loop. In the
+	    // Stuff about the target will be initialised every loop in the
 	    // doSearch function
 	    
 	    // extract the remaining directories in the path of the file so that
@@ -51,6 +51,7 @@ namespace objsearch {
 	    // output directory. The output will be written to a location for
 	    // the query cloud, for each of the target clouds used.
 	    outPath_ = sysutil::fullDirPath(sysutil::combinePaths(outDir_, dataSubDir_));
+	    ROS_INFO("Output path is %s", outPath_.c_str());
 	    // the file containing the feature locations of the query file can
 	    // be found in the same directory, with the same date-time stamp. We
 	    // can use a regex to find the corresponding file, of which there
@@ -58,14 +59,18 @@ namespace objsearch {
 	    // originfile<descriptortype_interesttype_date_time.pcd
 	    // remove the preceding path and the extension from the query file
 	    std::string trimmedName = sysutil::removeExtension(queryFile_, -1);
+	    ROS_INFO("Trimmed name is %s", trimmedName.c_str());
 	    // we know that the date/time makes up the last 19 characters of the
 	    // string, and we want to remove the preceding underscore as well
 	    std::string dateTime = std::string(trimmedName.begin() + trimmedName.length() - 19,
 					       trimmedName.end());
+	    ROS_INFO("Date time is %s", dateTime.c_str());
+	    
 	    // remainder of the string containing information about the original
 	    // name, interest and descriptor types
 	    std::string remainder = std::string(trimmedName.begin(), trimmedName.begin() + trimmedName.length() - 20);
-
+	    ROS_INFO("Remainder is %s", remainder.c_str());
+	    
 	    // we are interested in extracting the interest point type and the original filename
 	    int indicator = remainder.find_last_of('_');
 	    // interest type is the part of the string after the last _
@@ -109,9 +114,7 @@ namespace objsearch {
 		} else { // otherwise, match the string and process those files
 		    targetClouds_ = sysutil::listFilesWithString(targetFile_, match, true);
 		}
-//		dataOutput = sysutil::fullDirPath(outPath_) + "featureparams_" + timeNow + ".yaml";
 	    } else { // is a file, so just process that
-//		dataOutput = sysutil::fullDirPath(outPath_) + "featureparams_" + timeNow + ".yaml";
 		targetClouds_.push_back(targetFile_);
 	    }
 
@@ -123,6 +126,8 @@ namespace objsearch {
 	    if (i >= 10) {
 		ROS_INFO("And more...");
 	    }
+
+	    std::string dataOutput = sysutil::fullDirPath(outPath_);
 
 	    // Depending on the type of the descriptor in the cloud, we need to
 	    // instantiate a different template for the search function
@@ -136,7 +141,7 @@ namespace objsearch {
 		    doSearch<pcl::SHOT1344>();
 		} else {
 		    ROS_ERROR("Unknown descriptor field specifier: %s", queryType_.c_str());
-		    exit(1);
+		    throw sysutil::objsearchexception("Unknown descriptor field specifier");;
 		}
 	    } else if (queryType_.find("pfh") != std::string::npos) {
 		if (queryType_.compare("pfh") == 0) {
@@ -147,13 +152,13 @@ namespace objsearch {
 		    doSearch<pcl::PFHRGBSignature250>();
 		} else {
 		    ROS_ERROR("Unknown descriptor field specifier: %s", queryType_.c_str());
-		    exit(1);
+		    throw sysutil::objsearchexception("Unknown descriptor field specifier");;
 		}
 	    } else if (queryType_.compare("shape_context") == 0) {
 		doSearch<pcl::ShapeContext1980>();
 	    } else {
 		ROS_ERROR("Unknown descriptor field specifier: %s", queryType_.c_str());
-                exit(1);
+                throw sysutil::objsearchexception("Unknown descriptor field specifier");;
 	    }
 	}
 
@@ -205,7 +210,7 @@ namespace objsearch {
 
 	    if (matches.size() == 0){
 		ROS_INFO("No matches for descriptor location file of %s", targetFile_.c_str());
-		exit(1);
+		throw sysutil::objsearchexception("No matches for descriptor location file.");
 	    }
 	    
 	    targetPointFile_ = matches[0];
@@ -352,6 +357,8 @@ namespace objsearch {
 	    pcl::PointXYZRGB min;
 	    pcl::PointXYZRGB max;
 	    pcl::getMinMax3D(*targetPoints, min, max);
+	    ROS_INFO("min: %f, %f, %f", min.x, min.y, min.z);
+	    ROS_INFO("max: %f, %f, %f", max.x, max.y, max.z);
 	    ROS_INFO("Grid dimensions %f, %f, %f", max.x - min.x, max.y - min.y, max.z - min.z);
 	    pclutil::Grid3D grid(max.x - min.x, max.y - min.y, max.z - min.z,
 				 xStepHough_, yStepHough_, zStepHough_,
@@ -376,6 +383,7 @@ namespace objsearch {
 	template<typename DescType>
 	void ObjectQuery::doSearch() {
 	    ROS_INFO("Doing descriptor search.");
+	    QueryInfo info;
 	    
 	    pcl::PCDReader reader;
 
@@ -415,6 +423,7 @@ namespace objsearch {
 		    continue;
 		}
 
+		// load the points and computed features for the target cloud
 		pcl::PointCloud<pcl::PointXYZRGB>::Ptr targetPoints(new pcl::PointCloud<pcl::PointXYZRGB>());
 		typename pcl::PointCloud<DescType>::Ptr targetFeatures(new pcl::PointCloud<DescType>());
 
@@ -429,7 +438,8 @@ namespace objsearch {
 		// Loop over all points in the query cloud
 		std::vector<std::vector<int> > nearest((int)queryFeatures->size());
 		std::vector<std::vector<float> > square_dists((int)queryFeatures->size());
-		// Initialise vectors to store the closest K points to the query point.	
+		// Initialise vectors to store the closest K points to the query point.
+		ros::Time queryStart = ros::Time::now();
 		for (int i = 0; i < queryFeatures->size(); i++) {
 		    ROS_INFO("Query point %d of %d", i + 1, (int)queryFeatures->size());
 		    // some features may have nan values and will crash if not excluded.
@@ -439,11 +449,13 @@ namespace objsearch {
 		    // Search for the closest K points to the query point
 		    search->nearestKSearch(queryFeatures->points[i], K_, nearest[i], square_dists[i]);
 		}
+		info.queryTime = (ros::Time::now() - queryStart).toSec();
 		ROS_INFO("Finished finding neighbours");
 
 		// do hough voting using the computed neighbours
+		ros::Time houghStart = ros::Time::now();
 		pclutil::Grid3D grid = houghVoting(targetPoints, nearest, square_dists);
-
+		info.houghTime = (ros::Time::now() - houghStart).toSec();
 		// find the point in the hough grid with the maximum value -
 		// this should indicate the point in the target cloud which most
 		// closely matches the query object
@@ -464,49 +476,48 @@ namespace objsearch {
 		pcl::PCDWriter writer;
 		writer.write<pcl::PointXYZRGB>(out, *voteCloud, true);
 
+	// 	exit(1);
+	// 	annotatePointsOBB(sysutil::trimPath(targetPointFile_, 2), targetPoints, indicesTarget, labelsTarget);
+	// 	ROS_INFO("target: %d annotated points of %d total", (int)indicesTarget.size(), (int)targetPoints->size());
 
-		exit(1);
-		annotatePointsOBB(sysutil::trimPath(targetPointFile_, 2), targetPoints, indicesTarget, labelsTarget);
-		ROS_INFO("target: %d annotated points of %d total", (int)indicesTarget.size(), (int)targetPoints->size());
 
+	// 	std::map<std::string, int> matches;
+	// 	// go through all the nearest neighbours of the query points which
+	// 	// have labels and see if there are matches
+	// 	for (size_t i = 0; i < indicesQuery.size(); i++) {
+	// 	    std::string currentQueryLabel = labelsQuery[i];
+	// 	    ROS_INFO("Checking matches for label %s at index %d",
+	// 		     currentQueryLabel.c_str(), indicesQuery[i]);
+	// 	    std::vector<int>& neigh = nearest[indicesQuery[i]];
+	// 	    ROS_INFO("Num neighbours %d", (int)neigh.size());
+	// 	    // go through the neighbours of this point
+	// 	    for (auto it = neigh.begin(); it != neigh.end(); it++) {
+	// 		ROS_INFO("Checking neighbour with target index %d", *it);
+	// 		// if the indices of labelled points in the target cloud
+	// 		// contain the neighbour we are looking at, and it has the
+	// 		// same label as the current point we are looking at in the
+	// 		// query cloud. 
+	// 		auto indit = std::find(indicesTarget.begin(),
+	// 				       indicesTarget.end(), *it);
+	// 		if (indit != indicesTarget.end()){
+	// 		    ROS_INFO("Found target index %d at location %d", (int)*it, (int)(indit - indicesTarget.begin()));
+	// 		    std::string targetLabel = labelsTarget[indit - indicesTarget.begin()];
+	// 		    ROS_INFO("Label is %s", targetLabel.c_str());
+	// 		    if (currentQueryLabel.compare(targetLabel) == 0){
+	// 			ROS_INFO("Labels match");
+	// 			// increment matches for the label
+	// 			matches[currentQueryLabel]++;
+	// 		    }
+	// 		}
+	// 	    }
+	// 	}
 
-		std::map<std::string, int> matches;
-		// go through all the nearest neighbours of the query points which
-		// have labels and see if there are matches
-		for (size_t i = 0; i < indicesQuery.size(); i++) {
-		    std::string currentQueryLabel = labelsQuery[i];
-		    ROS_INFO("Checking matches for label %s at index %d",
-			     currentQueryLabel.c_str(), indicesQuery[i]);
-		    std::vector<int>& neigh = nearest[indicesQuery[i]];
-		    ROS_INFO("Num neighbours %d", (int)neigh.size());
-		    // go through the neighbours of this point
-		    for (auto it = neigh.begin(); it != neigh.end(); it++) {
-			ROS_INFO("Checking neighbour with target index %d", *it);
-			// if the indices of labelled points in the target cloud
-			// contain the neighbour we are looking at, and it has the
-			// same label as the current point we are looking at in the
-			// query cloud. 
-			auto indit = std::find(indicesTarget.begin(),
-					       indicesTarget.end(), *it);
-			if (indit != indicesTarget.end()){
-			    ROS_INFO("Found target index %d at location %d", (int)*it, (int)(indit - indicesTarget.begin()));
-			    std::string targetLabel = labelsTarget[indit - indicesTarget.begin()];
-			    ROS_INFO("Label is %s", targetLabel.c_str());
-			    if (currentQueryLabel.compare(targetLabel) == 0){
-				ROS_INFO("Labels match");
-				// increment matches for the label
-				matches[currentQueryLabel]++;
-			    }
-			}
-		    }
-		}
+	// 	for (auto it=matches.begin(); it!=matches.end(); ++it)
+	// 	    std::cout << it->first << " => " << it->second << '\n';
 
-		for (auto it=matches.begin(); it!=matches.end(); ++it)
-		    std::cout << it->first << " => " << it->second << '\n';
-
-		ROS_INFO("Search complete");
-	    }
-	}
+	// 	ROS_INFO("Search complete");
+	//     }
+	// }
 
 	// void outputRegions(){
 	//     // if output regions is set, then we want to extract regions around the points at which features were computed
@@ -579,13 +590,12 @@ namespace objsearch {
 	// 	    std::string targetRegionOut = outPath_ + "nn" + std::to_string(i) + ".pcd";
 	// 	    ROS_INFO("Outputting target point region to %s", targetRegionOut.c_str());
 	// 	    writer.write<pcl::PointXYZRGB>(targetRegionOut, *regionPoints, true);
-	// 	}
-	// }
-
+	    }
+	}
+    
     } // namespace objectquery
 } // namespace obj_search
 
 int main(int argc, char *argv[]) {
     objsearch::objectquery::ObjectQuery oq(argc, argv);
-    exit(1); // exit to terminate ros
 }
