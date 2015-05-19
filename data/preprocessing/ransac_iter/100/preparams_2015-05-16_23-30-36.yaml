@@ -1,0 +1,19 @@
+obj_search: {camera_z: 1.7, ceiling_z: 2.27, floor_z: 0, processed_data_dir: /home/michal/Downloads/pcddata/processed/,
+  raw_data_dir: /home/michal/Downloads/pcddata/raw/}
+preprocess: {RANSAC_distance_threshold: 0.05, RANSAC_iterations: 100, ceiling_offset: 0.2,
+  cloud: /home/michal/Downloads/pcddata/raw/annotated/rares/, cloud_offset: 40, compute_normals: true,
+  downsample: true, downsample_increment: 0.005, downsample_leafsize: 0.01, extract_planes: true,
+  filter_x: true, filter_y: false, floor_offset: 0.2, match: 'NULL', min_plane_points_complete: 20000,
+  min_plane_points_intermediate: 4500, min_plane_prop_complete: 0.02, min_plane_prop_intermediate: 0.05,
+  normal_radius_feature: 0.03, normal_radius_plane: 0.08, output_dir: /home/michal/Downloads/pcddata/processed/annotated/rares/paramtest/iter100/,
+  plane_skip_limit: 2, planes_to_extract: 10, rotate_annotations: true, save_planes: false,
+  trim_cloud: true, x_filter_max: -1, x_filter_min: -10, y_filter_max: 'NULL', y_filter_min: 'NULL'}
+rosdistro: 'indigo
+
+  '
+roslaunch:
+  uris: {host_tycho__56271: 'http://tycho:56271/'}
+rosversion: '1.11.10
+
+  '
+run_id: c9b1987e-fc12-11e4-9c2d-3c970e77227e

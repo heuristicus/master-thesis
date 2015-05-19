@@ -1,0 +1,13 @@
+#filename n_pre n_downsample n_trim n_rmplane t_load t_downsample t_trim t_normals n_plane t_plane
+/home/michal/Downloads/pcddata/raw/annotated/rares/20140820/patrol_run_2/room_1/complete_cloud.pcd 4327973 979503 825912 663982 1.47746 1.21715 0.242821 35.7418 9 356.397
+/home/michal/Downloads/pcddata/raw/annotated/rares/20140820/patrol_run_4/room_0/complete_cloud.pcd 4433059 1001472 831894 626089 1.93943 1.34941 0.258256 40.3389 11 356.798
+/home/michal/Downloads/pcddata/raw/annotated/rares/20140828/patrol_run_19/room_3/complete_cloud.pcd 4465332 1014457 855121 685667 1.46421 1.03792 0.131795 34.5925 11 363.729
+/home/michal/Downloads/pcddata/raw/annotated/rares/20140829/patrol_run_20/room_3/complete_cloud.pcd 4400326 1022336 855394 707420 1.88635 1.25936 0.249578 56.3923 9 407.949
+/home/michal/Downloads/pcddata/raw/annotated/rares/20140829/patrol_run_26/room_2/complete_cloud.pcd 4428777 1030963 865890 711463 2.23677 1.27572 0.254905 36.2214 10 398.507
+/home/michal/Downloads/pcddata/raw/annotated/rares/20140901/patrol_run_27/room_2/complete_cloud.pcd 4326496 995002 838151 673043 2.30727 1.20268 0.240694 35.4495 11 369.099
+/home/michal/Downloads/pcddata/raw/annotated/rares/20140901/patrol_run_31/room_2/complete_cloud.pcd 4127021 948733 785358 618664 1.60249 1.14671 0.10344 30.0454 11 338.548
+/home/michal/Downloads/pcddata/raw/annotated/rares/20140901/patrol_run_32/room_2/complete_cloud.pcd 4393258 1050886 871581 677209 1.75013 1.22752 0.113813 36.6872 11 367.544
+/home/michal/Downloads/pcddata/raw/annotated/rares/20140901/patrol_run_33/room_1/complete_cloud.pcd 4453838 1053614 873324 678615 1.62458 1.13219 0.116713 34.055 11 354.099
+/home/michal/Downloads/pcddata/raw/annotated/rares/20140901/patrol_run_34/room_2/complete_cloud.pcd 4455234 1066313 888865 697300 1.63584 0.880645 0.241737 42.1851 11 381.566
+/home/michal/Downloads/pcddata/raw/annotated/rares/20140902/patrol_run_35/room_2/complete_cloud.pcd 4194666 932554 779762 609734 1.2121 1.08384 0.102596 31.7864 11 330.177
+/home/michal/Downloads/pcddata/raw/annotated/rares/20140902/patrol_run_38/room_0/complete_cloud.pcd 4053236 933942 746226 569288 1.62659 1.15379 0.20311 29.8789 10 319.05

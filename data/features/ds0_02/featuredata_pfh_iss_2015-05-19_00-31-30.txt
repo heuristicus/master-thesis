@@ -1,0 +1,87 @@
+feature_extraction: {cloud_offset: 0, downsample_leaf_size: 0.05, feature_selection: iss,
+  feature_type: pfh, fpfh_radius: 0.05, harris_nonmax: true, harris_radius: 0.05,
+  harris_refine: true, harris_thresh: 0.001, input_cloud: /home/michal/Downloads/pcddata/processed/paramtest/ds0_02,
+  iss_min_neighbours: 5, iss_nonmax_mult: 4, iss_salient_mult: 6, iss_thresh21: 0.975,
+  iss_thresh32: 0.975, match: 'NULL', output_dir: 'NULL', pfh_radius: 0.05, pfhrgb_radius: 0.05,
+  shot_radius: 0.05, sift_min_contrast: 0, sift_min_scale: 0.05, sift_octave_scales: 5,
+  sift_octaves: 4, susan_ang_thresh: 0.001, susan_dist_thresh: 0.001, susan_intensity_thresh: 7,
+  susan_nonmax: true, susan_radius: 0.05, usc_density_radius: 0.01, usc_local_radius: 0.05,
+  usc_minimal_radius: 0.005, usc_radius: 0.05}
+obj_search: {camera_z: 1.7, ceiling_z: 2.27, floor_z: 0, processed_data_dir: /home/michal/Downloads/pcddata/processed/,
+  raw_data_dir: /home/michal/Downloads/pcddata/raw/}
+rosdistro: 'indigo
+
+  '
+roslaunch:
+  uris: {host_tycho__58225: 'http://tycho:58225/'}
+rosversion: '1.11.10
+
+  '
+run_id: a079455a-fdad-11e4-9b8a-3c970e77227e
+BEGIN_DATA
+#filename n_pre n_feature t_select t_feature
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140820/patrol_run_2/room_1/nonPlanes.pcd 179969 0 0 1.00483
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140820/patrol_run_4/room_0/nonPlanes.pcd 179282 0 0 0.979742
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140901/patrol_run_27/room_2/nonPlanes.pcd 173730 0 0 0.920106
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140901/patrol_run_31/room_2/nonPlanes.pcd 165436 0 0 1.00467
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140901/patrol_run_32/room_2/nonPlanes.pcd 180856 0 0 0.968673
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140902/patrol_run_35/room_2/nonPlanes.pcd 155260 0 0 0.878702
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140902/patrol_run_38/room_0/nonPlanes.pcd 156493 0 0 0.9867
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140903/patrol_run_1/room_4/nonPlanes.pcd 181244 0 0 1.14964
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140903/patrol_run_10/room_2/nonPlanes.pcd 154201 0 0 0.819633
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140903/patrol_run_12/room_2/nonPlanes.pcd 180969 0 0 1.16255
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140903/patrol_run_14/room_1/nonPlanes.pcd 181125 0 0 0.818239
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140903/patrol_run_9/room_2/nonPlanes.pcd 163464 0 0 1.08575
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140904/patrol_run_15/room_2/nonPlanes.pcd 176977 0 0 0.974235
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140905/patrol_run_21/room_2/nonPlanes.pcd 180957 0 0 1.18971
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140905/patrol_run_23/room_2/nonPlanes.pcd 166202 0 0 0.897771
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140905/patrol_run_25/room_1/nonPlanes.pcd 154682 0 0 0.826979
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140905/patrol_run_27/room_2/nonPlanes.pcd 156894 0 0 1.0334
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140905/patrol_run_29/room_2/nonPlanes.pcd 154769 0 0 1.01218
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140908/patrol_run_32/room_2/nonPlanes.pcd 180100 0 0 1.17445
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140908/patrol_run_36/room_3/nonPlanes.pcd 172683 0 0 0.827946
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140908/patrol_run_38/room_2/nonPlanes.pcd 172669 0 0 0.920962
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140908/patrol_run_39/room_3/nonPlanes.pcd 169346 0 0 1.08075
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140908/patrol_run_41/room_3/nonPlanes.pcd 174389 0 0 1.1271
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140908/patrol_run_43/room_3/nonPlanes.pcd 181428 0 0 1.14736
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140908/patrol_run_45/room_2/nonPlanes.pcd 175098 0 0 0.908696
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140908/patrol_run_47/room_3/nonPlanes.pcd 182305 0 0 1.14738
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140909/patrol_run_49/room_3/nonPlanes.pcd 180496 0 0 0.952602
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140909/patrol_run_51/room_3/nonPlanes.pcd 168815 0 0 0.877482
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140909/patrol_run_53/room_3/nonPlanes.pcd 169998 0 0 1.07064
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140909/patrol_run_55/room_3/nonPlanes.pcd 183763 0 0 0.97007
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140909/patrol_run_59/room_3/nonPlanes.pcd 179659 0 0 1.14915
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140909/patrol_run_61/room_3/nonPlanes.pcd 177383 0 0 0.907266
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140909/patrol_run_63/room_3/nonPlanes.pcd 182294 0 0 0.958166
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140910/patrol_run_67/room_3/nonPlanes.pcd 180307 0 0 0.936686
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140910/patrol_run_74/room_3/nonPlanes.pcd 168079 0 0 0.661711
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140910/patrol_run_77/room_4/nonPlanes.pcd 168971 0 0 1.06548
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140910/patrol_run_79/room_2/nonPlanes.pcd 161335 0 0 0.832066
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140910/patrol_run_81/room_2/nonPlanes.pcd 182781 0 0 1.17143
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140911/patrol_run_84/room_3/nonPlanes.pcd 177748 0 0 1.11172
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140911/patrol_run_90/room_3/nonPlanes.pcd 162211 0 0 0.870343
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140911/patrol_run_92/room_3/nonPlanes.pcd 154963 0 0 0.821231
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140912/patrol_run_100/room_3/nonPlanes.pcd 181881 0 0 1.12383
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140912/patrol_run_104/room_3/nonPlanes.pcd 176886 0 0 1.16574
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140912/patrol_run_94/room_3/nonPlanes.pcd 172355 0 0 0.921163
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140912/patrol_run_98/room_3/nonPlanes.pcd 177767 0 0 0.796035
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140921/patrol_run_110/room_2/nonPlanes.pcd 186877 0 0 1.19896
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140921/patrol_run_114/room_1/nonPlanes.pcd 180372 0 0 0.985816
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140922/patrol_run_118/room_2/nonPlanes.pcd 179332 0 0 0.990095
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140922/patrol_run_120/room_1/nonPlanes.pcd 180983 0 0 0.945824
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140922/patrol_run_124/room_2/nonPlanes.pcd 191333 0 0 1.17453
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140922/patrol_run_126/room_2/nonPlanes.pcd 179947 0 0 1.1482
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140922/patrol_run_130/room_2/nonPlanes.pcd 176945 0 0 1.2171
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140922/patrol_run_132/room_1/nonPlanes.pcd 178782 0 0 1.14402
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140922/patrol_run_134/room_2/nonPlanes.pcd 175827 0 0 0.80838
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140922/patrol_run_138/room_2/nonPlanes.pcd 184913 0 0 1.22193
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140923/patrol_run_139/room_2/nonPlanes.pcd 179065 0 0 1.12346
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140923/patrol_run_141/room_2/nonPlanes.pcd 179432 0 0 1.00184
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140923/patrol_run_144/room_2/nonPlanes.pcd 183873 0 0 0.986263
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140923/patrol_run_150/room_2/nonPlanes.pcd 175824 0 0 0.805099
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140924/patrol_run_152/room_2/nonPlanes.pcd 149921 0 0 0.947431
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140924/patrol_run_156/room_2/nonPlanes.pcd 157530 0 0 1.01124
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140924/patrol_run_158/room_1/nonPlanes.pcd 153307 0 0 0.801482
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140924/patrol_run_162/room_2/nonPlanes.pcd 153230 0 0 0.82542
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140924/patrol_run_164/room_1/nonPlanes.pcd 156474 0 0 0.907335
+/home/michal/Downloads/pcddata/processed/paramtest/ds0_02/annotated/rares/20140924/patrol_run_166/room_2/nonPlanes.pcd 159357 0 0 0.893692

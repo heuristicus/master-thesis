@@ -1,0 +1,2 @@
+#filename n_pre n_feature t_select t_feature
+/home/michal/Downloads/pcddata/processed/annotated/rares/20140909/patrol_run_59/room_3/nonPlanes.pcd 377662 7060 16.1548 6.80587
