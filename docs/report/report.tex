@@ -536,38 +536,39 @@ points cannot be used. By modifying the radius of the sphere used to generate
 the descriptor, interest points at different scales can be selected
 \cite{gelfand2005robust}.
 
-% \section{Point Matching}
-% In \cite{chui2003new}, Chui and Rangarajan introduce an extension to ICP which
-% allows for non-rigid registration and improved robustness to outliers. In
-% contrast to ICP, their approach does not use the nearest-neighbour approach to
-% define correspondence. Instead, they use an alternating algorithm similar to
-% expectation maximisation. Annealing is used to prevent binary correspondences
-% when the algorithm is not yet close to the solution --- at the beginning there
-% is a large search range for correspondences, which gradually shrinks as the
-% temperature decreases.
+\section{Matching Point Clouds}
+\subsection{Point Matching}
+In \cite{chui2003new}, Chui and Rangarajan introduce an extension to ICP which
+allows for non-rigid registration and improved robustness to outliers. In
+contrast to ICP, their approach does not use the nearest-neighbour approach to
+define correspondence. Instead, they use an alternating algorithm similar to
+expectation maximisation. Annealing is used to prevent binary correspondences
+when the algorithm is not yet close to the solution --- at the beginning there
+is a large search range for correspondences, which gradually shrinks as the
+temperature decreases.
 
-% \section{Model Matching}
-% \begin{figure}
-%   \centering
-%   \subfloat[Conformal factors. High value indicates high required deformation to
-%   sphere \cite{ben2008characterizing}.]{
-%     \includegraphics[width=0.48\textwidth]{images/conformal.png}
-%     \label{fig:conform}
-%   }
-%   \caption{Model matching approaches}
-%   \label{fig:modelmatch}
-% \end{figure}
-% In \cite{ben2008characterizing}, Chen et al. describe another approach to model
-% matching using conformal factors. This technique uses ideas from conformal
-% geometry, transforming the mesh of an object such that it has a uniform Gaussian
-% curvature. Information is stored about how much deformation is needed locally to
-% globally transform the object into a sphere --- this is the conformal factor.
-% The factor is based on a global computation on the whole mesh, as opposed to
-% per-vertex computations of the Gaussian curvature, which makes it much smoother
-% and appropriate for use in histograms. The histogram of a sample of the factors
-% is used as a descriptor, and is pose invariant, as seen in
-% Figure~\ref{fig:conform}. The authors say that it should be possible to use the
-% approach in partial model matching.
+\subsection{Model Matching}
+\begin{figure}
+  \centering
+  \subfloat[Conformal factors. High value indicates high required deformation to
+  sphere \cite{ben2008characterizing}.]{
+    \includegraphics[width=0.48\textwidth]{images/conformal.png}
+    \label{fig:conform}
+  }
+  \caption{Model matching approaches}
+  \label{fig:modelmatch}
+\end{figure}
+In \cite{ben2008characterizing}, Chen et al. describe another approach to model
+matching using conformal factors. This technique uses ideas from conformal
+geometry, transforming the mesh of an object such that it has a uniform Gaussian
+curvature. Information is stored about how much deformation is needed locally to
+globally transform the object into a sphere --- this is the conformal factor.
+The factor is based on a global computation on the whole mesh, as opposed to
+per-vertex computations of the Gaussian curvature, which makes it much smoother
+and appropriate for use in histograms. The histogram of a sample of the factors
+is used as a descriptor, and is pose invariant, as seen in
+Figure~\ref{fig:conform}. The authors say that it should be possible to use the
+approach in partial model matching.
 
 \section{Storing and Querying Descriptors}
 There are several techniques for storing and querying descriptors, mostly based
@@ -968,8 +969,9 @@ Once the preprocessing step has been completed, we can move on to computing
 features from the processed clouds. First, however, we need to choose the points
 at which the features will be computed. The idea of interest point selection is
 to choose points in the cloud which are better in some way than other points for
-feature extraction --- which points these are depends on the method used. In this
-section we will describe in some detail the methods that we use.
+feature extraction --- which points these are depends on the method used. In
+this section we will describe in some detail the methods that we use. All of the
+methods used are part of the PCL keypoints library \cite{pcl_keypoints}.
 
 \subsection{Uniform}
 The first and most obvious method of selecting points for feature extraction is
@@ -986,7 +988,96 @@ To compute the uniform points, we simply downsample the cloud once more. The
 size of the voxels used determines the spread of the points over the space ---
 the behaviour of this method is determined entirely by a single parameter.
 \subsection{ISS}
+Zhong~\cite{zhong2009intrinsic} introduces the intrinsic shape signature
+interest point selection method as one of a series of steps in the computation
+of the ISS descriptor introduced in the same paper.
+
+The main component of this method is the scatter matrix, which is the covariance
+matrix of points within a spherical region around a sample point. For a point
+$p_i$, the $3\times 3$ scatter matrix is
+\begin{equation}
+  \label{eq:4}
+  S(p_i)=\sum_{\mid p_j - p_i \mid < r_s}(p_j-p_i)(p_j-p_i)^T
+\end{equation}
+where $p_j$ is another point in the cloud. $r_s$ defines the saliency radius,
+which limits the points which we consider to be in the neighbourhood of $p_i$.
+Interest points are only extracted in regions where there are at least $n_{min}$
+points in the neighbourhood of $p_i$.
+
+Once $S$ is computed, its eigenvalues $\lambda^1_i, \lambda^2_i$ and
+$\lambda^3_i$ (with decreasing magnitude) are extracted. The smallest eigenvalue
+$\lambda^3_i$ can be used to measure the 3D point variations in the
+neighbourhood of the point \cite{zhong2009intrinsic}. If it happens that two of
+the eigenvalues computed are equal, the reference frame of the point can become
+ambiguous, so limits are applied to the ratio of the eigenvalues such that
+\begin{equation}
+  \label{eq:8}
+  \frac{\lambda^2_i}{\lambda^1_i}&< \gamma_{21},\, \frac{\lambda^3_i}{\lambda^2_i}&< \gamma_{32}
+\end{equation}
+
+With this formulation, it is likely that more points are considered interest
+points than are not. To thin the interest points further, non-maximum
+suppression is used. Essentially, this removes from the interest points any
+point where the value of $\lambda^3_i$ at the point is not the maximum in the
+neighbourhood of the point. This neighbourhood is defined by the radius $r_{n}$,
+whose value is usually distinct from the value of $r_s$.
 \subsection{SUSAN}
+The SUSAN (Smallest Univalue Segment Assimilating Nucleus) detector is based on
+an algorithm introduced for 2D feature detection by Smith~\cite{smith1997susan}.
+We use an extension of this detector to 3D. The basis for the SUSAN principle
+comes from the concept of each image point having an associated local area which
+has intensity and normal direction values that are similar to it.
+
+A spherical region called the mask is defined, with some radius $r_m$ which has
+at its centre a point referred to as the nucleus. Looking at the points within
+the spherical region, we compare their values of the normal direction and
+intensity to the nucleus values. From this comparison, a region of space which
+has similar values to the nucleus can be defined. This region is known as the
+univalue segment assimilating nucleus or USAN. Figure~\ref{fig:susan_nucleus}
+shows this principle in the 2D case. The USAN contains information about the
+structure of the cloud in small region. Depending on the position of the nucleus
+in the cloud, the volume of the USAN will vary. In regions where all points are
+similar, the USAN is large, and it is small when the region has a large
+variation in point intensity and normal direction. Based on this observation,
+using the inverted USAN volume as a feature detector should result in the
+selection of descriptive points --- hence the name \emph{Smallest} USAN.
+
+To compute SUSAN keypoints, the following process is applied to each point $p_i$
+in the cloud. First, all points $p_j$ in the neighbourhood defined by $r_m$ are
+found. We then define the USAN and the centroid of the mask. In order to be
+considered as part of the USAN, a point must fulfill the inequalities
+\begin{align}
+  \label{eq:9}
+  \left|I_i-I_j\right|&\leq I_t\\
+  1-\mathbf{n}_i\cdot\mathbf{n}_j&\leq \theta_t
+\end{align}
+where $I$ is the intensity of a point, and $\mathbf{n}$ is the normal, and $I_t$
+and $\theta_t$ are user-defined thresholds on the intensity and angular
+difference. The intensity is computed from RGB values using
+\begin{align}
+  \label{eq:10}
+  I=\frac{r+g+b}{3}
+\end{align}
+
+We assume that each channel of the RGB value of a point has the same weight.
+
+The centroid $C$ is computed using
+\begin{equation}
+  \label{eq:11}
+  C=\frac{1}{\left|\text{USAN}\right|}\sum_{p_j \in \text{USAN}}p_j
+\end{equation}
+
+A geometric threshold is then applied to the USAN to ensure that the proportion
+of points in the neighbourhood is not too large. This threshold is set to 50\%
+of the neighbourhood.
+\begin{figure}
+  \centering
+  \includegraphics[width=0.48\textwidth]{images/susan1}
+  \includegraphics[width=0.48\textwidth]{images/susan}
+  \caption{Concept of nucleus and mask in 2D SUSAN detector. USAN is the white
+    region in the right image \cite{zhang2013susan}.}
+  \label{fig:susan_nucleus}
+\end{figure}
 \subsection{SIFT}
 \subsection{Harris}
 \section{Feature Extraction}
@@ -1000,6 +1091,7 @@ how the features extraction is done (not particularly complex, probably)
 \subsection{PFHRGB}
 
 \section{Object Query}
+flann citations \cite{muja2009fast, muja2014scalable}
 
 \chapter{Experimental Results}
 \label{chap:exp}
@@ -1042,6 +1134,8 @@ require it.
 This is evaluated in the previous two sections, but maybe there is more than one
 method of finding the query object. Multi-index tree vs single index tree, for
 example.
+
+
 \chapter{Conclusion and Further Work}
 \label{chap:conc}
 Describe what the project was about, what was achieved, summarise the
