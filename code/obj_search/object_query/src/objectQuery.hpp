@@ -42,6 +42,10 @@ namespace objsearch {
 		std::string fname;
 		float queryTime;
 		float houghTime;
+		int pointsInBox;
+		int votesInBox;
+		int pointsMaxInBox;
+		int votesMaxInBox;
 	    };
 	    
 	    ObjectQuery(int argc, char *argv[]);
@@ -55,7 +59,8 @@ namespace objsearch {
 		std::vector<float>& distances, float maxDist);
 	    void annotatePointsOBB(
 		std::string dir, const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
-		std::vector<int>& indices, std::vector<std::string>& labels);
+		std::vector<int>& indices, std::vector<std::string>& labels,
+		std::string queryLabel="NULL");
 	    pclutil::Grid3D houghVoting(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetPoints,
 			     const std::vector<std::vector<int> >& indices,
 			     const std::vector<std::vector<float> >& distances);
@@ -69,6 +74,7 @@ namespace objsearch {
 	    std::string outDir_;
 	    std::string outPath_;
 	    std::string queryType_;
+	    std::string queryObjectLabel_;
 
 	    float xStepHough_;
 	    float yStepHough_;

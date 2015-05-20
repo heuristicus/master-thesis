@@ -59,18 +59,23 @@ namespace objsearch {
 	 * rgb_0014_label_chair1.pcd. These files are automatically created by
 	 * preprocessing.
 	 * 
-	 * @param filePath Path to the directory containing processed clouds and their labels.
-	 * 
-	 * @return 
+	 * @param filePath Path to the directory containing processed clouds and
+	 * their labels.
+	 * @param label this defines an additional filter in the regex used -
+	 * can be used to find only files which have this label
+	 * @return
 	 */
 	template <typename PointT>
-	std::vector<AnnotatedCloud<PointT> > getProcessedAnnotatedClouds(std::string filePath) {
+	std::vector<AnnotatedCloud<PointT> > getProcessedAnnotatedClouds(std::string filePath, std::string label="NULL") {
 	    // get two sorted vectors containing the cloud files and txt data for the
 	    // annotations. They should be the same length.
 	    ROS_INFO("Searching %s for annotation clouds", filePath.c_str());
+
 	    
+	    std::string match(".*label" + (label.compare("NULL") == 0 ? ".*.pcd" : "_" + label + ".pcd"));
+	    ROS_INFO("Using match string %s", match.c_str());
 	    std::vector<std::string> matchesPCD = sysutil::listFilesWithString(
-		filePath, std::regex(".*label.*pcd"));
+		filePath, std::regex(match));
 	    std::sort(matchesPCD.begin(), matchesPCD.end());
 
 	    ROS_INFO("%d matches", (int)matchesPCD.size());

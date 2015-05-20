@@ -248,6 +248,41 @@ namespace objsearch {
 	}
 
 	/** 
+	 * Get a vector of pairs of two ints, containing the index and value at
+	 * that index
+	 * 
+	 * 
+	 * @return Vector containing indices and values at those indices.
+	 */
+	std::vector<std::pair<int, int> > Grid3D::getIndices() {
+	    // populate a vector with the index and value at that index
+	    std::vector<std::pair<int,int> > items;
+	    for (size_t i = 0; i < values_.size(); i++) {
+		items.push_back(std::pair<int, int>(i, values_[i]));
+	    }
+	    return items;
+	}
+
+	/** 
+	 * Get a vector containing all of the values in the grid, sorted in
+	 * descending order.
+	 * 
+	 * 
+	 * @return Vector of pairs of two ints, first is the index of the point,
+	 * second is the value. Sorted in descending order of value.
+	 */
+	std::vector<std::pair<int, int> > Grid3D::getRankedIndices() {
+	    auto comp = [](std::pair<int, int> p, std::pair<int, int> q){
+		return p.second > q.second;
+	    };
+	    
+	    // populate a vector with the index and value at that index
+	    std::vector<std::pair<int,int> > items = getIndices();
+	    std::sort(items.begin(), items.end(), comp);
+	    return items;
+	}
+
+	/** 
 	 * Get the centre of the cell with the maximum value, and the count in
 	 * that cell.
 	 * 
@@ -275,10 +310,7 @@ namespace objsearch {
 	    };
 	    
 	    // populate a vector with the index and value at that index
-	    std::vector<std::pair<int,int> > items;
-	    for (size_t i = 0; i < values_.size(); i++) {
-		items.push_back(std::pair<int, int>(i, values_[i]));
-	    }
+	    std::vector<std::pair<int,int> > items = getIndices();
 	    // partially sort the vector so that the first n elements are sorted
 	    // and the rest are in arbitrary order.
 	    std::partial_sort(items.begin(), items.begin() + n, items.end(), comp);

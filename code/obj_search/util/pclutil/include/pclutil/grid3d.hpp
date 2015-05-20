@@ -39,6 +39,8 @@ namespace objsearch {
 	    int pointIndex(float x, float y, float z);
 	    int pointIndex(const pcl::PointXYZ& point);
 	    void indexUnflatten(int index, int& x, int& y, int& z);
+	    std::vector<std::pair<int, int> > getRankedIndices();
+	    std::vector<std::pair<int, int> > getIndices();
 	    std::pair<pcl::PointXYZ, int> getMax();
 	    std::vector<std::pair<pcl::PointXYZ, int> > getMaxN(int n);
 	    std::pair<pcl::PointXYZ, int> getMin();

@@ -81,11 +81,20 @@ namespace objsearch {
 	    // the original file name starts at the beginning of the string and
 	    // ends at the first <
 	    std::string originalFname = std::string(remainder.begin(), remainder.begin() + indicator);
-	    
+	    // we assume that query objects have their label name in the
+	    // filename, following the string label_
+	    std::string labelPrefix("label_");
+	    int ind = originalFname.find(labelPrefix);
+	    if (ind == std::string::npos) {
+		throw sysutil::objsearchexception("Filename did not contain label prefix - could not extract a label");
+	    } else {
+		queryObjectLabel_ = std::string(originalFname, ind + labelPrefix.size());
+	    }
 	    ROS_INFO("datetime is %s", dateTime.c_str());
 	    ROS_INFO("remainder is %s", remainder.c_str());
 	    ROS_INFO("interesttype is %s", interestType.c_str());
 	    ROS_INFO("original filename is %s", originalFname.c_str());
+	    ROS_INFO("object label is %s", queryObjectLabel_.c_str());
 	    
 	    // now, find files in the directory which have the same interest
 	    // type and date+time. There should be only one, if there are any at
@@ -118,6 +127,32 @@ namespace objsearch {
 		}
 	    } else { // is a file, so just process that
 		targetClouds_.push_back(targetFile_);
+	    }
+
+	    // for simplicity, only look at clouds which have an annotation for
+	    // the object that is being queried.
+	    std::vector<int> toKeep;
+	    for (size_t i = 0; i < targetClouds_.size(); i++) {
+		// annotations are assumed to be found in the directory above
+		// the target cloud
+		std::string annotationDir = sysutil::trimPath(targetClouds_[i], 2);
+		std::vector<std::string> annotationFiles = sysutil::listFilesWithString(annotationDir, queryObjectLabel_ + ".pcd");
+		// there should be one and only one result.
+		if (annotationFiles.size() == 1) {
+		    toKeep.push_back(i);
+		}
+	    }
+
+	    // not very efficient, but only needs to be done once
+	    for (size_t i = 0; i < toKeep.size(); i++) {
+		targetClouds_[i] = targetClouds_[toKeep[i]];
+	    }
+	    targetClouds_.resize(toKeep.size());
+
+	    // error if there are no target clouds to look at.
+	    if (targetClouds_.size() == 0) {
+		ROS_INFO("No target clouds found in the specified location, or they were filtered out.");
+		throw sysutil::objsearchexception("Did not extract any valid target clouds.");
 	    }
 
 	    // print some information about what files will be processed
@@ -229,17 +264,25 @@ namespace objsearch {
 	 * @param dir The top level room directory containing the cloud of
 	 * interest (and more specifically the annotated clouds).
 	 * @param cloud The cloud containing points to annotate.
+	 * @param label the label of the specific annotation that we are
+	 * interested in using to label points
 	 * @param indices This vector will be populated with the indices of the
 	 * points which have been labelled
 	 * @param labels Will be populated with the labels of the points
 	 */
 	void ObjectQuery::annotatePointsOBB(
 	    std::string dir, const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
-	    std::vector<int>& indices, std::vector<std::string>& labels) {
+	    std::vector<int>& indices, std::vector<std::string>& labels,
+	    std::string queryLabel) {
 	    // load all the annotated clouds and compute their bounding boxes.
 	    // Don't care about rgb values
+	    indices.clear();
+	    labels.clear();
 	    std::vector<pclutil::AnnotatedCloud<pcl::PointXYZ> > annotations
-		= pclutil::getProcessedAnnotatedClouds<pcl::PointXYZ>(dir);
+		= pclutil::getProcessedAnnotatedClouds<pcl::PointXYZ>(dir, queryLabel);
+	    if (annotations.size() == 0){
+		throw sysutil::objsearchexception("No annotation clouds were found in annotatePointsOBB.");
+	    }
 
 	    // fill a vector with the bounding boxes of each of the annotated clouds
 	    std::vector<pclutil::OrientedBoundingBox> bboxes;
@@ -254,7 +297,7 @@ namespace objsearch {
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformed(
 		new pcl::PointCloud<pcl::PointXYZRGB>());
 	    for (size_t i = 0; i < annotations.size(); i++) {
-		std::cout << "Checking bbox for " << annotations[i].label << std::endl;
+		ROS_INFO("Checking bbox for %s", annotations[i].label.c_str());
 		// transform the points in the cloud into the frame of the box.
 		pcl::transformPointCloud(*cloud, *transformed, bboxes[i].transformInverse);
 
@@ -401,13 +444,6 @@ namespace objsearch {
 	    reader.read(queryPointFile_, *queryPoints);
 	    reader.read(queryFile_, *queryFeatures);
 
-	    std::vector<int> indicesQuery;
-	    std::vector<std::string> labelsQuery;
-	    // assume that the annotations are in a directory above the one in
-	    // which feature clouds are stored.
-	    annotatePointsOBB(sysutil::trimPath(queryPointFile_, 2), queryPoints, indicesQuery, labelsQuery);
-	    ROS_INFO("query: %d annotated points of %d total", (int)indicesQuery.size(), (int)queryPoints->size());
-
 	    // Create a flannsearch object to use to do the NN search
 	    typename pcl::search::FlannSearch<DescType, flann::L2_Simple<float> >
 		*search(new pcl::search::FlannSearch<DescType, flann::L2_Simple<float> >());
@@ -468,9 +504,9 @@ namespace objsearch {
 		ROS_INFO("Hough grid has size %d, containing %d votes. %d cells have no votes.",
 			 size, total, empty);
 		ROS_INFO("Max point has %d votes.", maxPoints[0].second);
-		std::string out = std::string(sysutil::fullDirPath(outPath_) + "houghVotes.pcd");
+		std::string out = std::string(sysutil::fullDirPath(outPath_) + "houghVotes_" + queryObjectLabel_ + ".pcd");
 
-		// create a cloud containing only the top points
+		// create a cloud containing only the top n points
 		pcl::PointCloud<pcl::PointXYZRGB>::Ptr topCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 		topCloud->resize(maxPoints.size());
 		for (size_t i = 0; i < maxPoints.size(); i++) {
@@ -493,48 +529,48 @@ namespace objsearch {
 		writer.write<pcl::PointXYZRGB>(out, *voteCloud, true);
 		writer.write<pcl::PointXYZRGB>(sysutil::removeExtension(out, false) + "_top.pcd", *topCloud, true);
 
-	// 	exit(1);
-	// 	annotatePointsOBB(sysutil::trimPath(targetPointFile_, 2), targetPoints, indicesTarget, labelsTarget);
-	// 	ROS_INFO("target: %d annotated points of %d total", (int)indicesTarget.size(), (int)targetPoints->size());
-
-
-	// 	std::map<std::string, int> matches;
-	// 	// go through all the nearest neighbours of the query points which
-	// 	// have labels and see if there are matches
-	// 	for (size_t i = 0; i < indicesQuery.size(); i++) {
-	// 	    std::string currentQueryLabel = labelsQuery[i];
-	// 	    ROS_INFO("Checking matches for label %s at index %d",
-	// 		     currentQueryLabel.c_str(), indicesQuery[i]);
-	// 	    std::vector<int>& neigh = nearest[indicesQuery[i]];
-	// 	    ROS_INFO("Num neighbours %d", (int)neigh.size());
-	// 	    // go through the neighbours of this point
-	// 	    for (auto it = neigh.begin(); it != neigh.end(); it++) {
-	// 		ROS_INFO("Checking neighbour with target index %d", *it);
-	// 		// if the indices of labelled points in the target cloud
-	// 		// contain the neighbour we are looking at, and it has the
-	// 		// same label as the current point we are looking at in the
-	// 		// query cloud. 
-	// 		auto indit = std::find(indicesTarget.begin(),
-	// 				       indicesTarget.end(), *it);
-	// 		if (indit != indicesTarget.end()){
-	// 		    ROS_INFO("Found target index %d at location %d", (int)*it, (int)(indit - indicesTarget.begin()));
-	// 		    std::string targetLabel = labelsTarget[indit - indicesTarget.begin()];
-	// 		    ROS_INFO("Label is %s", targetLabel.c_str());
-	// 		    if (currentQueryLabel.compare(targetLabel) == 0){
-	// 			ROS_INFO("Labels match");
-	// 			// increment matches for the label
-	// 			matches[currentQueryLabel]++;
-	// 		    }
-	// 		}
-	// 	    }
-	// 	}
-
-	// 	for (auto it=matches.begin(); it!=matches.end(); ++it)
-	// 	    std::cout << it->first << " => " << it->second << '\n';
-
-	// 	ROS_INFO("Search complete");
-	//     }
-	// }
+		// will be filled with all of the points in the hough cloud
+		// which were within the bounding box of the annotation cloud
+		// with the label of the query object we are using.
+		std::vector<int> indices;
+		// we know what the label will be, but can't nicely write a
+		// function which would allow default vector param
+		std::vector<std::string> labels;
+		annotatePointsOBB(sysutil::trimPath(targetPointFile_, 2), voteCloud,
+				  indices, labels, queryObjectLabel_);
+		info.pointsInBox = indices.size();
+		info.votesInBox = 0;
+		info.pointsMaxInBox = 0;
+		info.votesMaxInBox = 0;
+		for (size_t i = 0; i < indices.size(); i++) {
+		    pcl::PointXYZRGB p = voteCloud->points[i];
+		    int indValue = grid.at(p.x, p.y, p.z);
+		    info.votesInBox += indValue;
+		    // check the max points vector to see if this point is in
+		    // there as well, and if it is increment the values for the
+		    // max box. need to extract the centre of the point p,
+		    // because the maxpoints are also centres.
+		    pcl::PointXYZ pc = grid.cellCentreFromPoint(p.x, p.y, p.z);
+		    ROS_INFO("====================\nPoint x: %f, y: %f, z: %f", pc.x, pc.y, pc.z);
+		    for (size_t j = 0; j < maxPoints.size(); j++) {
+			pcl::PointXYZ mp = maxPoints[j].first;
+			ROS_INFO("Max Point x: %f, y: %f, z: %f", mp.x, mp.y, mp.z);
+			if (std::fabs(mp.x - p.x) < 0.00001
+			    && std::fabs(mp.y - p.y) < 0.00001
+			    && std::fabs(mp.z - p.z) < 0.00001) {
+			    info.pointsMaxInBox++;
+			    info.votesMaxInBox += indValue;
+			    break; // only one point can match
+			}
+		    }
+		}
+		ROS_INFO("Points inside annotation bbox for hough cloud: %d of %d total", info.pointsInBox, (int)voteCloud->size());
+		ROS_INFO("Votes inside annotation bbox for hough cloud: %d of %d total", info.votesInBox, grid.getValuesTotal());
+		ROS_INFO("Max points inside annotation bbox for hough cloud: %d of %d total", info.pointsMaxInBox, (int)maxPoints.size());
+		ROS_INFO("Max Votes inside annotation bbox for hough cloud: %d of %d total", info.votesMaxInBox, grid.getValuesTotal());
+		
+	    }
+	}
 
 	// void outputRegions(){
 	//     // if output regions is set, then we want to extract regions around the points at which features were computed
@@ -607,8 +643,8 @@ namespace objsearch {
 	// 	    std::string targetRegionOut = outPath_ + "nn" + std::to_string(i) + ".pcd";
 	// 	    ROS_INFO("Outputting target point region to %s", targetRegionOut.c_str());
 	// 	    writer.write<pcl::PointXYZRGB>(targetRegionOut, *regionPoints, true);
-	    }
-	}
+	//      }
+	// }
     
     } // namespace objectquery
 } // namespace obj_search
