@@ -70,6 +70,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
     <ul class="tablist">
       <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
       <li><a href="classes.html"><span>Class&#160;Index</span></a></li>
+      <li><a href="hierarchy.html"><span>Class&#160;Hierarchy</span></a></li>
       <li><a href="functions.html"><span>Class&#160;Members</span></a></li>
     </ul>
   </div>
@@ -78,7 +79,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Macros</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Macros</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -94,7 +95,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-attribs">Static Public Attributes</a> &#124;
 <a href="classobjsearch_1_1preprocessing_1_1PreprocessRoom-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">objsearch::preprocessing::PreprocessRoom Class Reference</div>  </div>
@@ -104,18 +107,43 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <p>Class for storing attributes of the preprocessing node.  
  <a href="classobjsearch_1_1preprocessing_1_1PreprocessRoom.html#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="planeTest_8hpp_source.html">planeTest.hpp</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="preprocess_8hpp_source.html">preprocess.hpp</a>&gt;</code></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structobjsearch_1_1preprocessing_1_1PreprocessRoom_1_1ProcessInfo.html">ProcessInfo</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aee84ca291a8c4a94722ddfbe6a46a416"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1preprocessing_1_1PreprocessRoom.html#aee84ca291a8c4a94722ddfbe6a46a416">PreprocessRoom</a> (int argc, char *argv[])</td></tr>
 <tr class="separator:aee84ca291a8c4a94722ddfbe6a46a416"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a116f050ba8e88b10b075616b9c3c3107"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1preprocessing_1_1PreprocessRoom.html#a116f050ba8e88b10b075616b9c3c3107">loadRoom</a> (pcl::PointCloud&lt; pcl::PointXYZRGB &gt;::Ptr &amp;cloud, tf::StampedTransform &amp;roomTransform, std::string fileXMLPath)</td></tr>
-<tr class="separator:a116f050ba8e88b10b075616b9c3c3107"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8ed7411b748a4317d4812a9e6f200139"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1preprocessing_1_1PreprocessRoom.html#a8ed7411b748a4317d4812a9e6f200139">transformAndRemoveFloorCeiling</a> (pcl::PointCloud&lt; pcl::PointXYZRGB &gt;::Ptr &amp;cloud, const tf::StampedTransform &amp;roomTransform)</td></tr>
-<tr class="separator:a8ed7411b748a4317d4812a9e6f200139"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a05d951215d1e8e24cdb3649f0276d00e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1preprocessing_1_1PreprocessRoom.html#a05d951215d1e8e24cdb3649f0276d00e">extractPlanes</a> (pcl::PointCloud&lt; pcl::PointXYZRGB &gt;::Ptr &amp;cloud)</td></tr>
-<tr class="separator:a05d951215d1e8e24cdb3649f0276d00e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0dd55d7666b2e83ee112662c6b911b5d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1preprocessing_1_1PreprocessRoom.html#a0dd55d7666b2e83ee112662c6b911b5d">initPaths</a> (std::string path)</td></tr>
+<tr class="separator:a0dd55d7666b2e83ee112662c6b911b5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5249345d21307889e77c0a5f52549bcb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1preprocessing_1_1PreprocessRoom.html#a5249345d21307889e77c0a5f52549bcb">writeInfo</a> (std::string outPath, <a class="el" href="structobjsearch_1_1preprocessing_1_1PreprocessRoom_1_1ProcessInfo.html">ProcessInfo</a> info, bool append=false)</td></tr>
+<tr class="separator:a5249345d21307889e77c0a5f52549bcb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a074b2c2c10534162bfa97d52680ad5a7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structobjsearch_1_1preprocessing_1_1PreprocessRoom_1_1ProcessInfo.html">ProcessInfo</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1preprocessing_1_1PreprocessRoom.html#a074b2c2c10534162bfa97d52680ad5a7">preprocessCloud</a> ()</td></tr>
+<tr class="separator:a074b2c2c10534162bfa97d52680ad5a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:addfaabd3162aa2a6ebbda48e2729e043"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1preprocessing_1_1PreprocessRoom.html#addfaabd3162aa2a6ebbda48e2729e043">loadCloud</a> (pcl::PointCloud&lt; pcl::PointXYZRGB &gt;::Ptr &amp;cloud, tf::StampedTransform &amp;cloudTransform, tf::StampedTransform &amp;registeredTransform)</td></tr>
+<tr class="separator:addfaabd3162aa2a6ebbda48e2729e043"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a27631bda51d7318c9182099ee45809eb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1preprocessing_1_1PreprocessRoom.html#a27631bda51d7318c9182099ee45809eb">transformAndRemoveFloorCeiling</a> (pcl::PointCloud&lt; pcl::PointXYZRGB &gt;::Ptr &amp;cloud, const tf::StampedTransform &amp;cloudTransform, const tf::StampedTransform &amp;registeredTransform)</td></tr>
+<tr class="separator:a27631bda51d7318c9182099ee45809eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5c8165ae095b99531b87fe788d8f74ed"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1preprocessing_1_1PreprocessRoom.html#a5c8165ae095b99531b87fe788d8f74ed">processAnnotations</a> (const tf::StampedTransform &amp;cloudTransform)</td></tr>
+<tr class="separator:a5c8165ae095b99531b87fe788d8f74ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca2de858301cce54aa319f5c246dcbd3"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1preprocessing_1_1PreprocessRoom.html#aca2de858301cce54aa319f5c246dcbd3">extractPlanes</a> (pcl::PointCloud&lt; pcl::PointXYZRGB &gt;::Ptr &amp;cloud, pcl::PointCloud&lt; pcl::Normal &gt;::Ptr &amp;normals)</td></tr>
+<tr class="separator:aca2de858301cce54aa319f5c246dcbd3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a23045bd5fdd6371ab9be5da3a6428a50"><td class="memTemplParams" colspan="2">template&lt;typename SegmentationType &gt; </td></tr>
+<tr class="memitem:a23045bd5fdd6371ab9be5da3a6428a50"><td class="memTemplItemLeft" align="right" valign="top">int&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1preprocessing_1_1PreprocessRoom.html#a23045bd5fdd6371ab9be5da3a6428a50">extractPlanes</a> (SegmentationType &amp;seg, pcl::PointCloud&lt; pcl::PointXYZRGB &gt;::Ptr &amp;cloud, pcl::PointCloud&lt; pcl::Normal &gt;::Ptr &amp;normals)</td></tr>
+<tr class="separator:a23045bd5fdd6371ab9be5da3a6428a50"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a688754ce5b70778011af729d1423d47b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1preprocessing_1_1PreprocessRoom.html#a688754ce5b70778011af729d1423d47b">computeNormals</a> (const pcl::PointCloud&lt; pcl::PointXYZRGB &gt;::Ptr &amp;cloud, pcl::PointCloud&lt; pcl::Normal &gt;::Ptr &amp;normals, const tf::StampedTransform &amp;cloudTransform, float radius)</td></tr>
+<tr class="separator:a688754ce5b70778011af729d1423d47b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
+Static Public Attributes</h2></td></tr>
+<tr class="memitem:aa926d4219fbf0d02523dc37808faf74e"><td class="memItemLeft" align="right" valign="top">static const std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1preprocessing_1_1PreprocessRoom.html#aa926d4219fbf0d02523dc37808faf74e">intermediatePrefix</a> = &quot;intermediate_cloud&quot;</td></tr>
+<tr class="separator:aa926d4219fbf0d02523dc37808faf74e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7efdc9532714049fbc515b1c39de6447"><td class="memItemLeft" align="right" valign="top">static const std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1preprocessing_1_1PreprocessRoom.html#a7efdc9532714049fbc515b1c39de6447">completeCloudName</a> = &quot;complete_cloud.pcd&quot;</td></tr>
+<tr class="separator:a7efdc9532714049fbc515b1c39de6447"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Class for storing attributes of the preprocessing node. </p>
@@ -155,16 +183,74 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a class="anchor" id="a05d951215d1e8e24cdb3649f0276d00e"></a>
+<a class="anchor" id="a688754ce5b70778011af729d1423d47b"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void objsearch::preprocessing::PreprocessRoom::extractPlanes </td>
+          <td class="memname">void objsearch::preprocessing::PreprocessRoom::computeNormals </td>
+          <td>(</td>
+          <td class="paramtype">const pcl::PointCloud&lt; pcl::PointXYZRGB &gt;::Ptr &amp;&#160;</td>
+          <td class="paramname"><em>cloud</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">pcl::PointCloud&lt; pcl::Normal &gt;::Ptr &amp;&#160;</td>
+          <td class="paramname"><em>normals</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const tf::StampedTransform &amp;&#160;</td>
+          <td class="paramname"><em>cloudTransform</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>radius</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Compute surface normals for each point in the given cloud.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">cloud</td><td>Cloud from which to compute normals </td></tr>
+    <tr><td class="paramname">normals</td><td>This pointcloud will be populated with the normals </td></tr>
+    <tr><td class="paramname">cloudTransform</td><td>Use this to set the viewpoint, ensures normals point in the direction of the viewpoint. </td></tr>
+    <tr><td class="paramname">radius</td><td>The radius in which to search for points to use to compute the normals for a specific point </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="aca2de858301cce54aa319f5c246dcbd3"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int objsearch::preprocessing::PreprocessRoom::extractPlanes </td>
           <td>(</td>
           <td class="paramtype">pcl::PointCloud&lt; pcl::PointXYZRGB &gt;::Ptr &amp;&#160;</td>
-          <td class="paramname"><em>cloud</em></td><td>)</td>
+          <td class="paramname"><em>cloud</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">pcl::PointCloud&lt; pcl::Normal &gt;::Ptr &amp;&#160;</td>
+          <td class="paramname"><em>normals</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -175,30 +261,33 @@ Public Member Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>Number of planes extracted </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="a116f050ba8e88b10b075616b9c3c3107"></a>
+<a class="anchor" id="a23045bd5fdd6371ab9be5da3a6428a50"></a>
 <div class="memitem">
 <div class="memproto">
+<div class="memtemplate">
+template&lt;typename SegmentationType &gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">void objsearch::preprocessing::PreprocessRoom::loadRoom </td>
+          <td class="memname">int objsearch::preprocessing::PreprocessRoom::extractPlanes </td>
           <td>(</td>
+          <td class="paramtype">SegmentationType &amp;&#160;</td>
+          <td class="paramname"><em>seg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">pcl::PointCloud&lt; pcl::PointXYZRGB &gt;::Ptr &amp;&#160;</td>
           <td class="paramname"><em>cloud</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">tf::StampedTransform &amp;&#160;</td>
-          <td class="paramname"><em>roomTransform</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::string&#160;</td>
-          <td class="paramname"><em>fileXMLPath</em>&#160;</td>
+          <td class="paramtype">pcl::PointCloud&lt; pcl::Normal &gt;::Ptr &amp;&#160;</td>
+          <td class="paramname"><em>normals</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -207,19 +296,105 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Load a room from the directory of interest, using the given XML file to extract information about the rotation of the room. The cloud data is loaded into the cloud pointer passed to the function, the transformation data is put into the StampedTransform given.</p>
+
+</div>
+</div>
+<a class="anchor" id="a0dd55d7666b2e83ee112662c6b911b5d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void objsearch::preprocessing::PreprocessRoom::initPaths </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>path</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Initialise the object with some variables for filenames and such to do with the file that we are going to process.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">cloud</td><td>This pointer to a cloud will be populated with the merged cloud representing the room. </td></tr>
-    <tr><td class="paramname">roomTransform</td><td>This object will be populated with the transformation from the global frame to the local cloud frame. </td></tr>
-    <tr><td class="paramname">fileXMLPath</td><td>Path to the XML file which holds information about the room to process </td></tr>
+    <tr><td class="paramname">path</td><td></td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a class="anchor" id="a8ed7411b748a4317d4812a9e6f200139"></a>
+<a class="anchor" id="addfaabd3162aa2a6ebbda48e2729e043"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void objsearch::preprocessing::PreprocessRoom::loadCloud </td>
+          <td>(</td>
+          <td class="paramtype">pcl::PointCloud&lt; pcl::PointXYZRGB &gt;::Ptr &amp;&#160;</td>
+          <td class="paramname"><em>cloud</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">tf::StampedTransform &amp;&#160;</td>
+          <td class="paramname"><em>cloudTransform</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">tf::StampedTransform &amp;&#160;</td>
+          <td class="paramname"><em>registeredTransform</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Load a pointcloud from the directory of interest, using the given XML file to extract information about the rotation of the room, if the cloud has an associated XML file. The cloud data is loaded into the cloud pointer passed to the function. Transformation data is put into the StampedTransform given; if there is none, it remains as it was.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">cloud</td><td>This pointer to a cloud will be populated with the merged cloud representing the room. </td></tr>
+    <tr><td class="paramname">cloudTransform</td><td>This object will be populated with the transformation from the global frame to the local cloud frame, or left empty if there is no transform data. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a074b2c2c10534162bfa97d52680ad5a7"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structobjsearch_1_1preprocessing_1_1PreprocessRoom_1_1ProcessInfo.html">PreprocessRoom::ProcessInfo</a> objsearch::preprocessing::PreprocessRoom::preprocessCloud </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Start the processing of the point cloud. </p>
+
+</div>
+</div>
+<a class="anchor" id="a5c8165ae095b99531b87fe788d8f74ed"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void objsearch::preprocessing::PreprocessRoom::processAnnotations </td>
+          <td>(</td>
+          <td class="paramtype">const tf::StampedTransform &amp;&#160;</td>
+          <td class="paramname"><em>cloudTransform</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a27631bda51d7318c9182099ee45809eb"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -233,7 +408,13 @@ Public Member Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const tf::StampedTransform &amp;&#160;</td>
-          <td class="paramname"><em>roomTransform</em>&#160;</td>
+          <td class="paramname"><em>cloudTransform</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const tf::StampedTransform &amp;&#160;</td>
+          <td class="paramname"><em>registeredTransform</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -246,21 +427,94 @@ Public Member Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">cloud</td><td>Cloud to transform and remove the floor and ceiling from. </td></tr>
-    <tr><td class="paramname">roomTransform</td><td>The transform needed to put the cloud into its position relative to the global reference frame. Ideally extracted from the XML data for the room and its intermediate clouds. </td></tr>
+    <tr><td class="paramname">cloudTransform</td><td>The transform needed to put the cloud into its position relative to the global reference frame. Ideally extracted from the XML data for the room and its intermediate clouds. </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
+<a class="anchor" id="a5249345d21307889e77c0a5f52549bcb"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void objsearch::preprocessing::PreprocessRoom::writeInfo </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>outPath</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structobjsearch_1_1preprocessing_1_1PreprocessRoom_1_1ProcessInfo.html">ProcessInfo</a>&#160;</td>
+          <td class="paramname"><em>info</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>append</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a class="anchor" id="a7efdc9532714049fbc515b1c39de6447"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::string objsearch::preprocessing::PreprocessRoom::completeCloudName = &quot;complete_cloud.pcd&quot;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="aa926d4219fbf0d02523dc37808faf74e"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::string objsearch::preprocessing::PreprocessRoom::intermediatePrefix = &quot;intermediate_cloud&quot;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>/home/michal/Dropbox/study/university/kth/thesis/code/obj_search/preprocess/src/<a class="el" href="planeTest_8hpp_source.html">planeTest.hpp</a></li>
-<li>/home/michal/Dropbox/study/university/kth/thesis/code/obj_search/preprocess/src/<a class="el" href="planeTest_8cpp.html">planeTest.cpp</a></li>
+<li>/home/michal/Dropbox/study/university/kth/thesis/code/obj_search/preprocess/src/<a class="el" href="preprocess_8hpp_source.html">preprocess.hpp</a></li>
+<li>/home/michal/Dropbox/study/university/kth/thesis/code/obj_search/preprocess/src/<a class="el" href="preprocess_8cpp.html">preprocess.cpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Mar 18 2015 15:28:18 for Object Search by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed May 20 2015 14:45:37 for Object Search by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>

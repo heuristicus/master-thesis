@@ -1,7 +1,5 @@
 var searchData=
 [
-  ['sysutil',['SysUtil',['../namespaceSysUtil.html',1,'']]],
-  ['sysutil_2ecpp',['sysutil.cpp',['../sysutil_8cpp.html',1,'']]],
-  ['sysutil_2ehpp',['sysutil.hpp',['../sysutil_8hpp.html',1,'']]],
-  ['sysutil_5ftest_2ecpp',['sysutil_test.cpp',['../sysutil__test_8cpp.html',1,'']]]
+  ['queryinfo',['QueryInfo',['../structobjsearch_1_1objectquery_1_1ObjectQuery_1_1QueryInfo.html',1,'objsearch::objectquery::ObjectQuery']]],
+  ['querytime',['queryTime',['../structobjsearch_1_1objectquery_1_1ObjectQuery_1_1QueryInfo.html#ad92dc66082c47379f3ba6b04038ed5cf',1,'objsearch::objectquery::ObjectQuery::QueryInfo']]]
 ];
