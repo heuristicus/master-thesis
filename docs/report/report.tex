@@ -109,7 +109,7 @@ investigate the efficacy of using descriptions of small parts of the object to
 retrieve matches from the data set.
 
 Something about why why the problem is interesting as opposed to model matching
-or somesuch
+or somesuch, picture of the flow of the system
 
 In chapter~\ref{chap:bg}, we explain some concepts that are important to
 understand the work, provide background information on relevant parts of the
@@ -1042,6 +1042,15 @@ variation in point intensity and normal direction. Based on this observation,
 using the inverted USAN volume as a feature detector should result in the
 selection of descriptive points --- hence the name \emph{Smallest} USAN.
 
+\begin{figure}
+  \centering
+  \includegraphics[width=0.48\textwidth]{images/susan1}
+  \includegraphics[width=0.48\textwidth]{images/susan}
+  \caption{Concept of nucleus and mask in 2D SUSAN detector. USAN is the white
+    region in the right image \cite{zhang2013susan}.}
+  \label{fig:susan_nucleus}
+\end{figure}
+
 To compute SUSAN keypoints, the following process is applied to each point $p_i$
 in the cloud. First, all points $p_j$ in the neighbourhood defined by $r_m$ are
 found. We then define the USAN and the centroid of the mask. In order to be
@@ -1067,19 +1076,87 @@ The centroid $C$ is computed using
   C=\frac{1}{\left|\text{USAN}\right|}\sum_{p_j \in \text{USAN}}p_j
 \end{equation}
 
-A geometric threshold is then applied to the USAN to ensure that the proportion
-of points in the neighbourhood is not too large. This threshold is set to 50\%
-of the neighbourhood.
-\begin{figure}
-  \centering
-  \includegraphics[width=0.48\textwidth]{images/susan1}
-  \includegraphics[width=0.48\textwidth]{images/susan}
-  \caption{Concept of nucleus and mask in 2D SUSAN detector. USAN is the white
-    region in the right image \cite{zhang2013susan}.}
-  \label{fig:susan_nucleus}
-\end{figure}
+The last thing to do for each point is to ensure that the number of points in
+the USAN is within the bound
+\begin{equation}
+  \label{eq:13}
+  0 < \left| USAN \right| < 0.5(N-1)
+\end{equation}
+where $N$ is the number of points in the neighbourhood of the nucleus. If this
+check is successful, the output intensity of the nucleus is set to
+$I_o=0.5(N-1)-\left|USAN\right|$. This defines the response of the feature
+selection at this nucleus.
+
+% Some additional validation can also be applied to the
+% point, checking that the distance $\mid\mid p_i-C\mid\mid<d_t$, where $d_t$ is a
+% user-defined threshold on the distance. 
+% If either the geometric threshold check or nucleus check fail, the point is
+% not included in the interest point set.
+
+Once $I_o$ has been computed for all valid points in the cloud, non-maximum
+suppression is applied. Only those points which have the minimal intensity in
+the neighbourhood defined by $r_m$ are used as the final interest points.
+
 \subsection{SIFT}
+The scale invariant feature transform, introduced by
+Lowe~\cite{lowe2004distinctive} in 1999, it is still commonly used for many 2D
+image processing applications. The most important concept introduced in the
+paper is that of scale invariance --- the SIFT feature extraction method
+automatically selects features at different scales. This effect is achieved by
+applying a Gaussian blur with different standard deviation in 2D, and by
+downsampling clouds in 3D. The leaf size used for downsampling is determined by
+the number of \emph{octaves} $N_o$. Within each octave, there are several
+\emph{scales} $N_s$ which are applied. After all scales in an octave have been
+computed, the leaf size is doubled, and the process repeated, until it has been
+applied to all octaves.
+
+For each octave, the procedure begins with downsampling the point cloud to the
+scale defined for that octave $S_{o}$, which initially is set to the minimum
+scale $S_{\min}$. The scales in the octave are then defined by
+\begin{equation}
+  \label{eq:14}
+  s_i=\frac{S_o\cdot 2^{i - 1}}{N_s}
+\end{equation}
+where $0<i<N_s$. Each point $p$ in the cloud has its nearest neighbours $P_{nn}$ computed,
+within a radius three times the maximum scale $s_{N_s}$ in that octave. The same
+neighbours are used for computation of the difference of Gaussians $D$ for each
+scale in the octave. In each scale, a Gaussian response $R$ is computed
+\begin{equation}
+  \label{eq:15}
+  R_i=\frac{\sum_{q\in P_{nn}}0.299q_r + 0.587q_g +
+    0.114q_b\exp\left\{-\frac{0.5}{\sigma}\mid\mid p-q\mid\mid\right\}}{\sum_{q\in P_{nn}}\exp\left\{-\frac{0.5}{\sigma}\mid\mid p-q\mid\mid\right\}}\\
+\end{equation}
+$q_r$, $q_g$ and $q_b$ are the red, blue and green channels of the colour at the
+point $q$, $\sigma=s_i^2$. The difference of Gaussians is then
+\begin{equation}
+  \label{eq:16}
+  \text{DoG}_i=R_i-R_{i-1}
+\end{equation}
+where $1<i<N_s$. These values are then used to find extrema in the scale space.
+The neighbourhood of each point is examined again, and the maximum and minimum
+values of the DoG at any point within the neighbourhood are found for each
+scale. For consideration as an interest point, the value of DoG$_i$ must be
+greater than a minimum contrast threshold $t_c$. This limits the inclusion of
+points where the responses are not very different. If this threshold is
+exceeded, the value of DoG at the point is checked to see if it is a maximum or
+a minimum in its neighbourhood, and is either larger or smaller than the maximum
+and minimum values for the same point in the neighbouring scale spaces. If all
+these criteria are fulfilled, the point is added to the interest points.
+
+Once this process is completed for a single octave, the scale $S_o$ is doubled,
+and the process repeats $N_o$ times. The selected interest points are the
+aggregated results from each individual octave. 
+
 \subsection{Harris}
+Like SIFT, the Harris detector, introduced by the eponymous
+Harris~\cite{harris1988combined}, was originally used as a method for edge and
+corner detection in images. Much like ISS, it uses a covariance matrix applied
+to the neighbourhood of a point as the basis of its function. Rather than using
+the points themselves, however, the Harris detector finds the covariance matrix
+of the normals in the neighbourhood. The response at the point is then computed
+by combining the determinant and trace of the matrix. The resulting responses
+for each point are then thinned using non-maximum suppression, and the remaining
+points are the interest points.
 \section{Feature Extraction}
 Talk specifically about each of the features used and their good/bad points, and
 how the features extraction is done (not particularly complex, probably)
