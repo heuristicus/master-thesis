@@ -9,7 +9,9 @@ def results_to_tex(results, addheader=False):
         number_line += "Original Downsampled Trimmed NPlanes Planes Final\\\\\hline\n"
     else:
         number_line += "\n"
-    
+
+
+        #        "{:,}".format(number);
     number_line += str(results['orig_pts_mean']) + "\pm" + str(results['orig_pts_std']) + " "
     number_line += str(results['downsample_pts_mean']) + "\pm" + str(results['downsample_pts_std']) + " "
     number_line += str(results['trim_pts_mean']) + "\pm" + str(results['trim_pts_std']) + " "

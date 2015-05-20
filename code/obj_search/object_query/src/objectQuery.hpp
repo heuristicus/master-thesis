@@ -73,6 +73,7 @@ namespace objsearch {
 	    float xStepHough_;
 	    float yStepHough_;
 	    float zStepHough_;
+	    int nMax_;
 
 	    std::vector<std::string> targetClouds_;
 	    int K_; // number of nearest neighbours to find

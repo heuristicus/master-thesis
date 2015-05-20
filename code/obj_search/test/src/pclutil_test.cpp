@@ -30,6 +30,7 @@ namespace testing {
 	    }
 	    // cube and its corresponding expected centres for all cells
 	    Grid3D cube3 = Grid3D(3, 3, 3, 1, 1, 1, 0, 0, 0);
+
 	    // cells on the edges
 	    pcl::PointXYZ frontBottom = pcl::PointXYZ(1.5, 0.5, 0.5);
 	    pcl::PointXYZ frontTop = pcl::PointXYZ(1.5, 0.5, 2.5);
@@ -184,9 +185,15 @@ namespace testing {
 	    ASSERT_EQ(26, cube3.pointIndex(backTopRight));
 	}
 
-	TEST_F(PCLUtilTest, grid3d_cellcentre_box){
+	TEST_F(PCLUtilTest, grid3d_cellcentre_point_box){
 	    for (size_t i = 0; i < boxCentres.size(); i++) {
 		pointEqual(boxCentres[i], box.cellCentreFromPoint(boxCentres[i]));
+	    }
+	}
+
+	TEST_F(PCLUtilTest, grid3d_cellcentre_index_box){
+	    for (size_t i = 0; i < boxCentres.size(); i++) {
+		pointEqual(boxCentres[i], box.cellCentreFromIndex(i));
 	    }
 	}
 
@@ -197,7 +204,7 @@ namespace testing {
 	}
 	
 
-	TEST_F(PCLUtilTest, indexunflatten) {
+	TEST_F(PCLUtilTest, grid3d_indexunflatten) {
 	    int x, y, z;
 	    cube3.indexUnflatten(0, x, y, z);
 	    ASSERT_EQ(0, x);
@@ -223,6 +230,34 @@ namespace testing {
 	    ASSERT_EQ(2, x);
 	    ASSERT_EQ(2, y);
 	    ASSERT_EQ(2, z);
+	}
+
+	TEST_F(PCLUtilTest, grid3d_getmaxn) {
+	    Grid3D g = Grid3D(3, 2, 2, 1, 1, 1, 0, 0, 0);
+	    ASSERT_TRUE(g.width_ == 3);
+	    ASSERT_TRUE(g.height_ == 2);
+	    ASSERT_TRUE(g.depth_ == 2);
+	    ASSERT_TRUE(g.values_.size() == 12);
+
+	    for (int i = 0; i < g.size(); i++) {
+		g.at(i) = i;
+	    }
+
+	    int nMax = 5;
+	    std::vector<std::pair<pcl::PointXYZ, int> > max = g.getMaxN(nMax);
+
+	    // for (size_t i = 0; i < max.size(); i++) {
+	    // 	std::cout << "x: " << max[i].first.x
+	    // 		  << "y: " << max[i].first.y
+	    // 		  << "z: " << max[i].first.z
+	    // 		  << "val : " << max[i].second << std::endl;
+	    // }
+
+	    for (size_t i = g.size() - 1, j = 0; i > g.size() - 1 - nMax && j < nMax; i--, j++) {
+		pointEqual(g.cellCentreFromIndex(i), max[j].first);
+		ASSERT_EQ(g.at(i), max[j].second);
+	    }
+
 	}
 	
   } // namespace sysutil

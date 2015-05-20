@@ -101,6 +101,7 @@ namespace objsearch {
 		INTERMEDIATE, FULL, OTHER
 	    };
 
+	    std::string origPath_;
 	    std::string cloudPath_; // path of the target cloud
 	    std::string cloudDir_;
 	    std::string cloudFile_; // path to the target cloud

@@ -262,6 +262,34 @@ namespace objsearch {
 	}
 
 	/** 
+	 * Get the top \p n values in the values vector
+	 * 
+	 * @param n 
+	 * 
+	 * @return vector of pairs with the centre of the cell and the count in
+	 * that cell
+	 */
+	std::vector<std::pair<pcl::PointXYZ, int> > Grid3D::getMaxN(int n) {
+	    auto comp = [](std::pair<int, int> p, std::pair<int, int> q){
+		return p.second > q.second;
+	    };
+	    
+	    // populate a vector with the index and value at that index
+	    std::vector<std::pair<int,int> > items;
+	    for (size_t i = 0; i < values_.size(); i++) {
+		items.push_back(std::pair<int, int>(i, values_[i]));
+	    }
+	    // partially sort the vector so that the first n elements are sorted
+	    // and the rest are in arbitrary order.
+	    std::partial_sort(items.begin(), items.begin() + n, items.end(), comp);
+	    std::vector<std::pair<pcl::PointXYZ, int> > ret;
+	    for (int i = 0; i < n; i++) {
+		ret.push_back(std::pair<pcl::PointXYZ, int>(cellCentreFromIndex(items[i].first), items[i].second));
+	    }
+	    return ret;
+	}
+
+	/** 
 	 * Get the centre of the cell with the minimum value, and the count in
 	 * that cell.
 	 * 

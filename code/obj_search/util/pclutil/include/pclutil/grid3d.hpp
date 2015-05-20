@@ -20,12 +20,13 @@ namespace objsearch {
 		   float _xStep, float _yStep, float _zStep,
 		   float _xOffset, float _yOffset, float _zOffset);
 
+	    // should probably be private
 	    float xDim_, yDim_, zDim_; // size of each dimension
 	    float xStep_, yStep_, zStep_; // step in each dimension - defines cell dimensions
 	    float xOffset_, yOffset_, zOffset_;
 	    int width_, height_, depth_; 
 	    std::vector<int> values_; // store value in each cell
-
+	    
 	    int indexFromDimIndices(int x, int y, int z);
 	    pcl::PointXYZ cellCentreFromIndex(int index);
 	    pcl::PointXYZ cellCentreFromIndex(int x, int y, int z);
@@ -39,11 +40,13 @@ namespace objsearch {
 	    int pointIndex(const pcl::PointXYZ& point);
 	    void indexUnflatten(int index, int& x, int& y, int& z);
 	    std::pair<pcl::PointXYZ, int> getMax();
+	    std::vector<std::pair<pcl::PointXYZ, int> > getMaxN(int n);
 	    std::pair<pcl::PointXYZ, int> getMin();
 	    int getValuesTotal();
 	    int getEmptyTotal();
 	    size_t size();
 	    void toPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud);
+	    
 	};
     } // namespace pclutil
 } // namespace objsearch

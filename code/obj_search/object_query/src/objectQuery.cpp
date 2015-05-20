@@ -27,6 +27,8 @@ namespace objsearch {
 	    ROSUtil::getParam(handle, "/object_query/x_step_hough", xStepHough_);
 	    ROSUtil::getParam(handle, "/object_query/y_step_hough", yStepHough_);
 	    ROSUtil::getParam(handle, "/object_query/z_step_hough", zStepHough_);
+
+	    ROSUtil::getParam(handle, "/object_query/n_max_points", nMax_);
 	    
 	    // If output is not specified, set the output directory to be the processed
 	    // data directory specified by the global parameters.
@@ -456,17 +458,31 @@ namespace objsearch {
 		ros::Time houghStart = ros::Time::now();
 		pclutil::Grid3D grid = houghVoting(targetPoints, nearest, square_dists);
 		info.houghTime = (ros::Time::now() - houghStart).toSec();
-		// find the point in the hough grid with the maximum value -
+		// find the n points in the hough grid with the maximum value -
 		// this should indicate the point in the target cloud which most
 		// closely matches the query object
-		std::pair<pcl::PointXYZ, int> maxPoint = grid.getMax();
+		std::vector<std::pair<pcl::PointXYZ, int> > maxPoints = grid.getMaxN(nMax_);
 		int total = grid.getValuesTotal();
 		int empty = grid.getEmptyTotal();
 		int size = grid.size();
 		ROS_INFO("Hough grid has size %d, containing %d votes. %d cells have no votes.",
 			 size, total, empty);
-		ROS_INFO("Max point has %d votes.", maxPoint.second);
+		ROS_INFO("Max point has %d votes.", maxPoints[0].second);
 		std::string out = std::string(sysutil::fullDirPath(outPath_) + "houghVotes.pcd");
+
+		// create a cloud containing only the top points
+		pcl::PointCloud<pcl::PointXYZRGB>::Ptr topCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+		topCloud->resize(maxPoints.size());
+		for (size_t i = 0; i < maxPoints.size(); i++) {
+		    topCloud->points[i].x = maxPoints[i].first.x;
+		    topCloud->points[i].y = maxPoints[i].first.y;
+		    topCloud->points[i].z = maxPoints[i].first.z;
+		    pclutil::rgb colour = pclutil::getHeatColour(maxPoints[i].second, maxPoints[0].second);
+		    topCloud->points[i].r = colour.r * 255;
+		    topCloud->points[i].g = colour.g * 255;
+		    topCloud->points[i].b = colour.b * 255;
+		}
+		
 		pcl::PointCloud<pcl::PointXYZRGB>::Ptr voteCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 		// convert the grid to a point cloud with rgb values
 		// representing the number of votes in each cell
@@ -475,6 +491,7 @@ namespace objsearch {
 
 		pcl::PCDWriter writer;
 		writer.write<pcl::PointXYZRGB>(out, *voteCloud, true);
+		writer.write<pcl::PointXYZRGB>(sysutil::removeExtension(out, false) + "_top.pcd", *topCloud, true);
 
 	// 	exit(1);
 	// 	annotatePointsOBB(sysutil::trimPath(targetPointFile_, 2), targetPoints, indicesTarget, labelsTarget);

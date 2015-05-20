@@ -29,14 +29,17 @@ namespace objsearch {
 
 	    // Retrieve the path to the cloud to be processed
 	    ROSUtil::getParam(handle, "/preprocess/cloud", cloudPath_);
+	    // keep the original path that was passed to the system
+	    origPath_ = cloudPath_;
 	    ROSUtil::getParam(handle, "/obj_search/raw_data_dir", dataPath_);
 	    ROSUtil::getParam(handle, "/preprocess/output_dir", outDir_);
 	    // If output is not specified, set the output directory to be the processed
 	    // data directory specified by the global parameters.
 	    if (std::string("NULL").compare(outDir_) == 0) {
 		ROSUtil::getParam(handle, "/obj_search/processed_data_dir", outDir_);
-	    }
 
+	    }
+	    
 	    ROSUtil::getParam(handle, "/preprocess/extract_planes", doExtractPlanes_);
 	    ROSUtil::getParam(handle, "/preprocess/RANSAC_distance_threshold", ransacDistanceThresh_);
 	    ROSUtil::getParam(handle, "/preprocess/RANSAC_iterations", ransacIterations_);
@@ -250,8 +253,16 @@ namespace objsearch {
 	    if (path.compare(0, dataPath_.size(), dataPath_) == 0){
 		dataSubDir_ = std::string(cloudDir_, dataPath_.size());
 	    } else {
-		// if not in raw data, just output to the input directory
-		dataSubDir_ = sysutil::trimPath(cloudDir_, -1);
+		// if not in raw data, just output to the input directory plus
+		// whatever additional directories were on the path to the file
+		ROS_INFO("Path is %s", path.c_str());
+		ROS_INFO("Orig path is %s", origPath_.c_str());
+		if (path.compare(0, origPath_.size(), origPath_) == 0){
+		    dataSubDir_ = std::string(cloudDir_, origPath_.size());
+		} else {
+		    // this probably never happens?
+		    dataSubDir_ = sysutil::trimPath(cloudDir_, -1);
+		}
 	    }
 	    
 	    // The output path for processed clouds is the subdirectory combined
