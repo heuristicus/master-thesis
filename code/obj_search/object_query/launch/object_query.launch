@@ -34,6 +34,14 @@
   <arg name="n_max_points" default="5"/>
   <param name="/object_query/n_max_points" value="$(arg n_max_points)" />
 
+  <!-- Clustering threshold -->
+  <arg name="cluster_tolerance" default="0.15"/>
+  <param name="/object_query/cluster_tolerance" value="$(arg cluster_tolerance)" />
+  <arg name="cluster_minsize" default="3"/>
+  <param name="/object_query/cluster_minsize" value="$(arg cluster_minsize)" />
+  <arg name="cluster_maxsize" default="500"/>
+  <param name="/object_query/cluster_maxsize" value="$(arg cluster_maxsize)" />
+  
   <arg name="regions" default="false"/>
   <param name="/object_query/output_regions" value="$(arg regions)" />
   

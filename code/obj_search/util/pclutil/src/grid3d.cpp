@@ -79,7 +79,7 @@ namespace objsearch {
 	 * 
 	 * @return 
 	 */
-	int Grid3D::pointIndex(const pcl::PointXYZ& point) {
+	int Grid3D::pointIndex(const pcl::PointXYZ& point) const {
 	    return pointIndex(point.x, point.y, point.z);
 	}
 	
@@ -93,7 +93,7 @@ namespace objsearch {
 	 * 
 	 * @return 
 	 */
-	int Grid3D::pointIndex(float x, float y, float z) {
+	int Grid3D::pointIndex(float x, float y, float z) const {
 	    // integer truncation down to correct index. Make sure that the
 	    // point is translated to the origin frame of reference to get
 	    // correct computations
@@ -112,7 +112,7 @@ namespace objsearch {
 	 * 
 	 * @return 
 	 */
-	int Grid3D::indexFromDimIndices(int x, int y, int z) {
+	int Grid3D::indexFromDimIndices(int x, int y, int z) const {
 	    // http://stackoverflow.com/questions/7367770/how-to-flatten-or-index-3d-array-in-1d-array
 	    if (x >= width_ || y > depth_ || z > height_){
 		std::string error("Dimension exceeds limit\nxmax = " + std::to_string(width_) + ", x = " + std::to_string(x)
@@ -130,7 +130,7 @@ namespace objsearch {
 	 * 
 	 * @return 
 	 */
-	pcl::PointXYZ Grid3D::cellCentreFromIndex(int ind){
+	pcl::PointXYZ Grid3D::cellCentreFromIndex(int ind) const {
 	    int x, y, z;
 	    indexUnflatten(ind, x, y, z);
 	    return cellCentreFromIndex(x, y, z);
@@ -145,7 +145,7 @@ namespace objsearch {
 	 * 
 	 * @return 
 	 */
-	pcl::PointXYZ Grid3D::cellCentreFromIndex(int x, int y, int z){
+	pcl::PointXYZ Grid3D::cellCentreFromIndex(int x, int y, int z) const {
 	    return pcl::PointXYZ(xStep_/2 + x * xStep_ + xOffset_,
 				 yStep_/2 + y * yStep_ + yOffset_,
 				 zStep_/2 + z * zStep_ + zOffset_);
@@ -158,7 +158,7 @@ namespace objsearch {
 	 * 
 	 * @return 
 	 */
-	pcl::PointXYZ Grid3D::cellCentreFromPoint(const pcl::PointXYZ& point){
+	pcl::PointXYZ Grid3D::cellCentreFromPoint(const pcl::PointXYZ& point) const {
 	    return cellCentreFromPoint(point.x, point.y, point.z);
 	}
 
@@ -171,7 +171,7 @@ namespace objsearch {
 	 * 
 	 * @return 
 	 */
-	pcl::PointXYZ Grid3D::cellCentreFromPoint(float x, float y, float z){
+	pcl::PointXYZ Grid3D::cellCentreFromPoint(float x, float y, float z) const {
 	    pcl::PointXYZ point;
 	    // the second part gives the minimum point in the cell on that axis,
 	    // centre is where half the step for that axis is added to the offset
@@ -186,7 +186,7 @@ namespace objsearch {
 	 * 
 	 * @return 
 	 */
-	std::vector<pcl::PointXYZ> Grid3D::allCentres() {
+	std::vector<pcl::PointXYZ> Grid3D::allCentres() const {
 	    std::vector<pcl::PointXYZ> centres;
 	    for (size_t i = 0; i < values_.size(); i++) {
 		centres.push_back(cellCentreFromIndex(i));
@@ -230,6 +230,41 @@ namespace objsearch {
 	}
 
 	/** 
+	 * 
+	 * 
+	 * @param point 
+	 * 
+	 * @return 
+	 */
+	int Grid3D::at(const pcl::PointXYZ& point) const {
+	    return at(point.x, point.y, point.z);
+	}
+
+	/** 
+	 * Get the value of the grid cell with the given coordinates.
+	 * 
+	 * @param x 
+	 * @param y 
+	 * @param z 
+	 * 
+	 * @return Reference to the value of the cell
+	 */
+	int Grid3D::at(float x, float y, float z) const {
+	    return at(pointIndex(x, y, z));
+	}
+
+	/** 
+	 * 
+	 * 
+	 * @param index 
+	 * 
+	 * @return 
+	 */
+	int Grid3D::at(int index) const {
+	    return values_[index];
+	}
+
+	/** 
 	 * Unflatten an index from 1D to 3D. e.g. values[26] = values[2][2][2]
 	 * 
 	 * @param index Index to unflatten
@@ -237,7 +272,7 @@ namespace objsearch {
 	 * @param y 3d y index
 	 * @param z 3d z index
 	 */
-	void Grid3D::indexUnflatten(int index, int& x, int& y, int& z) {
+	void Grid3D::indexUnflatten(int index, int& x, int& y, int& z) const {
 	    if (index >= (int)values_.size()) {
 		std::string error("Index is out of bounds. Vector length: " + std::to_string(values_.size()) + " requested index: " + std::to_string(index));
 		throw sysutil::objsearchexception(error);
@@ -254,7 +289,7 @@ namespace objsearch {
 	 * 
 	 * @return Vector containing indices and values at those indices.
 	 */
-	std::vector<std::pair<int, int> > Grid3D::getIndices() {
+	std::vector<std::pair<int, int> > Grid3D::getIndices() const {
 	    // populate a vector with the index and value at that index
 	    std::vector<std::pair<int,int> > items;
 	    for (size_t i = 0; i < values_.size(); i++) {
@@ -271,7 +306,7 @@ namespace objsearch {
 	 * @return Vector of pairs of two ints, first is the index of the point,
 	 * second is the value. Sorted in descending order of value.
 	 */
-	std::vector<std::pair<int, int> > Grid3D::getRankedIndices() {
+	std::vector<std::pair<int, int> > Grid3D::getRankedIndices() const {
 	    auto comp = [](std::pair<int, int> p, std::pair<int, int> q){
 		return p.second > q.second;
 	    };
@@ -288,7 +323,7 @@ namespace objsearch {
 	 * 
 	 * @return 
 	 */
-	std::pair<int, int> Grid3D::getMax() {
+	std::pair<int, int> Grid3D::getMax() const {
 	    auto it = std::max_element(values_.begin(), values_.end());
 
 	    // compute the index of the max point by subtracting the two
@@ -304,7 +339,7 @@ namespace objsearch {
 	 * @return vector of pairs with the index of the cell and the count in
 	 * that cell
 	 */
-	std::vector<std::pair<int, int> > Grid3D::getMaxN(int n) {
+	std::vector<std::pair<int, int> > Grid3D::getMaxN(int n) const {
 	    auto comp = [](std::pair<int, int> p, std::pair<int, int> q){
 		return p.second > q.second;
 	    };
@@ -323,7 +358,7 @@ namespace objsearch {
 	 * 
 	 * @return 
 	 */
-	std::pair<int, int> Grid3D::getMin() {
+	std::pair<int, int> Grid3D::getMin() const {
 	    auto it = std::min_element(values_.begin(), values_.end());
 	    
 	    return std::pair<int, int>(values_.end() - it, *it);
@@ -334,7 +369,7 @@ namespace objsearch {
 	 * 
 	 * @return 
 	 */
-	int Grid3D::getValuesTotal() {
+	int Grid3D::getValuesTotal() const {
 	    return std::accumulate(values_.begin(), values_.end(), 0);
 	}
 
@@ -343,7 +378,7 @@ namespace objsearch {
 	 * 
 	 * @return 
 	 */
-	int Grid3D::getEmptyTotal() {
+	int Grid3D::getEmptyTotal() const {
 	    int empty = 0;
 	    for (auto it = values_.begin(); it != values_.end(); it++) {
 		if (*it == 0) {
@@ -361,7 +396,7 @@ namespace objsearch {
 	 * 
 	 * @return Number of cells above the threshold
 	 */
-	int Grid3D::getTotalAbove(int thresh) {
+	int Grid3D::getTotalAbove(int thresh) const {
 	    int count = 0;
 	    for (size_t i = 0; i < values_.size(); i++) {
 		if (values_[i] > thresh) {
@@ -379,7 +414,7 @@ namespace objsearch {
 	 * the value of that index, i.e. index 0 contains the number of points
 	 * with 0 votes, and so on.
 	 */
-	std::vector<int> Grid3D::valueHistogram() {
+	std::vector<int> Grid3D::valueHistogram() const {
 	    std::vector<int> histogram(20);
 	    int maxVotes = -1;
 	    for (size_t i = 0; i < values_.size(); i++) {
@@ -402,7 +437,7 @@ namespace objsearch {
 	 * 
 	 * @return 
 	 */
-	size_t Grid3D::size() {
+	size_t Grid3D::size() const {
 	    return values_.size();
 	}
 
@@ -416,7 +451,7 @@ namespace objsearch {
 	 * with nonzero values. The points are coloured according to their value
 	 * @return vector of indices in the grid corresponding to point indices in the cloud
 	 */
-	std::vector<int> Grid3D::toPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud) {
+	std::vector<int> Grid3D::toPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud) const {
 	     std::vector<pcl::PointXYZ> centres = allCentres();
 	     std::vector<int> inds;
 	     int maxVal = getMax().second;

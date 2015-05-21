@@ -10,6 +10,7 @@
 
 #include <pcl/point_types.h>
 #include <pcl/io/pcd_io.h>
+#include <pcl/segmentation/extract_clusters.h>
 
 namespace objsearch {
     namespace pclutil {
@@ -27,29 +28,32 @@ namespace objsearch {
 	    int width_, height_, depth_; 
 	    std::vector<int> values_; // store value in each cell
 	    
-	    int indexFromDimIndices(int x, int y, int z);
-	    pcl::PointXYZ cellCentreFromIndex(int index);
-	    pcl::PointXYZ cellCentreFromIndex(int x, int y, int z);
-	    pcl::PointXYZ cellCentreFromPoint(const pcl::PointXYZ& point);
-	    pcl::PointXYZ cellCentreFromPoint(float x, float y, float z);
-	    std::vector<pcl::PointXYZ> allCentres();
+	    int indexFromDimIndices(int x, int y, int z) const;
+	    pcl::PointXYZ cellCentreFromIndex(int index) const;
+	    pcl::PointXYZ cellCentreFromIndex(int x, int y, int z) const;
+	    pcl::PointXYZ cellCentreFromPoint(const pcl::PointXYZ& point) const;
+	    pcl::PointXYZ cellCentreFromPoint(float x, float y, float z) const;
+	    std::vector<pcl::PointXYZ> allCentres() const;
 	    int& at(int index);
 	    int& at(float x, float y, float z);
 	    int& at(const pcl::PointXYZ& point);
-	    int pointIndex(float x, float y, float z);
-	    int pointIndex(const pcl::PointXYZ& point);
-	    void indexUnflatten(int index, int& x, int& y, int& z);
-	    std::vector<std::pair<int, int> > getRankedIndices();
-	    std::vector<std::pair<int, int> > getIndices();
-	    std::pair<int, int> getMax();
-	    std::vector<std::pair<int, int> > getMaxN(int n);
-	    std::pair<int, int> getMin();
-	    int getValuesTotal();
-	    int getEmptyTotal();
-	    int getTotalAbove(int thresh);
-	    size_t size();
-	    std::vector<int> valueHistogram();
-	    std::vector<int> toPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud);
+	    int at(int index) const;
+	    int at(float x, float y, float z) const;
+	    int at(const pcl::PointXYZ& point) const;
+	    int pointIndex(float x, float y, float z) const;
+	    int pointIndex(const pcl::PointXYZ& point) const;
+	    void indexUnflatten(int index, int& x, int& y, int& z) const;
+	    std::vector<std::pair<int, int> > getRankedIndices() const;
+	    std::vector<std::pair<int, int> > getIndices() const;
+	    std::pair<int, int> getMax() const;
+	    std::vector<std::pair<int, int> > getMaxN(int n) const;
+	    std::pair<int, int> getMin() const;
+	    int getValuesTotal() const;
+	    int getEmptyTotal() const;
+	    int getTotalAbove(int thresh) const;
+	    size_t size() const;
+	    std::vector<int> valueHistogram() const;
+	    std::vector<int> toPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud) const;
 	    
 	};
     } // namespace pclutil

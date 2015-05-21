@@ -70,6 +70,10 @@ namespace objsearch {
 		std::string dir, const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 		std::vector<int>& indices, std::vector<std::string>& labels,
 		std::string queryLabel="NULL");
+	    void postProcess(const pclutil::Grid3D& grid,
+			     const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& voteCloud,
+			     const std::vector<int> cellIndices,
+			     const std::vector<std::pair<int, int> >& maxPoints, QueryInfo info);
 	    pclutil::Grid3D houghVoting(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetPoints,
 			     const std::vector<std::vector<int> >& indices,
 			     const std::vector<std::vector<float> >& distances);
@@ -89,6 +93,9 @@ namespace objsearch {
 	    float yStepHough_;
 	    float zStepHough_;
 	    int nMax_;
+	    float clusterTolerance_;
+	    float clusterMinSize_;
+	    float clusterMaxSize_;
 
 	    std::vector<std::string> targetClouds_;
 	    int K_; // number of nearest neighbours to find
