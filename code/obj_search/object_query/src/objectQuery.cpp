@@ -540,9 +540,12 @@ namespace objsearch {
 		    topCloud->points[i].r = colour.r * 255;
 		    topCloud->points[i].g = colour.g * 255;
 		    topCloud->points[i].b = colour.b * 255;
-		    if (i == 0) {
-			ROS_INFO("Max point r %d g %d b %d", topCloud->points[0].r, topCloud->points[0].g, topCloud->points[0].b);
-		    }
+		    // if (i == 0) {
+		    // 	for (size_t j = 0; j <= maxPoints[0].second; j++) {
+		    // 	    pclutil::rgb c = pclutil::getHeatColour(j, maxPoints[0].second);
+		    // 	    ROS_INFO("Colour for value %d: (%f, %f, %f)", (int)j, c.r*255, c.g*255, c.b*255);
+		    // 	}
+		    // }
 		}
 
 		pcl::PointCloud<pcl::PointXYZRGB>::Ptr voteCloud(new pcl::PointCloud<pcl::PointXYZRGB>);

@@ -14,6 +14,6 @@
 */
 
 /**
-   @namespace SysUtil
+   @namespace sysutil
    @brief Mostly code for dealing with directories.
 */
