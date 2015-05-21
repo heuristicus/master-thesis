@@ -428,7 +428,7 @@ namespace objsearch {
 	template<typename DescType>
 	void ObjectQuery::doSearch() {
 	    ROS_INFO("Doing descriptor search.");
-	    QueryInfo info;
+	    QueryInfo info = {};
 	    
 	    pcl::PCDReader reader;
 
@@ -455,9 +455,11 @@ namespace objsearch {
 	    
 	    // loop over all clouds in the target cloud vector
 	    for (size_t i = 0; i < targetClouds_.size(); i++) {
+		ROS_INFO("====================Processing target cloud %d of %d====================\n%s", (int)i, (int)targetClouds_.size(), targetClouds_[i].c_str());
 		// Do a check to make sure the feature types match. If not, skip
 		// this target cloud
 		if (!initAndCheckPaths(targetClouds_[i])) {
+		    ROS_INFO("Path check failed, skipping...");
 		    continue;
 		}
 
@@ -479,7 +481,9 @@ namespace objsearch {
 		// Initialise vectors to store the closest K points to the query point.
 		ros::Time queryStart = ros::Time::now();
 		for (int i = 0; i < queryFeatures->size(); i++) {
-		    ROS_INFO("Query point %d of %d", i + 1, (int)queryFeatures->size());
+		    if (i % 50 == 0 && i > 0) {
+			ROS_INFO("Query point %d of %d", i + 1, (int)queryFeatures->size());
+		    }
 		    // some features may have nan values and will crash if not excluded.
 		    if (!pclutil::isValid(queryFeatures->points[i])){
 			continue;
@@ -494,40 +498,72 @@ namespace objsearch {
 		ros::Time houghStart = ros::Time::now();
 		pclutil::Grid3D grid = houghVoting(targetPoints, nearest, square_dists);
 		info.houghTime = (ros::Time::now() - houghStart).toSec();
+
+		
+		int total = grid.getValuesTotal();
+		info.votesTotal = total;
+		int empty = grid.getEmptyTotal();
+		int size = grid.size();
+		info.pointsTotal = size;
+		info.pointsNonZero = size - empty;
+		ROS_INFO("Hough grid has size %d, containing %d votes. %d cells have no votes -> %d cells have votes", size, total, empty, size - empty);
+
+		std::vector<int> gridHist = grid.valueHistogram();
+		info.pointHistogram = vectorToString(gridHist);
+		ROS_INFO("Histogram of grid values: %s", info.pointHistogram.c_str());
+
 		// find the n points in the hough grid with the maximum value -
 		// this should indicate the point in the target cloud which most
 		// closely matches the query object
-		std::vector<std::pair<pcl::PointXYZ, int> > maxPoints = grid.getMaxN(nMax_);
-		int total = grid.getValuesTotal();
-		int empty = grid.getEmptyTotal();
-		int size = grid.size();
-		ROS_INFO("Hough grid has size %d, containing %d votes. %d cells have no votes.",
-			 size, total, empty);
+		std::vector<std::pair<int, int> > maxPoints = grid.getMaxN(nMax_);
+		std::vector<int> maxHistogram(maxPoints[0].second + 1);
+		info.votesMaxTotal = 0;
+		for (size_t i = 0; i < maxPoints.size(); i++) {
+		    maxHistogram[maxPoints[i].second]++;
+		    info.votesMaxTotal += maxPoints[i].second;
+		}
+		info.maxHistogram = vectorToString(maxHistogram);
+
 		ROS_INFO("Max point has %d votes.", maxPoints[0].second);
-		std::string out = std::string(sysutil::fullDirPath(outPath_) + "houghVotes_" + queryObjectLabel_ + ".pcd");
+		ROS_INFO("%d max points have %d votes", (int)maxPoints.size(), info.votesMaxTotal);
+		ROS_INFO("Max points histogram: %s", info.maxHistogram.c_str());
 
 		// create a cloud containing only the top n points
 		pcl::PointCloud<pcl::PointXYZRGB>::Ptr topCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 		topCloud->resize(maxPoints.size());
 		for (size_t i = 0; i < maxPoints.size(); i++) {
-		    topCloud->points[i].x = maxPoints[i].first.x;
-		    topCloud->points[i].y = maxPoints[i].first.y;
-		    topCloud->points[i].z = maxPoints[i].first.z;
+		    pcl::PointXYZ p = grid.cellCentreFromIndex(maxPoints[i].first);
+		    topCloud->points[i].x = p.x;
+		    topCloud->points[i].y = p.y;
+		    topCloud->points[i].z = p.z;
 		    pclutil::rgb colour = pclutil::getHeatColour(maxPoints[i].second, maxPoints[0].second);
 		    topCloud->points[i].r = colour.r * 255;
 		    topCloud->points[i].g = colour.g * 255;
 		    topCloud->points[i].b = colour.b * 255;
+		    if (i == 0) {
+			ROS_INFO("Max point r %d g %d b %d", topCloud->points[0].r, topCloud->points[0].g, topCloud->points[0].b);
+		    }
 		}
-		
+
 		pcl::PointCloud<pcl::PointXYZRGB>::Ptr voteCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 		// convert the grid to a point cloud with rgb values
 		// representing the number of votes in each cell
-		grid.toPointCloud(voteCloud);
-		ROS_INFO("Hough done, outputting to %s", out.c_str());
+		std::vector<int> cellIndices = grid.toPointCloud(voteCloud);
+		
+		pcl::PointCloud<pcl::PointXYZRGB>::Ptr oneCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+		for (size_t i = 0; i < voteCloud->size(); i++) {
+		    pcl::PointXYZRGB p = voteCloud->points[i];
+		    if (grid.at(p.x, p.y, p.z) > 1) {
+			oneCloud->push_back(p);
+		    }
+		}
 
+		std::string out = std::string(sysutil::fullDirPath(outPath_) + "houghVotes_" + queryObjectLabel_ + ".pcd");
+		ROS_INFO("Hough done, outputting to %s", out.c_str());
 		pcl::PCDWriter writer;
 		writer.write<pcl::PointXYZRGB>(out, *voteCloud, true);
 		writer.write<pcl::PointXYZRGB>(sysutil::removeExtension(out, false) + "_top.pcd", *topCloud, true);
+		writer.write<pcl::PointXYZRGB>(sysutil::removeExtension(out, false) + "_one.pcd", *oneCloud, true);
 
 		// will be filled with all of the points in the hough cloud
 		// which were within the bounding box of the annotation cloud
@@ -542,34 +578,45 @@ namespace objsearch {
 		info.votesInBox = 0;
 		info.pointsMaxInBox = 0;
 		info.votesMaxInBox = 0;
+		std::vector<int> boxHistogram(maxPoints[0].second + 1);
+		std::vector<int> boxMaxHistogram(maxPoints[0].second + 1);
 		for (size_t i = 0; i < indices.size(); i++) {
-		    pcl::PointXYZRGB p = voteCloud->points[i];
-		    int indValue = grid.at(p.x, p.y, p.z);
-		    info.votesInBox += indValue;
+		    info.votesInBox += grid.at(cellIndices[indices[i]]);
+		    boxHistogram[grid.at(cellIndices[indices[i]])]++;
 		    // check the max points vector to see if this point is in
 		    // there as well, and if it is increment the values for the
-		    // max box. need to extract the centre of the point p,
-		    // because the maxpoints are also centres.
-		    pcl::PointXYZ pc = grid.cellCentreFromPoint(p.x, p.y, p.z);
-		    ROS_INFO("====================\nPoint x: %f, y: %f, z: %f", pc.x, pc.y, pc.z);
+		    // max box.
 		    for (size_t j = 0; j < maxPoints.size(); j++) {
-			pcl::PointXYZ mp = maxPoints[j].first;
-			ROS_INFO("Max Point x: %f, y: %f, z: %f", mp.x, mp.y, mp.z);
-			if (std::fabs(mp.x - p.x) < 0.00001
-			    && std::fabs(mp.y - p.y) < 0.00001
-			    && std::fabs(mp.z - p.z) < 0.00001) {
+			// if the cell index of one of the maximum points
+			// matches the cell index of the point in the OBB that
+			// we are looking at, then that max point is also in the
+			// OBB.
+			if (maxPoints[j].first == cellIndices[indices[i]]) {
 			    info.pointsMaxInBox++;
-			    info.votesMaxInBox += indValue;
-			    break; // only one point can match
+			    info.votesMaxInBox += maxPoints[j].second;
+			    boxMaxHistogram[maxPoints[j].second]++;
 			}
 		    }
 		}
-		ROS_INFO("Points inside annotation bbox for hough cloud: %d of %d total", info.pointsInBox, (int)voteCloud->size());
-		ROS_INFO("Votes inside annotation bbox for hough cloud: %d of %d total", info.votesInBox, grid.getValuesTotal());
-		ROS_INFO("Max points inside annotation bbox for hough cloud: %d of %d total", info.pointsMaxInBox, (int)maxPoints.size());
-		ROS_INFO("Max Votes inside annotation bbox for hough cloud: %d of %d total", info.votesMaxInBox, grid.getValuesTotal());
+		info.boxMaxHistogram = vectorToString(boxMaxHistogram);
+		info.boxHistogram = vectorToString(boxHistogram);
+		ROS_INFO("Box histogram: %s", info.boxHistogram.c_str());
+		ROS_INFO("Box max histogram: %s", info.boxMaxHistogram.c_str());
+
 		
+		ROS_INFO("Points inside annotation bbox for hough cloud: %d of %d total grid points >0", info.pointsInBox, (int)voteCloud->size());
+		ROS_INFO("Votes inside annotation bbox for hough cloud: %d of %d total grid votes", info.votesInBox, grid.getValuesTotal());
+		ROS_INFO("Max points inside annotation bbox for hough cloud: %d of %d total max points", info.pointsMaxInBox, (int)maxPoints.size());
+		ROS_INFO("Max Votes inside annotation bbox for hough cloud: %d of %d total max votes", info.votesMaxInBox, info.votesMaxTotal);
 	    }
+	}
+
+	std::string ObjectQuery::vectorToString(std::vector<int> vec) {
+	    std::string str;
+	    for (size_t i = 0; i < vec.size(); i++) {
+		str += std::to_string(vec[i]) + (i + 1 == vec.size() ? "" : ",");		
+	    }
+	    return str;
 	}
 
 	// void outputRegions(){

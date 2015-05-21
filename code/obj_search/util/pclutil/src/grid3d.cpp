@@ -174,10 +174,10 @@ namespace objsearch {
 	pcl::PointXYZ Grid3D::cellCentreFromPoint(float x, float y, float z){
 	    pcl::PointXYZ point;
 	    // the second part gives the minimum point in the cell on that axis,
-	    // centre is where half the step for that axis is added
-	    point.x = xOffset_ + xStep_/2 + std::floor((x + xOffset_)/xStep_) * xStep_;
-	    point.y = yOffset_ + yStep_/2 + std::floor((y + yOffset_)/yStep_) * yStep_;
-	    point.z = zOffset_ + zStep_/2 + std::floor((z + zOffset_)/zStep_) * zStep_;
+	    // centre is where half the step for that axis is added to the offset
+	    point.x = xOffset_ + xStep_/2 + std::floor((x - xOffset_)/xStep_) * xStep_;
+	    point.y = yOffset_ + yStep_/2 + std::floor((y - yOffset_)/yStep_) * yStep_;
+	    point.z = zOffset_ + zStep_/2 + std::floor((z - zOffset_)/zStep_) * zStep_;
 	    return point;
 	}
 
@@ -288,12 +288,12 @@ namespace objsearch {
 	 * 
 	 * @return 
 	 */
-	std::pair<pcl::PointXYZ, int> Grid3D::getMax() {
+	std::pair<int, int> Grid3D::getMax() {
 	    auto it = std::max_element(values_.begin(), values_.end());
 
 	    // compute the index of the max point by subtracting the two
 	    // iterators
-	    return std::pair<pcl::PointXYZ, int>(cellCentreFromIndex(values_.end() - it), *it);
+	    return std::pair<int, int>(values_.end() - it, *it);
 	}
 
 	/** 
@@ -301,10 +301,10 @@ namespace objsearch {
 	 * 
 	 * @param n 
 	 * 
-	 * @return vector of pairs with the centre of the cell and the count in
+	 * @return vector of pairs with the index of the cell and the count in
 	 * that cell
 	 */
-	std::vector<std::pair<pcl::PointXYZ, int> > Grid3D::getMaxN(int n) {
+	std::vector<std::pair<int, int> > Grid3D::getMaxN(int n) {
 	    auto comp = [](std::pair<int, int> p, std::pair<int, int> q){
 		return p.second > q.second;
 	    };
@@ -314,11 +314,7 @@ namespace objsearch {
 	    // partially sort the vector so that the first n elements are sorted
 	    // and the rest are in arbitrary order.
 	    std::partial_sort(items.begin(), items.begin() + n, items.end(), comp);
-	    std::vector<std::pair<pcl::PointXYZ, int> > ret;
-	    for (int i = 0; i < n; i++) {
-		ret.push_back(std::pair<pcl::PointXYZ, int>(cellCentreFromIndex(items[i].first), items[i].second));
-	    }
-	    return ret;
+	    return std::vector<std::pair<int,int> >(items.begin(), items.begin() + n);
 	}
 
 	/** 
@@ -327,10 +323,10 @@ namespace objsearch {
 	 * 
 	 * @return 
 	 */
-	std::pair<pcl::PointXYZ, int> Grid3D::getMin() {
+	std::pair<int, int> Grid3D::getMin() {
 	    auto it = std::min_element(values_.begin(), values_.end());
 	    
-	    return std::pair<pcl::PointXYZ, int>(cellCentreFromIndex(values_.end() - it), *it);
+	    return std::pair<int, int>(values_.end() - it, *it);
 	}
 
 	/** 
@@ -359,6 +355,49 @@ namespace objsearch {
 	}
 
 	/** 
+	 * Get the total number of cells with value above the given threshold
+	 * 
+	 * @param thresh threshold to apply
+	 * 
+	 * @return Number of cells above the threshold
+	 */
+	int Grid3D::getTotalAbove(int thresh) {
+	    int count = 0;
+	    for (size_t i = 0; i < values_.size(); i++) {
+		if (values_[i] > thresh) {
+		    count++;
+		}
+	    }
+	    return count;
+	}
+
+	/** 
+	 * Get a histogram of the values contained by the grid
+	 * 
+	 * 
+	 * @return vector with each index containing the number of points with
+	 * the value of that index, i.e. index 0 contains the number of points
+	 * with 0 votes, and so on.
+	 */
+	std::vector<int> Grid3D::valueHistogram() {
+	    std::vector<int> histogram(20);
+	    int maxVotes = -1;
+	    for (size_t i = 0; i < values_.size(); i++) {
+		int curVal = values_[i];
+		if (curVal > histogram.size() - 1) {
+		    histogram.resize(curVal);
+		}
+		if (curVal > maxVotes) {
+		    maxVotes = curVal;
+		}
+		histogram[curVal]++;
+	    }
+	    // resize the histogram at the end to remove extra space
+	    histogram.resize(maxVotes + 1);
+	    return histogram;
+	}
+
+	/** 
 	 * The size of the grid in terms of number of cells.
 	 * 
 	 * @return 
@@ -373,27 +412,34 @@ namespace objsearch {
 	 * value inside that cell. Cells with high values are red, low values
 	 * are blue.
 	 * 
-	 * @param cloud 
+	 * @param cloud will be populated with points corresponding to cells
+	 * with nonzero values. The points are coloured according to their value
+	 * @return vector of indices in the grid corresponding to point indices in the cloud
 	 */
-	void Grid3D::toPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud) {
-	    std::vector<pcl::PointXYZ> centres = allCentres();
-	    int maxVal = getMax().second;
-	    for (size_t i = 0; i < centres.size(); i++) {
-		int value = at(i);
-		if (value == 0) {
-		    continue;
-		}
-		pcl::PointXYZRGB np;
-		np.x = centres[i].x;
-		np.y = centres[i].y;
-		np.z = centres[i].z;
-		rgb colour = getHeatColour(at(i), maxVal);
-		np.r = colour.r * 255;
-		np.g = colour.g * 255;
-		np.b = colour.b * 255;
-		cloud->push_back(np);
-	    }
-	}
+	std::vector<int> Grid3D::toPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud) {
+	     std::vector<pcl::PointXYZ> centres = allCentres();
+	     std::vector<int> inds;
+	     int maxVal = getMax().second;
+	     // centres are generated using the indices of cells in the grid, so
+	     // loop indices correspond to cell indices
+	     for (size_t i = 0; i < centres.size(); i++) {
+		 int value = at(i);
+		 if (value == 0) {
+		     continue;
+		 }
+		 pcl::PointXYZRGB np;
+		 np.x = centres[i].x;
+		 np.y = centres[i].y;
+		 np.z = centres[i].z;
+		 rgb colour = getHeatColour(at(i), maxVal);
+		 np.r = colour.r * 255;
+		 np.g = colour.g * 255;
+		 np.b = colour.b * 255;
+		 cloud->push_back(np);
+		 inds.push_back(i);
+	     }
+	     return inds;
+	 }
 
     } // namespace pclutil
 } // namespace objsearch

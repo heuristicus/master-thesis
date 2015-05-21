@@ -41,13 +41,15 @@ namespace objsearch {
 	    void indexUnflatten(int index, int& x, int& y, int& z);
 	    std::vector<std::pair<int, int> > getRankedIndices();
 	    std::vector<std::pair<int, int> > getIndices();
-	    std::pair<pcl::PointXYZ, int> getMax();
-	    std::vector<std::pair<pcl::PointXYZ, int> > getMaxN(int n);
-	    std::pair<pcl::PointXYZ, int> getMin();
+	    std::pair<int, int> getMax();
+	    std::vector<std::pair<int, int> > getMaxN(int n);
+	    std::pair<int, int> getMin();
 	    int getValuesTotal();
 	    int getEmptyTotal();
+	    int getTotalAbove(int thresh);
 	    size_t size();
-	    void toPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud);
+	    std::vector<int> valueHistogram();
+	    std::vector<int> toPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud);
 	    
 	};
     } // namespace pclutil

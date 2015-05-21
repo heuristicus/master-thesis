@@ -42,10 +42,19 @@ namespace objsearch {
 		std::string fname;
 		float queryTime;
 		float houghTime;
+		int pointsTotal;
+		int pointsNonZero;
+		int votesTotal;
 		int pointsInBox;
 		int votesInBox;
+		int pointsMaxTotal;
 		int pointsMaxInBox;
 		int votesMaxInBox;
+		int votesMaxTotal;
+		std::string pointHistogram;
+		std::string boxHistogram;
+		std::string maxHistogram;
+		std::string boxMaxHistogram;
 	    };
 	    
 	    ObjectQuery(int argc, char *argv[]);
@@ -85,6 +94,8 @@ namespace objsearch {
 	    int K_; // number of nearest neighbours to find
 
 	    bool outputRegions_; // unused
+
+	    std::string vectorToString(std::vector<int> vec);
 	};
 	
     } // namespace objectquery
