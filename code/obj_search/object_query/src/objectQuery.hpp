@@ -40,21 +40,39 @@ namespace objsearch {
 	public:
 	    struct QueryInfo {
 		std::string fname;
+		// \brief time taken to find NNs for all the points in the query cloud
 		float queryTime;
+		// \brief time taken to compute the hough voting
 		float houghTime;
+		// \brief number of clusters extracted from the point cloud
+		// constructed from max n values in the hough vote cloud
+		int nClusters;
+		// \brief total number of points in the hough vote cloud
 		int pointsTotal;
-		int pointsNonZero;
+		// \brief total points with nonzero values
+ 		int pointsNonZero;
+		// \brief total votes cast
 		int votesTotal;
+		// \brief total points wih votes that fall into the OBB of the object
 		int pointsInBox;
+		// \brief total votes contributed by the points that fall within the OBB
 		int votesInBox;
+		// \brief total number of points extracted from a sorted list of votes
 		int pointsMaxTotal;
-		int pointsMaxInBox;
-		int votesMaxInBox;
+		// \brief total votes contributed by the max points
 		int votesMaxTotal;
+		// \brief total number of the highest valued points that fall in the OBB
+		int pointsMaxInBox;
+		// \brief total votes contributed by max points that are in the OBB
+		int votesMaxInBox;
+		// \brief histogram of values in the entire grid
 		std::string pointHistogram;
+		// \brief histogram of values falling inside the OBB
 		std::string boxHistogram;
+		// \brief histogram of all the highest valued points
 		std::string maxHistogram;
-		std::string boxMaxHistogram;
+		// \brief histogram of all the highest valued points which are in the OBB
+ 		std::string boxMaxHistogram;
 	    };
 	    
 	    ObjectQuery(int argc, char *argv[]);

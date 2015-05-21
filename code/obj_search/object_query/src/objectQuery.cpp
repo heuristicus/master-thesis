@@ -492,7 +492,8 @@ namespace objsearch {
 			continue;
 		    }
 		    // Search for the closest K points to the query point
-		    search->nearestKSearch(queryFeatures->points[i], K_, nearest[i], square_dists[i]);
+		    search->nearestKSearch(queryFeatures->points[i], K_,
+					   nearest[i], square_dists[i]);
 		}
 		info.queryTime = (ros::Time::now() - queryStart).toSec();
 		ROS_INFO("Finished finding neighbours");
@@ -507,7 +508,8 @@ namespace objsearch {
 		// representing the number of votes in each cell
 		std::vector<int> cellIndices = grid.toPointCloud(voteCloud);
 		
-		std::string out = std::string(sysutil::fullDirPath(outPath_) + "houghVotes_" + queryObjectLabel_);
+		std::string out = std::string(sysutil::fullDirPath(outPath_)
+					      + "houghVotes_" + queryObjectLabel_);
 		pcl::PCDWriter writer;
 		writer.write<pcl::PointXYZRGB>(out + ".pcd", *voteCloud, true);
 
@@ -524,40 +526,100 @@ namespace objsearch {
 		    topCloud->points[i].x = p.x;
 		    topCloud->points[i].y = p.y;
 		    topCloud->points[i].z = p.z;
-		    pclutil::rgb colour = pclutil::getHeatColour(maxPoints[i].second, maxPoints[0].second);
+		    pclutil::rgb colour = pclutil::getHeatColour(maxPoints[i].second,
+								 maxPoints[0].second);
 		    topCloud->points[i].r = colour.r * 255;
 		    topCloud->points[i].g = colour.g * 255;
 		    topCloud->points[i].b = colour.b * 255;
 		}
 		writer.write<pcl::PointXYZRGB>(out + "_top.pcd", *topCloud, true);
 
-		pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZRGB>);
+		// find clusters in the space of the top n points, with the user
+		// specified tolerances and min and max cluster sizes
+		pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>);
 		tree->setInputCloud(topCloud);
-		std::vector<pcl::PointIndices> cluster_indices;
+		std::vector<pcl::PointIndices> clusterIndices;
 		pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ec;
 		ec.setClusterTolerance(clusterTolerance_);
 		ec.setMinClusterSize(clusterMinSize_);
 		ec.setMaxClusterSize(clusterMaxSize_);
 		ec.setSearchMethod(tree);
 		ec.setInputCloud(topCloud);
-		ec.extract(cluster_indices);
+		ec.extract(clusterIndices);
 
-		int j = 0;
-		for (auto it = cluster_indices.begin(); it != cluster_indices.end(); ++it) {
-			pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_cluster(new pcl::PointCloud<pcl::PointXYZRGB>);
-			for (auto pit = it->indices.begin(); pit != it->indices.end(); ++pit)
-			    cloud_cluster->points.push_back(topCloud->points[*pit]); //*
-			cloud_cluster->width = cloud_cluster->points.size();
-			cloud_cluster->height = 1;
-			cloud_cluster->is_dense = true;
-
-			std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size() << " data points." << std::endl;
-			std::stringstream ss;
-			ss << sysutil::fullDirPath(outPath_).c_str() << queryObjectLabel_ << "_cloud_cluster_" << j << ".pcd";
-			writer.write<pcl::PointXYZRGB>(ss.str (), *cloud_cluster, false); //*
-			j++;
+		// maybe try doing this on the the whole set of hough votes?
+		// i.e. find all unique points in the hough vote cloud in the
+		// radius of the points which make up the cluster and add their
+		// scores as well - potential for more accuracy?
+		// score the clusters based on the total number of votes they contain
+		// vector will store the cluster index and score so we can sort it
+		std::vector<std::pair<int, int> > clusterScores(clusterIndices.size());
+		std::vector<pcl::PointXYZ> centroids(clusterIndices.size());
+		std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr > clusterClouds;
+		// loop over all clusters - each index of this vector contains
+		// another vector with the indices of the points in the clusters
+		// from the point of view of the topCloud. So, need to use the
+		// topCloud indices that we have in the maxPoints vector to get
+		// the correct values for the score
+		for (size_t i = 0; i < clusterIndices.size(); i++) {
+			pcl::PointCloud<pcl::PointXYZRGB>::Ptr clusterCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+			// loop over indices in the individual cluster
+			clusterScores[i].first = i; // keep track of the index of this cluster
+			// loop over the indices of the points in this cluster
+			pcl::PointXYZ centroid(0,0,0);
+			for (auto it = clusterIndices[i].indices.begin();
+			     it != clusterIndices[i].indices.end(); it++) {
+			    // *it index refers to the index in topCloud, which
+			    // is constructed from the maxPoints vector. Use
+			    // the score values stored in maxPoints
+			    clusterScores[i].second += maxPoints[*it].second;
+			    // push the points at the indices that this cluster
+			    // contains onto the cloud for the cluster
+			    pcl::PointXYZRGB p = topCloud->points[*it];
+			    // store values to compute the centroid for this cluster
+			    centroid.x += p.x;
+			    centroid.y += p.y;
+			    centroid.z += p.z;
+			    clusterCloud->points.push_back(p);
+			}
+			centroid.x /= clusterCloud->points.size();
+			centroid.y /= clusterCloud->points.size();
+			centroid.z /= clusterCloud->points.size();
+			centroids[i] = centroid;
+			
+			clusterCloud->width = clusterCloud->points.size();
+			clusterCloud->height = 1;
+			clusterCloud->is_dense = true;
+			clusterClouds.push_back(clusterCloud);
 		}
-		
+
+		auto comp = [](std::pair<int, int> p, std::pair<int, int> q) {
+		    return p.second > q.second;
+		};
+		// sort the clusters to get them in order of the scores
+		std::sort(clusterScores.begin(), clusterScores.end(), comp);
+
+		info.nClusters = clusterScores.size(); // save the number of clusters extracted
+		for (size_t i = 0; i < clusterScores.size(); i++) {
+		    ROS_INFO("Cluster %d has %d points with score %d (%f avg/pt). Original index was %d",
+			     (int)i, (int)clusterIndices[i].indices.size(),
+			     clusterScores[i].second,
+			     clusterScores[i].second/(float)clusterClouds[clusterScores[i].first]->size(),
+			     clusterScores[i].first);
+		    std::string cloudOut = std::string(sysutil::fullDirPath(outPath_).c_str()
+						       + queryObjectLabel_ + "_cluster_"
+						       + std::to_string(i) + ".pcd");
+		    pcl::PointXYZ c = centroids[clusterScores[i].first];
+		    ROS_INFO("Cluster centroid is (%f, %f, %f)", c.x, c.y, c.z);
+		    ROS_INFO("Outputting cloud to %s", cloudOut.c_str());
+		    // need to extract the correct index of the cloud by using
+		    // the index stored in the clusterscores vector
+		    writer.write<pcl::PointXYZRGB>(cloudOut,
+						   *clusterClouds[clusterScores[i].first], true);
+		}
+
+		// cut out a cubic region around the centroid of the top clusters and do region growing?
+
 		postProcess(grid, voteCloud, cellIndices, maxPoints, info);
 	    }
 	}
