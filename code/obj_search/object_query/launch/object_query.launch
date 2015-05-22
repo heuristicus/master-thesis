@@ -31,17 +31,28 @@
   <param name="/object_query/z_step_hough" value="$(arg z_step_hough)" />
   <!-- Number of points to extract from the hough grid at the end to check
        whether they lie in regions for the correct annotation  -->
-  <arg name="n_max_points" default="5"/>
+  <arg name="n_max_points" default="100"/>
   <param name="/object_query/n_max_points" value="$(arg n_max_points)" />
 
-  <!-- Clustering threshold -->
+  <!-- Clustering. Setting these parameters to -1 will make the program define
+       values automatically based on the size of the query cloud -->
+  <!-- The tolerance is the minimum distance required for points to be
+       considered to be in the same cluster -->
   <arg name="cluster_tolerance" default="0.15"/>
-  <param name="/object_query/cluster_tolerance" value="$(arg cluster_tolerance)" />
+  <param name="/object_query/cluster_tolerance" value="$(arg cluster_tolerance)"/>
+  <!-- Minimum number of points per cluster -->
   <arg name="cluster_minsize" default="3"/>
   <param name="/object_query/cluster_minsize" value="$(arg cluster_minsize)" />
   <arg name="cluster_maxsize" default="500"/>
   <param name="/object_query/cluster_maxsize" value="$(arg cluster_maxsize)" />
-  
+
+  <!-- Multiplier to use when defining the radius of the sphere used to extract
+       points from the cloud being checked for matches at the cluster centres
+       that were found. This is a multiplier of the largest dimension of the
+       bounding box of the query cloud-->
+  <arg name="extract_mult" default="1.3"/>
+  <param name="/object_query/extract_mult" value="$(arg extract_mult)" />
+
   <arg name="regions" default="false"/>
   <param name="/object_query/output_regions" value="$(arg regions)" />
   

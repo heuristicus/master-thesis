@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr mergedCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr intermediateCloud(new pcl::PointCloud<pcl::PointXYZRGB>());
 
-    for (int i = 0; i < inter.vIntermediateRoomClouds.size(); i++) {
+    for (size_t i = 0; i < inter.vIntermediateRoomClouds.size(); i++) {
 	std::cout << "cloud " << i << " of " << inter.vIntermediateRoomClouds.size() << std::endl;
 	pcl_ros::transformPointCloud(*(inter.vIntermediateRoomClouds[i]), *intermediateCloud, inter.vIntermediateRoomCloudTransforms[i]);
 	*mergedCloud += *intermediateCloud;

@@ -25,6 +25,7 @@
 #include <pcl/features/pfh.h>
 #include <pcl/features/pfhrgb.h>
 #include <pcl/features/shot.h>
+#include <pcl/filters/passthrough.h>
 #include <pcl/features/usc.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/kdtree/kdtree_flann.h>
@@ -77,6 +78,11 @@ namespace objsearch {
 	    
 	    ObjectQuery(int argc, char *argv[]);
 
+	    void extractFeatureFileInfo(const std::string& fname,
+					std::string& dateTime,
+					std::string& interestType,
+					std::string& featureType,
+					std::string& originalName);
 	    bool initAndCheckPaths(std::string path);
 	    template<typename DescType>
 	    void doSearch();
@@ -92,20 +98,32 @@ namespace objsearch {
 			     const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& voteCloud,
 			     const std::vector<int> cellIndices,
 			     const std::vector<std::pair<int, int> >& maxPoints, QueryInfo info);
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr extractClusterRegionBox(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
+									const pcl::PointXYZ& centroid,
+									const pcl::PointXYZ& extents);
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr extractClusterRegionSphere(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud, const pcl::PointXYZ& centre, float radius);
+
 	    pclutil::Grid3D houghVoting(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetPoints,
-			     const std::vector<std::vector<int> >& indices,
-			     const std::vector<std::vector<float> >& distances);
+					const std::vector<std::vector<int> >& indices,
+					const std::vector<std::vector<float> >& distances);
+	    void writeInfo(std::string outPath, QueryInfo info, bool append);
 	private:
 	    std::string queryFile_;
 	    std::string targetFile_;
 	    std::string queryPointFile_;
 	    std::string targetPointFile_;
+	    std::string originalCloudFileName_;
+	    std::string originalTargetCloudFile_; // the cloud from which target features were extracted
+	    std::string resultsOut_;
 	    std::string dataPath_;
 	    std::string dataSubDir_;
 	    std::string outDir_;
 	    std::string outPath_;
 	    std::string queryType_;
 	    std::string queryObjectLabel_;
+	    std::string interestType_;
+	    std::string featureType_;
+	    pclutil::OrientedBoundingBox queryBbox_;
 
 	    float xStepHough_;
 	    float yStepHough_;
@@ -114,6 +132,7 @@ namespace objsearch {
 	    float clusterTolerance_;
 	    float clusterMinSize_;
 	    float clusterMaxSize_;
+	    float extractRadiusMult_;
 
 	    std::vector<std::string> targetClouds_;
 	    int K_; // number of nearest neighbours to find

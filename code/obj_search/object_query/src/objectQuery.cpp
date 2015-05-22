@@ -32,7 +32,8 @@ namespace objsearch {
 	    ROSUtil::getParam(handle, "/object_query/cluster_tolerance", clusterTolerance_);
 	    ROSUtil::getParam(handle, "/object_query/cluster_minsize", clusterMinSize_);
 	    ROSUtil::getParam(handle, "/object_query/cluster_maxsize", clusterMaxSize_);
-	    
+	    ROSUtil::getParam(handle, "/object_query/extract_mult", extractRadiusMult_);
+
 	    // If output is not specified, set the output directory to be the processed
 	    // data directory specified by the global parameters.
 	    if (std::string("NULL").compare(outDir_) == 0) {
@@ -73,36 +74,38 @@ namespace objsearch {
 	    
 	    // remainder of the string containing information about the original
 	    // name, interest and descriptor types
-	    std::string remainder = std::string(trimmedName.begin(), trimmedName.begin() + trimmedName.length() - 20);
+	    std::string remainder = std::string(trimmedName.begin(),
+						trimmedName.begin() + trimmedName.length() - 20);
 	    ROS_INFO("Remainder is %s", remainder.c_str());
 	    
 	    // we are interested in extracting the interest point type and the original filename
 	    int indicator = remainder.find_last_of('_');
 	    // interest type is the part of the string after the last _
-	    std::string interestType = std::string(remainder, indicator + 1);
-	    indicator = remainder.find_first_of('<');
+	    interestType_ = std::string(remainder, indicator + 1);
+	    
+	    int aindicator = remainder.find_first_of('<');
+	    featureType_ = std::string(remainder.begin() + aindicator + 1,
+				       remainder.begin() + indicator);
+	    ROS_INFO("Using query cloud with date %s, interest type %s, feature type %s",
+		     dateTime.c_str(), interestType_.c_str(), featureType_.c_str());
 	    // the original file name starts at the beginning of the string and
 	    // ends at the first <
-	    std::string originalFname = std::string(remainder.begin(), remainder.begin() + indicator);
+	    originalCloudFileName_ = std::string(remainder.begin(), remainder.begin() + aindicator);
+	    ROS_INFO("Original cloud file name without extension is %s", originalCloudFileName_.c_str());
 	    // we assume that query objects have their label name in the
 	    // filename, following the string label_
 	    std::string labelPrefix("label_");
-	    int ind = originalFname.find(labelPrefix);
+	    size_t ind = originalCloudFileName_.find(labelPrefix);
 	    if (ind == std::string::npos) {
 		throw sysutil::objsearchexception("Filename did not contain label prefix - could not extract a label");
 	    } else {
-		queryObjectLabel_ = std::string(originalFname, ind + labelPrefix.size());
+		queryObjectLabel_ = std::string(originalCloudFileName_, ind + labelPrefix.size());
 	    }
-	    ROS_INFO("datetime is %s", dateTime.c_str());
-	    ROS_INFO("remainder is %s", remainder.c_str());
-	    ROS_INFO("interesttype is %s", interestType.c_str());
-	    ROS_INFO("original filename is %s", originalFname.c_str());
-	    ROS_INFO("object label is %s", queryObjectLabel_.c_str());
 	    
 	    // now, find files in the directory which have the same interest
 	    // type and date+time. There should be only one, if there are any at
 	    // all.
-	    std::vector<std::string> matches = sysutil::listFilesWithString(sysutil::trimPath(queryFile_, 1), std::regex(".*points_" + interestType + ".*" + dateTime + ".*"));
+	    std::vector<std::string> matches = sysutil::listFilesWithString(sysutil::trimPath(queryFile_, 1), std::regex(".*points_" + interestType_ + ".*" + dateTime + ".*"));
 
 	    if (matches.size() == 0){
 		ROS_INFO("No matches for descriptor location file of %s", queryFile_.c_str());
@@ -202,6 +205,41 @@ namespace objsearch {
 	    }
 	}
 
+	/** 
+	 * Extract information from the filename of a feature cloud
+	 *
+	 * @param fname the filename to get information from
+	 * @param dateTime the date and time the features were extracted
+	 * @param interestType the interest point selection method used
+	 * @param featureType the type of feature used
+	 * @param originalName the name of the file from which these features were extracted
+	 */
+	void ObjectQuery::extractFeatureFileInfo(const std::string& fname,
+						 std::string& dateTime,
+						 std::string& interestType,
+						 std::string& featureType,
+						 std::string& originalName) {
+	    std::string trimmedName = sysutil::removeExtension(fname, -1);
+	    // we know that the date/time makes up the last 19 characters of the
+	    // string, and we want to remove the preceding underscore as well
+	    dateTime = std::string(trimmedName.begin() + trimmedName.length() - 19,
+					       trimmedName.end());
+	    // remainder of the string containing information about the original
+	    // name, interest and descriptor types
+	    std::string remainder = std::string(trimmedName.begin(), trimmedName.begin() + trimmedName.length() - 20);
+
+	    // we are interested in extracting the interest point type and the original filename
+	    int indicator = remainder.find_last_of('_');
+	    // interest type is the part of the string after the last _
+	    interestType = std::string(remainder, indicator + 1);
+	    int aindicator = remainder.find_first_of('<');
+	    featureType = std::string(remainder.begin() + aindicator + 1,
+				      remainder.begin() + indicator);
+	    // the original file name starts at the beginning of the string and
+	    // ends at the first <
+	    originalName = std::string(remainder.begin(), remainder.begin() + aindicator);
+	}
+
 	bool ObjectQuery::initAndCheckPaths(std::string path) {
 	    targetFile_ = path;
 	    // Read the headers for the point clouds that were provided as
@@ -217,31 +255,14 @@ namespace objsearch {
 	    if (queryType_.compare(targetType) != 0){
 		ROS_ERROR("Fields of the two descriptor clouds do not match: \n"\
 			  "Query: %s, target: %s", queryType_.c_str(), targetType.c_str());
-		return false;
+		throw sysutil::objsearchexception("Fields of descriptors do not match.");
 	    }
 
-	    std::string trimmedName = sysutil::removeExtension(targetFile_, -1);
-	    // we know that the date/time makes up the last 19 characters of the
-	    // string, and we want to remove the preceding underscore as well
-	    std::string dateTime = std::string(trimmedName.begin() + trimmedName.length() - 19,
-					       trimmedName.end());
-	    // remainder of the string containing information about the original
-	    // name, interest and descriptor types
-	    std::string remainder = std::string(trimmedName.begin(), trimmedName.begin() + trimmedName.length() - 20);
-
-	    // we are interested in extracting the interest point type and the original filename
-	    int indicator = remainder.find_last_of('_');
-	    // interest type is the part of the string after the last _
-	    std::string interestType = std::string(remainder, indicator + 1);
-	    indicator = remainder.find_first_of('<');
-	    // the original file name starts at the beginning of the string and
-	    // ends at the first <
-	    std::string originalFname = std::string(remainder.begin(), remainder.begin() + indicator);
-	    
-	    ROS_INFO("datetime is %s", dateTime.c_str());
-	    ROS_INFO("remainder is %s", remainder.c_str());
-	    ROS_INFO("interesttype is %s", interestType.c_str());
-	    ROS_INFO("original filename is %s", originalFname.c_str());
+	    // get extra info out of the filename
+	    std::string dateTime, interestType, featureType, originalName;
+	    extractFeatureFileInfo(targetFile_, dateTime, interestType, featureType, originalName);
+	    ROS_INFO("date is %s, interest type %s, feature type %s", dateTime.c_str(),
+		     interestType.c_str(), featureType.c_str());
 	    
 	    // now, find files in the directory which have the same interest
 	    // type and date+time. There should be only one, if there are any at
@@ -254,9 +275,21 @@ namespace objsearch {
 	    }
 	    
 	    targetPointFile_ = matches[0];
+	    // file which contains the cloud that the features we will look at was taken from
+	    std::string targetPath = sysutil::fullDirPath(sysutil::trimPath(targetFile_, 2));
+	    originalTargetCloudFile_ = targetPath + originalName + ".pcd";
+	    // output the cluster results to a new directory
+	    outPath_ = targetPath + "clusters/";
+
+	    if (!sysutil::makeDirs(outPath_)) {
+		ROS_INFO("Could not make output directory %s", outPath_.c_str());
+		throw sysutil::objsearchexception("Failed to create output directory");
+	    }
 
 	    ROS_INFO("Loading target feature points from %s", targetPointFile_.c_str());
-
+	    ROS_INFO("Original cloud is %s", originalTargetCloudFile_.c_str());
+	    ROS_INFO("Clusters will be output to %s", outPath_.c_str());
+	    
 	    return true;
 	}
 
@@ -284,7 +317,8 @@ namespace objsearch {
 	    std::vector<pclutil::AnnotatedCloud<pcl::PointXYZ> > annotations
 		= pclutil::getProcessedAnnotatedClouds<pcl::PointXYZ>(dir, queryLabel);
 	    if (annotations.size() == 0){
-		throw sysutil::objsearchexception("No annotation clouds were found in annotatePointsOBB.");
+		std::string error("No annotation clouds were found in annotatePointsOBB, directory " + dir + ", query label " + queryLabel);
+		throw sysutil::objsearchexception(error);
 	    }
 
 	    // fill a vector with the bounding boxes of each of the annotated clouds
@@ -423,6 +457,26 @@ namespace objsearch {
 	    return grid;
 	}
 
+	void ObjectQuery::writeInfo(std::string outPath, QueryInfo info, bool append) {
+	    std::ofstream file;
+	    if (append){
+		file.open(outPath, std::ios::app);
+	    } else {
+		file.open(outPath);
+	    }
+
+	    if (!append) {
+		// if not appending, put headers to the columns and the
+		// directory/file the program was run on
+		file << "#filename n_pre n_downsample n_trim n_rmplane t_load t_downsample"
+		     << " t_trim t_annot t_normals t_normals_feature n_plane t_plane" << std::endl;
+	    }
+
+	    // output data from the struct
+//	    file <<
+	    file.close();
+	}
+
 	/** 
 	 * Do a nearest neighbour search for the features in the query cloud in
 	 * the target cloud. 
@@ -434,6 +488,26 @@ namespace objsearch {
 	    QueryInfo info = {};
 	    
 	    pcl::PCDReader reader;
+
+	    // load the original object file so that we can extract its OBB,
+	    // just to get the size of the object.
+	    pcl::PointCloud<pcl::PointXYZ>::Ptr origQuery(new pcl::PointCloud<pcl::PointXYZ>);
+	    // trim the path of the query file to get the directory above it
+	    std::string origCloudFile(sysutil::fullDirPath(sysutil::trimPath(queryFile_, 2))
+				      + originalCloudFileName_ + ".pcd");
+	    ROS_INFO("Reading original query cloud file from %s", origCloudFile.c_str());
+	    
+	    reader.read(origCloudFile, *origQuery);
+	    pclutil::OrientedBoundingBox queryBbox = pclutil::getOrientedBoundingBox(origQuery,
+										     queryObjectLabel_);
+
+	    // if cluster tolerance set to auto, define it based on the size of the query cloud
+	    if (clusterTolerance_ == -1) {
+
+		
+		ROS_INFO("Cluster tolerance set automatically to %f.", clusterTolerance_);
+	    }
+	    
 
 	    // Read the input clouds for the target and query descriptors. We
 	    // want to find descriptors in targetFeatures which are close to
@@ -461,8 +535,11 @@ namespace objsearch {
 		ROS_INFO("====================Processing target cloud %d of %d====================\n%s", (int)i, (int)targetClouds_.size(), targetClouds_[i].c_str());
 		// Do a check to make sure the feature types match. If not, skip
 		// this target cloud
-		if (!initAndCheckPaths(targetClouds_[i])) {
-		    ROS_INFO("Path check failed, skipping...");
+		try {
+		    initAndCheckPaths(targetClouds_[i]);
+		} catch (sysutil::objsearchexception& e) {
+		    ROS_INFO("Target file failed path check:");
+		    ROS_INFO("%s", e.what());
 		    continue;
 		}
 
@@ -508,8 +585,8 @@ namespace objsearch {
 		// representing the number of votes in each cell
 		std::vector<int> cellIndices = grid.toPointCloud(voteCloud);
 		
-		std::string out = std::string(sysutil::fullDirPath(outPath_)
-					      + "houghVotes_" + queryObjectLabel_);
+		std::string out = sysutil::fullDirPath(outPath_) + "houghVotes_"
+		    + queryObjectLabel_ + "_" + featureType_ + "_" + interestType_;
 		pcl::PCDWriter writer;
 		writer.write<pcl::PointXYZRGB>(out + ".pcd", *voteCloud, true);
 
@@ -547,6 +624,11 @@ namespace objsearch {
 		ec.setInputCloud(topCloud);
 		ec.extract(clusterIndices);
 
+		if (clusterIndices.size() == 0) {
+		    ROS_INFO("!!!!! No clusters found. !!!!!");
+		    continue;
+		}
+		
 		// maybe try doing this on the the whole set of hough votes?
 		// i.e. find all unique points in the hough vote cloud in the
 		// radius of the points which make up the cluster and add their
@@ -600,29 +682,127 @@ namespace objsearch {
 		std::sort(clusterScores.begin(), clusterScores.end(), comp);
 
 		info.nClusters = clusterScores.size(); // save the number of clusters extracted
+		// base name for outputting clusters and other stuff
+		std::string cloudOut = std::string(sysutil::fullDirPath(outPath_).c_str()
+						   + queryObjectLabel_);
 		for (size_t i = 0; i < clusterScores.size(); i++) {
 		    ROS_INFO("Cluster %d has %d points with score %d (%f avg/pt). Original index was %d",
 			     (int)i, (int)clusterIndices[i].indices.size(),
 			     clusterScores[i].second,
 			     clusterScores[i].second/(float)clusterClouds[clusterScores[i].first]->size(),
 			     clusterScores[i].first);
-		    std::string cloudOut = std::string(sysutil::fullDirPath(outPath_).c_str()
-						       + queryObjectLabel_ + "_cluster_"
-						       + std::to_string(i) + ".pcd");
+
 		    pcl::PointXYZ c = centroids[clusterScores[i].first];
 		    ROS_INFO("Cluster centroid is (%f, %f, %f)", c.x, c.y, c.z);
-		    ROS_INFO("Outputting cloud to %s", cloudOut.c_str());
+		    std::string outLoc(cloudOut + "_cluster_" + featureType_
+				       + "_" + interestType_ + "_" + std::to_string(i)
+				       + "_" + std::to_string(clusterScores[i].second) + ".pcd");
+		    ROS_INFO("Outputting cluster cloud to %s", outLoc.c_str());
 		    // need to extract the correct index of the cloud by using
 		    // the index stored in the clusterscores vector
-		    writer.write<pcl::PointXYZRGB>(cloudOut,
+		    writer.write<pcl::PointXYZRGB>(outLoc,
 						   *clusterClouds[clusterScores[i].first], true);
 		}
+		
+		pcl::PointCloud<pcl::PointXYZRGB>::Ptr originalPoints(new pcl::PointCloud<pcl::PointXYZRGB>());
 
-		// cut out a cubic region around the centroid of the top clusters and do region growing?
+		std::string origTarget(originalTargetCloudFile_);
+		ROS_INFO("Reading original target cloud from %s", origTarget.c_str());
+		reader.read(origTarget, *originalPoints);
+		
+		// cut out a region that is double the size of the bounding box
+		// of the original query object from the original target cloud
+		// around the centroid of each cluster
+//		pcl::PointXYZ extents(queryBbox.extents.x * 2, queryBbox.extents.y * 2, queryBbox.extents.z * 2);
+		// the radius is twice the largest extent, plus a little extra
+		// on top just in case
+		float radius;
+		if (queryBbox.extents.x > queryBbox.extents.y) {
+		    radius = queryBbox.extents.x;
+		} else {
+		    radius = queryBbox.extents.y;
+		}
+
+		if (radius < queryBbox.extents.z) {
+		    radius = queryBbox.extents.z;
+		}
+
+		radius *= extractRadiusMult_; // multiply it a little bit
+
+		for (size_t i = 0; i < clusterClouds.size(); i++) {
+		    // pcl::PointCloud<pcl::PointXYZRGB>::Ptr filtered =
+		    // 	extractClusterRegionBox(originalPoints,
+		    // 				centroids[clusterScores[i].first],
+		    // 				extents);
+		    pcl::PointCloud<pcl::PointXYZRGB>::Ptr filtered =
+			extractClusterRegionSphere(originalPoints,
+						   centroids[clusterScores[i].first],
+						   radius);
+		    std::string outLoc(cloudOut + "_region_" + featureType_
+				       + "_" + interestType_ + "_" + std::to_string(i) + ".pcd");
+		    ROS_INFO("Outputting region cloud to %s", outLoc.c_str());
+		    writer.write<pcl::PointXYZRGB>(outLoc, *filtered, true);
+		}
 
 		postProcess(grid, voteCloud, cellIndices, maxPoints, info);
+		writeInfo(resultsOut_, info, true);
 	    }
 	}
+
+	/** 
+	 * Extracts the box region defined by the centroid and extents given
+	 *
+	 * @param cloud The cloud from which to extract points
+	 * @param centroid the centroid of the box within which extracted points are to lie
+	 * @param extents the extents of the box - half of each dimension
+	 * 
+	 * @return Point cloud containing points from \p cloud which are inside the box
+	 */
+	pcl::PointCloud<pcl::PointXYZRGB>::Ptr ObjectQuery::extractClusterRegionBox(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud, const pcl::PointXYZ& centroid, const pcl::PointXYZ& extents) {
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr filtered(new pcl::PointCloud<pcl::PointXYZRGB>());
+	    pcl::PassThrough<pcl::PointXYZRGB> pass;
+	    pass.setInputCloud(cloud);
+	    pass.setFilterFieldName("x");
+	    pass.setFilterLimits(centroid.x - extents.x, centroid.x + extents.x);
+	    pass.filter(*filtered);
+	    pass.setInputCloud(filtered);
+	    pass.setFilterFieldName("y");
+	    pass.setFilterLimits(centroid.y - extents.y, centroid.y + extents.y);
+	    pass.filter(*filtered);
+	    pass.setFilterFieldName("z");
+	    pass.setFilterLimits(centroid.z - extents.z, centroid.z + extents.z);
+	    pass.filter(*filtered);
+	    
+	    return filtered;
+	}
+
+	/** 
+	 * Extracts the spherical region defined by the centroid and radius given
+	 *
+	 * @param cloud The cloud from which to extract points
+	 * @param centre the centre of the sphere within which extracted points are to lie
+	 * @param radius Radius of sphere to use
+	 * 
+	 * @return Point cloud containing points from \p cloud which are inside the box
+	 */
+	pcl::PointCloud<pcl::PointXYZRGB>::Ptr ObjectQuery::extractClusterRegionSphere(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud, const pcl::PointXYZ& centre, float radius) {
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr filtered(new pcl::PointCloud<pcl::PointXYZRGB>());
+
+	    pcl::KdTreeFLANN<pcl::PointXYZRGB> tree;
+	    tree.setInputCloud(cloud);
+	    std::vector<int> indices;
+	    std::vector<float> distances;
+	    pcl::PointXYZRGB c;
+	    c.x = centre.x; c.y = centre.y; c.z = centre.z;
+	    c.r = 0; c.g = 0; c.b = 0;
+	    tree.radiusSearch(c, radius, indices, distances);
+	    for (size_t i = 0 ; i < indices.size(); i++) {
+		filtered->push_back(cloud->points[indices[i]]);
+	    }
+
+	    return filtered;
+	}
+
 
 	/** 
 	 * Perform some post processing on the results from the query. Creates
@@ -669,8 +849,13 @@ namespace objsearch {
 	    // we know what the label will be, but can't nicely write a
 	    // function which would allow default vector param
 	    std::vector<std::string> labels;
-	    annotatePointsOBB(sysutil::trimPath(targetPointFile_, 2), voteCloud,
-			      indices, labels, queryObjectLabel_);
+	    try {
+		annotatePointsOBB(sysutil::trimPath(targetPointFile_, 2), voteCloud,
+				  indices, labels, queryObjectLabel_);
+	    } catch (sysutil::objsearchexception& e) {
+		ROS_INFO("%s", e.what());
+		return;
+	    }
 	    info.pointsInBox = indices.size();
 	    info.votesInBox = 0;
 	    info.pointsMaxInBox = 0;

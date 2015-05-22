@@ -343,6 +343,9 @@ namespace objsearch {
 	    auto comp = [](std::pair<int, int> p, std::pair<int, int> q){
 		return p.second > q.second;
 	    };
+
+	    // make sure that n does not overflow
+	    n = n > values_.size() ? values_.size() : n;
 	    
 	    // populate a vector with the index and value at that index
 	    std::vector<std::pair<int,int> > items = getIndices();

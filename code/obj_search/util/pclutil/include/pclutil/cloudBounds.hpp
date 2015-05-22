@@ -25,6 +25,7 @@ namespace objsearch {
 	private:
 	    static int id;
 	public:
+	    OrientedBoundingBox(){};
 	    OrientedBoundingBox(pcl::PointXYZ _position, pcl::PointXYZ _extents,
 				Eigen::Matrix3f _rotation, Eigen::Vector3f _major,
 				Eigen::Vector3f _middle, Eigen::Vector3f _minor,
