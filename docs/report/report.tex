@@ -629,14 +629,7 @@ learning from user input \cite{rui2000optimizing}. When retrieved images are
 presented, the user ranks them in terms of relevance, and this rank is then used
 to improve the relevance of future searches.
 
-\chapter{System Development}
-\label{chap:devel}
-In this chapter, we will describe the development of the object query system,
-and explain the reasoning behind our choices. The specific methods that are used
-will also be described in more detail, and examples of the output of different
-parts of the system will be shown.
-
-\section{Preprocessing}
+\chapter{Preprocessing}
 The first step in the object query system is to perform some preprocessing on
 the clouds in the data set --- while not strictly necessary, there are some
 benefits to doing so, chief of which is a reduction in computation time. The
@@ -681,7 +674,7 @@ clouds.
   \label{fig:objects_ut}
 \end{figure}
 
-\subsection{Downsampling}
+\section{Downsampling}
 In their merged forms, the clouds on average contain approximately 4,300,000
 points for a room which is around 4m wide, 5.5m deep and 3m high. This number of
 points does not actually provide us with much additional information, since the
@@ -747,7 +740,7 @@ downsampling can reduce this slicing effect.
   \label{fig:downsample_effect}
 \end{figure}
 
-\subsection{Transformation and Trimming}
+\section{Transformation and Trimming}
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.8\textwidth]{images/orig_transformed}
@@ -798,7 +791,7 @@ Figure~\ref{fig:trimmed} shows the end result of this step.
   \label{fig:trimmed}
 \end{figure}
 
-\subsection{Plane Extraction}
+\section{Plane Extraction}
 Having extracted normals from the cloud, we come to what is the most costly
 preprocessing step. Due to the structured nature of our dataset, the number of
 planes present in the clouds is quite high. While the presence of planes can be
@@ -895,7 +888,7 @@ $N_{\text{trim}}$ is the number of points in the trimmed cloud.
 $N_{\text{fixed}}$ is a fixed value. We choose the maximum of the two values to
 ensure that fluctuations in the cloud size are compensated for.
 
-\subsection{Normal Estimation}
+\section{Normal Estimation}
 In this step, normals are estimated for each point in the cloud. The normal at a
 point is the vector which is perpendicular to the curvature of the surface at
 that point. By estimating normals for clouds, we can get some more information
@@ -945,7 +938,7 @@ normals, and resulting in less patchy extraction of planes
   \label{fig:plane_normrad}
 \end{figure}
 
-\subsection{Annotations}
+\section{Annotations}
 To ensure that the annotations for each cloud are in a similar form, we apply
 the downsampling, transformation and normal extraction steps. The downsampling
 step is particularly important here, as the raw annotations have issues with a
@@ -964,7 +957,7 @@ lead to finding similar points anywhere where there is a flat surface.
   \caption{Annotations original and downsampled}
   \label{fig:annotation_ds}
 \end{figure}
-\section{Interest Point Selection}
+\chapter{Interest Point Selection}
 Once the preprocessing step has been completed, we can move on to computing
 features from the processed clouds. First, however, we need to choose the points
 at which the descriptors will be computed. The idea of interest point selection
@@ -978,7 +971,7 @@ which we are searching.
 In this section we will describe in some detail the methods that we use. All of
 the methods used are part of the PCL keypoints library \cite{pcl_keypoints}.
 
-\subsection{Uniform}
+\section{Uniform}
 The first and most obvious method of selecting points for feature extraction is
 not to try to select interesting points at all, but to simply spread points
 uniformly over the space. With this method, one would expect to extract a larger
@@ -992,7 +985,7 @@ features having to be computed and compared in later stages.
 To compute the uniform points, we simply downsample the cloud once more. The
 size of the voxels used determines the spread of the points over the space ---
 the behaviour of this method is determined entirely by a single parameter.
-\subsection{ISS}
+\section{ISS}
 Zhong~\cite{zhong2009intrinsic} introduces the intrinsic shape signature
 interest point selection method as one of a series of steps in the computation
 of the ISS descriptor introduced in the same paper.
@@ -1026,7 +1019,7 @@ suppression is used. Essentially, this removes from the interest points any
 point where the value of $\lambda^3_i$ at the point is not the maximum in the
 neighbourhood of the point. This neighbourhood is defined by the radius $r_{n}$,
 whose value is usually distinct from the value of $r_s$.
-\subsection{SUSAN}
+\section{SUSAN}
 The SUSAN (Smallest Univalue Segment Assimilating Nucleus) detector is based on
 an algorithm introduced for 2D feature detection by Smith~\cite{smith1997susan}.
 We use an extension of this detector to 3D. The basis for the SUSAN principle
@@ -1102,7 +1095,7 @@ Once $I_o$ has been computed for all valid points in the cloud, non-maximum
 suppression is applied. Only those points which have the minimal intensity in
 the neighbourhood defined by $r_m$ are used as the final interest points.
 
-\subsection{SIFT}
+\section{SIFT}
 The scale invariant feature transform, introduced by
 Lowe~\cite{lowe2004distinctive} in 1999, it is still commonly used for many 2D
 image processing applications. The most important concept introduced in the
@@ -1152,7 +1145,7 @@ Once this process is completed for a single octave, the scale $S_o$ is doubled,
 and the process repeats $N_o$ times. The selected interest points are the
 aggregated results from each individual octave. 
 
-\subsection{Harris}
+\section{Harris}
 Like SIFT, the Harris detector, introduced by the eponymous
 Harris~\cite{harris1988combined}, was originally used as a method for edge and
 corner detection in images. Much like ISS, it uses a covariance matrix applied
@@ -1162,7 +1155,7 @@ of the normals in the neighbourhood. The response at the point is then computed
 by combining the determinant and trace of the matrix. The resulting responses
 for each point are then thinned using non-maximum suppression, and the remaining
 points are the interest points.
-\section{Descriptor Extraction}
+\chapter{Descriptor Extraction}
 In this step, we compute descriptors at each of the locations that was selected
 by the interest point method that was used. The end goal of the combination of
 the interest point selection and descriptor extraction steps is to produce a set
@@ -1185,7 +1178,14 @@ their effectiveness, and better represent the image data. As with interest point
 selection methods, current methods in 3D often make use of the lessons learned
 from the development of 2D methods. 
 
-\subsection{SHOT}
+\section{SHOT}
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{images/shotcolor}
+  \caption{Representation of the construction of the SHOTCOLOR descriptor and
+    the subdivisions used for local histogram computation.}
+  \label{fig:shotcolor}
+\end{figure}
 The signature of histograms of orientations descriptor is the product of a study
 on 2D descriptors, particularly SIFT, and makes extensive use of histograms, as
 the authors believe that this is part of the reason why the descriptor is so
@@ -1225,20 +1225,43 @@ reduces computation time, and does not require complicated binning. Using the
 actual angle to allocate points to bins has the disadvantage of needing
 different bin resolutions depending on whether directions are close to or
 orthogonal to the normal direction \cite{tombari2010unique}.
-\subsection{SHOTCOLOR}
-\begin{figure}
-  \centering
-  \includegraphics[width=\textwidth]{images/shotcolor}
-  \caption{Representation of the construction of the SHOTCOLOR descriptor and
-    the subdivisions used for local histogram computation.}
-  \label{fig:shotcolor}
-\end{figure}
-\subsection{USC}
-\subsection{PFH}
-\subsection{FPFH}
-\subsection{PFHRGB}
 
-\section{Object Query}
+\section{SHOTCOLOR}
+In a subsequent paper, the authors of SHOT introduce an extension to the
+descriptor which also includes colour information \cite{tombari2011combined}. To
+include colour information, the same histogramming method is applied, but
+instead of using the dot product of the RGB vectors at the feature point and a
+neighbourhood point, the authors use the $L_1$ norm of the RGB value converted
+to the CIELab colour space. The value a pair of points is therefore
+\begin{equation}
+  \label{eq:17}
+  l(C_p, C_q)=\sum^3_{i=1}\mid C_p(i)-C_q(i)\mid
+\end{equation}
+where $C$ is the CIELab colour triple of a point.
+
+\section{USC}
+Another descriptor introduced by Tombari is the universal shape context
+\cite{tombari2010uniquesc}. This descriptor is an improvement of the 3D shape
+context, in the sense that it has a unique reference frame, constructed in the
+same way as for SHOT. As with SHOT, a spherical region is defined by a radius
+$R_s$ and a central point, and separated into a number of bins. For each point,
+the number of points $N$ in a local region defined by radius $R_d$ is computed.
+A weighting $w$ for this point is then computed according to
+\begin{equation}
+  \label{eq:18}
+  w=\frac{1}{N}V_b
+\end{equation}
+where $V_b$ is the volume of the bin that the point falls within. For each
+point, $w$ is accumulated in the descriptor vector according to the bin into
+which it falls. The final descriptor is therefore a representation of the
+combined weights of all of the points in the sphere.
+\section{PFH}
+The point feature histogram is the first in a family of descriptors described by
+Rusu et al., which 
+\section{FPFH}
+\section{PFHRGB}
+
+\chapter{Object Query}
 flann citations \cite{muja2009fast, muja2014scalable}
 
 \chapter{Experimental Results}
