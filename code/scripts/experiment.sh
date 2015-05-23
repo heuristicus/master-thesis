@@ -1,21 +1,15 @@
 #!/bin/bash
 
-features="shot shotcolor pfh fpfh pfhrgb"
-fselect="uniform iss susan sift"
+features="fpfh pfhrgb"
+fselect="iss"
 
-process_dirs="/home/michal/Downloads/pcddata/processed/paramtest/dt0_02 "
-
-# completed 
-# /home/michal/Downloads/pcddata/processed/paramtest/ds0_02 /home/michal/Downloads/pcddata/processed/paramtest/iter500 /home/michal/Downloads/pcddata/processed/paramtest/ds0_02mp_4500 /home/michal/Downloads/pcddata/processed/paramtest/iter50 /home/michal/Downloads/pcddata/processed/paramtest/nr0_04 /home/michal/Downloads/pcddata/processed/paramtest/iter100 /home/michal/Downloads/pcddata/processed/paramtest/ds0_015 /home/michal/Downloads/pcddata/processed/paramtest/dt0,02_mp8000_pp0,001
+process_dirs="/media/michal/Pauli/masterdata/processed/paramtest/iter500 /media/michal/Pauli/masterdata/processed/paramtest/ds0_015"
 
 for dir in $process_dirs; do
     echo $dir
     for selection in $fselect; do
-	echo $selection
-	for ftype in $features; do
-	    echo $ftype
-	    echo "running roslaunch feature_extraction feature_extraction.launch cloud:=$dir feature:=$ftype feature_selection:=$selection"
-	    roslaunch feature_extraction feature_extraction.launch cloud:=$dir feature:=$ftype feature_selection:=$selection
-	done
+    	for ftype in $features; do
+	    roslaunch feature_extraction feature_extraction.launch cloud:=$dir output:=/home/michal/Downloads/pcddata/processed/annfeature/`basename $dir` feature:=$ftype feature_selection:=$selection match:=label
+    	done
     done
 done

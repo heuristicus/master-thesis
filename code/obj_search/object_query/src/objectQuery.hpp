@@ -39,15 +39,35 @@ namespace objsearch {
 
 	class ObjectQuery {
 	public:
+	    struct ClusterInfo {
+		ClusterInfo(){score = 0;}
+		int score; // number of votes this cluster got
+		int points;
+		int index; // initial index of the cluster
+		pcl::PointXYZ centroid; // centroid of the cluster
+		std::string parentCloud; // cloud file from which the region was extracted
+		std::string regionCloud; // cloud file of the region
+		std::string clusterCloud; // cloud file of the cluster
+	    };
+	    
 	    struct QueryInfo {
 		std::string fname;
 		// \brief time taken to find NNs for all the points in the query cloud
 		float queryTime;
 		// \brief time taken to compute the hough voting
 		float houghTime;
+		// \brief time take to compute clusters
+		float clusterTime;
 		// \brief number of clusters extracted from the point cloud
 		// constructed from max n values in the hough vote cloud
 		int nClusters;
+		// \brief score of each cluster
+		std::string clusterScores;
+		// \brief points in each cluster
+		std::string clusterPoints;
+		// \brief is the cluster centroid inside the OBB of the actual
+		// object for that cloud (if known)
+ 		std::string clusterCentroidInOBB;
 		// \brief total number of points in the hough vote cloud
 		int pointsTotal;
 		// \brief total points with nonzero values
@@ -74,8 +94,10 @@ namespace objsearch {
 		std::string maxHistogram;
 		// \brief histogram of all the highest valued points which are in the OBB
  		std::string boxMaxHistogram;
+
+		ClusterInfo topCluster;
 	    };
-	    
+
 	    ObjectQuery(int argc, char *argv[]);
 
 	    void extractFeatureFileInfo(const std::string& fname,
@@ -90,14 +112,15 @@ namespace objsearch {
 		std::string dir, const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 		std::vector<int>& indices, std::vector<std::string>& labels,
 		std::vector<float>& distances, float maxDist);
-	    void annotatePointsOBB(
+	    std::vector<pclutil::OrientedBoundingBox> annotatePointsOBB(
 		std::string dir, const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 		std::vector<int>& indices, std::vector<std::string>& labels,
 		std::string queryLabel="NULL");
 	    void postProcess(const pclutil::Grid3D& grid,
 			     const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& voteCloud,
 			     const std::vector<int> cellIndices,
-			     const std::vector<std::pair<int, int> >& maxPoints, QueryInfo info);
+			     const std::vector<std::pair<int, int> >& maxPoints,
+			     QueryInfo& info, std::vector<ClusterInfo> clusterDetails);
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr extractClusterRegionBox(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
 									const pcl::PointXYZ& centroid,
 									const pcl::PointXYZ& extents);
@@ -106,7 +129,7 @@ namespace objsearch {
 	    pclutil::Grid3D houghVoting(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetPoints,
 					const std::vector<std::vector<int> >& indices,
 					const std::vector<std::vector<float> >& distances);
-	    void writeInfo(std::string outPath, QueryInfo info, bool append);
+	    void writeInfo(std::string outFile, std::vector<QueryInfo> infoVec);
 	private:
 	    std::string queryFile_;
 	    std::string targetFile_;
@@ -146,7 +169,3 @@ namespace objsearch {
 } // namespace objsearch
 
 #endif // OBJECT_QUERY_H
-
-
-
-

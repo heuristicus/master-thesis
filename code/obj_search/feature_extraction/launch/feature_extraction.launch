@@ -85,7 +85,7 @@
 
   <!-- Options for SIFT feature selection. -->
   <!-- Standard deviation of smallest scale in the scale space (ms) -->
-  <arg name="sift_min_scale" default="0.05"/>
+  <arg name="sift_min_scale" default="0.04"/>
   <param name="/feature_extraction/sift_min_scale" value="$(arg sift_min_scale)" />
   <!-- Number of doublings of scale to compute (oc) -->
   <arg name="sift_octaves" default="4"/>
