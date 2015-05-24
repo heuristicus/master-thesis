@@ -290,7 +290,7 @@ namespace objsearch {
 		// if not appending, put headers to the columns and the
 		// directory/file the program was run on
 		file << "#filename n_pre n_downsample n_trim n_rmplane t_load t_downsample"
-		     << " t_trim t_annot t_normals t_normals_feature n_plane t_plane" << std::endl;
+		     << " t_trim t_normals n_plane t_plane t_annot t_normals_feature" << std::endl;
 	    }
 
 	    // output data from the struct

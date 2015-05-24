@@ -408,8 +408,6 @@ namespace objsearch {
 		throw sysutil::objsearchexception("Unknown feature selection method.");
 	    }
 	    info.selectTime = (ros::Time::now() - selectStart).toSec();
-	    info.featureSize = descriptorLocations->size();
-
 	}
 
 	FeatureExtractor::FeatureInfo FeatureExtractor::extractFeatures(){
@@ -429,6 +427,7 @@ namespace objsearch {
 	    // Define points at which descriptors should be computed.
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr descriptorLocations(new pcl::PointCloud<pcl::PointXYZRGB>());
 	    getDescriptorLocations(cloud, descriptorLocations, info);
+	    info.featureSize = descriptorLocations->size();
 	    writeDescriptorLocs<pcl::PointXYZRGB>(descriptorLocations);
 	    
 	    ROS_INFO("Number of points to compute features at: %d", (int)descriptorLocations->size());
