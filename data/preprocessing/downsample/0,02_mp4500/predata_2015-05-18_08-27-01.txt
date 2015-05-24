@@ -1,4 +1,4 @@
-#filename n_pre n_downsample n_trim n_rmplane t_load t_downsample t_trim t_annot t_normals t_normals_feature n_plane t_plane
+#filename n_pre n_downsample n_trim n_rmplane t_load t_downsample t_trim t_normals n_plane t_plane t_annot t_normals_feature
 /home/michal/Downloads/pcddata/raw/annotated/rares/20140820/patrol_run_2/room_1/complete_cloud.pcd 4327973 273315 202835 102010 1.46547 0.663965 0.0371322 1.28857 9 35.4858 0.190744 0.0955595
 /home/michal/Downloads/pcddata/raw/annotated/rares/20140820/patrol_run_4/room_0/complete_cloud.pcd 4433059 279134 206830 109835 1.28856 0.515142 0.0319054 1.23832 8 32.7279 0.209551 0.0816886
 /home/michal/Downloads/pcddata/raw/annotated/rares/20140828/patrol_run_19/room_3/complete_cloud.pcd 4465332 288067 206042 123127 1.48027 0.640133 0.0342114 1.20866 7 31.2179 0.238192 0.0861554

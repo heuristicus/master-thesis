@@ -1,0 +1,19 @@
+# various commands used to make stuff
+
+# annotation stuff
+
+# find all annotation files and put them into a file without their preceding paths
+for file in `find /home/michal/Downloads/pcddata/processed/annotated/rares/ ! -regex .*normals.pcd | grep label | xargs echo`; do basename $file; done > allannotations.txt
+
+# count the total number of annotated objects
+sed -r 's/^.{9}//' allannotations.txt | wc -l
+
+# show unique instances
+sed -r 's/^.{9}//' allannotations.txt | sort | uniq > uniqueannotations.txt
+
+# select a random instance of an annotation
+while read ann; do find . -regex .*$ann | shuf -n 1; done < uniqueannotations.txt
+
+# sync data to pauli
+rsync -rvi --ignore-existing ~/Downloads/pcddata/processed/paramtest/ /media/michal/Pauli/masterdata/processed/paramtest/
+
