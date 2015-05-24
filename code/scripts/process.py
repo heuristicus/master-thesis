@@ -1,36 +1,45 @@
 #!/bin/python3
 import sys
 import statistics
+import os
 
 # to convert to better format, use org-table-convert-region and org-table-transpose-at-point
 def results_to_tex(results, addheader=False):
     number_line = ""
     if (addheader):
-        number_line += "Original Downsampled Trimmed NPlanes Planes Final\\\\\hline\n"
+        number_line += "Setting & Original & Downsampled & Trimmed & NPlanes & Planes & Final\\\\\hline\n"
     else:
         number_line += "\n"
 
 
-        #        "{:,}".format(number);
-    number_line += str(results['orig_pts_mean']) + "\pm" + str(results['orig_pts_std']) + " "
-    number_line += str(results['downsample_pts_mean']) + "\pm" + str(results['downsample_pts_std']) + " "
-    number_line += str(results['trim_pts_mean']) + "\pm" + str(results['trim_pts_std']) + " "
-    number_line += "%.2f" % results['num_planes_mean']  + "\pm" +  "%.2f" % results['num_planes_std'] + " "
-    number_line += str(results['plane_pts_mean']) + "\pm" + str(results['plane_pts_std']) + " "
-    number_line += str(results['final_pts_mean']) + "\pm" + str(results['final_pts_std']) + "\\\\"
+    #        "{:,}".format(number);
+    number_line += os.path.basename(results['fname']) + " & "
+    number_line += "{:,}".format(results['orig_pts_mean']) + "$\pm$" + "{:,}".format(results['orig_pts_std']) + " & "
+    number_line += "{:,}".format(results['downsample_pts_mean']) + "$\pm$" + "{:,}".format(results['downsample_pts_std']) + " & "
+    number_line += "{:,}".format(results['trim_pts_mean']) + "$\pm$" + "{:,}".format(results['trim_pts_std']) + " & "
+    number_line += "%.2f" % results['num_planes_mean']  + "$\pm$" +  "%.2f" % results['num_planes_std'] + " & "
+    number_line += "{:,}".format(results['plane_pts_mean']) + "$\pm$" + "{:,}".format(results['plane_pts_std']) + " & "
+    number_line += "{:,}".format(results['final_pts_mean']) + "$\pm$" + "{:,}".format(results['final_pts_std']) + "\\\\"
 
     time_line = ""
     if (addheader):
-        time_line += "Load Downsample Trim Normals Planes \\\\\hline\n"
+        time_line += "Setting & Load & Downsample & Trim & Normals & Planes & PerPlane & Annotation & NormalsF \\\\\hline\n"
     else:
         time_line += "\n"
-
-    time_line += "%.2f" % results['load_time_mean']  + "\pm" +  "%.2f" % results['load_time_std'] + " "
-    time_line += "%.2f" % results['downsample_time_mean']  + "\pm" +  "%.2f" % results['downsample_time_std'] + " "
-    time_line += "%.2f" % results['trim_time_mean']  + "\pm" +  "%.2f" % results['trim_time_std'] + " "
-    time_line += "%.2f" % results['normals_time_mean']  + "\pm" +  "%.2f" % results['normals_time_std'] + " "
-    time_line += "%.2f" % results['plane_time_mean']  + "\pm" +  "%.2f" % results['plane_time_std'] + " "
-    time_line += "%.2f" % results['time_per_plane_mean']  + "\pm" +  "%.2f" % results['time_per_plane_std'] + " "
+    time_line += os.path.basename(results['fname']) + " & "
+    time_line += "%.2f" % results['load_time_mean']  + "$\pm$" +  "%.2f" % results['load_time_std'] + " & "
+    time_line += "%.2f" % results['downsample_time_mean']  + "$\pm$" +  "%.2f" % results['downsample_time_std'] + " & "
+    time_line += "%.2f" % results['trim_time_mean']  + "$\pm$" +  "%.2f" % results['trim_time_std'] + " & "
+    time_line += "%.2f" % results['normals_time_mean']  + "$\pm$" +  "%.2f" % results['normals_time_std'] + " & "
+    time_line += "%.2f" % results['plane_time_mean']  + "$\pm$" +  "%.2f" % results['plane_time_std'] + " & "
+    time_line += "%.2f" % results['time_per_plane_mean']  + "$\pm$" +  "%.2f" % results['time_per_plane_std'] + " "
+    if ('annotation_time_mean' in results):
+        time_line += "& %.2f" % results['annotation_time_mean']  + "$\pm$" +  "%.2f" % results['annotation_time_std'] + " & "
+    if ('feature_normal_time_mean' in results):
+        if ('annotation_time_mean' not in results):
+            time_line += "& - "
+        time_line += "& %.2f" % results['feature_normal_time_mean']  + "$\pm$" +  "%.2f" % results['feature_normal_time_std'] + ""
+        
     time_line += "\\\\"
     return number_line, time_line
 
@@ -45,6 +54,7 @@ def processFile(fname):
     ncols = len(data[0])
     filerange = range(1, nfiles)
     results = dict() # store results in a dictionary
+    results['fname'] = fname
     
     # get each column of data, ignoring the first row containing column headings
     orig_pts = [int(data[i][1]) for i in filerange]
@@ -58,11 +68,13 @@ def processFile(fname):
     num_planes = [int(data[i][9]) for i in filerange]
     plane_time = [float(data[i][10]) for i in filerange]
 
+    # sometimes these values do not exist, so we put zeros in that column or
+    # part of that column instead so need to exclude those zeros from the count
     if (ncols > 11):
-        feature_normal_time = [float(data[i][11]) for i in filerange]
+        feature_normal_time = [float(data[i][11]) for i in filerange if (float(data[i][11]) > 0.00001)]
     if (ncols > 12):
-        annotation_time = [float(data[i][12]) for i in filerange]
-        
+        annotation_time = [float(data[i][12]) for i in filerange if (float(data[i][12]) > 0.00001)]
+
     # average time to extract each plane
     time_per_plane = [(plane_time[i]/num_planes[i] if num_planes[i] != 0 else plane_time[i]) for i in range(0, nfiles - 1)]
     # size of clouds after preprocessing
