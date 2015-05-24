@@ -37,8 +37,8 @@ def results_to_tex(results, addheader=False):
         time_line += "& %.2f" % results['annotation_time_mean']  + "$\pm$" +  "%.2f" % results['annotation_time_std'] + " & "
     if ('feature_normal_time_mean' in results):
         if ('annotation_time_mean' not in results):
-            time_line += "& - "
-        time_line += "& %.2f" % results['feature_normal_time_mean']  + "$\pm$" +  "%.2f" % results['feature_normal_time_std'] + ""
+            time_line += "& n/a &"
+        time_line += "%.2f" % results['feature_normal_time_mean']  + "$\pm$" +  "%.2f" % results['feature_normal_time_std'] + ""
         
     time_line += "\\\\"
     return number_line, time_line
