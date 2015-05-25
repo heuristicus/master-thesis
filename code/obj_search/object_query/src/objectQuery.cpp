@@ -766,7 +766,7 @@ namespace objsearch {
 	    std::ofstream file;
 	    file.open(outFile, std::ios::app);
 	    file << "BEGIN_DATA" << std::endl;
-	    file << "# fname t_query t_hough t_cluster cluster_n cluster_scores cluster_points cluster_obb n_hough_tot nonzero_hough hough_votes boxpts boxvotes maxpts maxvotes maxboxpts maxboxvotes hough_hist box_hist max_hist boxmax_hist" << std::endl;
+	    file << "# fname t_query t_hough t_cluster cluster_n cluster_scores cluster_points cluster_inobb n_hough_tot nonzero_hough hough_votes boxpts boxvotes maxpts maxvotes maxboxpts maxboxvotes hough_hist box_hist max_hist boxmax_hist" << std::endl;
 	    std::vector<ClusterInfo> topClusters;
 	    for (size_t i = 0; i < infoVec.size(); i++) {
 		QueryInfo info = infoVec[i];
