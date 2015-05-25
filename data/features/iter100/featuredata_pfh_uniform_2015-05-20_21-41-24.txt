@@ -106,4 +106,3 @@ BEGIN_DATA
 /home/michal/Downloads/pcddata/processed/paramtest/iter100/annotated/rares/20140924/patrol_run_162/room_2/nonPlanes.pcd 423724 0 0 87.1687
 /home/michal/Downloads/pcddata/processed/paramtest/iter100/annotated/rares/20140924/patrol_run_164/room_1/nonPlanes.pcd 388893 0 0 78.9493
 /home/michal/Downloads/pcddata/processed/paramtest/iter100/annotated/rares/20140924/patrol_run_166/room_2/nonPlanes.pcd 570755 0 0 136.948
-
