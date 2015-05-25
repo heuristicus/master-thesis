@@ -17,3 +17,5 @@ while read ann; do find . -regex .*$ann | shuf -n 1; done < uniqueannotations.tx
 # sync data to pauli
 rsync -rvi --ignore-existing ~/Downloads/pcddata/processed/paramtest/ /media/michal/Pauli/masterdata/processed/paramtest/
 
+# process aggregate feature data
+python featureprocess.py -af ../../../data/features/aggregate/ `find ../../../data/features/ -regex .*fixed.* | xargs echo`

@@ -1,9 +1,11 @@
 #!/bin/bash
 
-features="fpfh pfhrgb"
+features="pfh"
 fselect="iss"
 
-process_dirs="/media/michal/Pauli/masterdata/processed/paramtest/iter500 /media/michal/Pauli/masterdata/processed/paramtest/ds0_015"
+process_dirs="/media/michal/Pauli/masterdata/processed/paramtest/ds0_015"
+
+
 
 for dir in $process_dirs; do
     echo $dir
