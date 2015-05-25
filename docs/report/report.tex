@@ -29,8 +29,24 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-  Brief description of the aim of the project, the data used, some of the
-  techniques used, some experimental results.
+  In this report, we will describe our implementation of a system for retrieving
+  instances of objects using feature based matching techniques. We use point
+  cloud data gathered using RGB-D sensors in an office environment over a period
+  of approximately a month. Some preprocessing steps are applied to the data to
+  reduce the size of the clouds and use basic RANSAC-based plane segmentation to
+  remove parts which we believe will not contain any objects. Using locations
+  determined by one of several possible interest point selection methods, one of
+  a number of possible types of features is extracted. Using a nearest neighbour
+  approach, these features, are compared to a corresponding set extracted from a
+  cloud representing a query object. Results from this comparison are used to
+  vote for the position of the object in a 3D grid overlaid on the room cloud.
+  We then cluster these votes and rank the clusters. The centroid of each of the
+  clusters is used to extract a region from the room cloud which, in the ideal
+  case, corresponds to the object that was passed to the system.
+
+  We perform an experimental evaluation of the system using various parameter
+  settings in order to investigate computation time and other factors affecting
+  the usability of the system.
 \end{abstract}
 \tableofcontents
 \chapter{Introduction}
@@ -112,22 +128,35 @@ perform object query. It will evaluate a number of standard methods for
 describing objects, and finding parts of objects that are particularly
 discriminative. While it is possible to describe objects as a whole, we will
 investigate the efficacy of using descriptions of small parts of the object to
-retrieve matches from the data set.
+retrieve matches from the data set. Matches are found by comparing these
+descriptions, which are generally vectors of scalar values, to each other, and
+finding those which have the most similar values. This approach is called
+feature matching.
 
-Something about why why the problem is interesting as opposed to model matching
-or somesuch, picture of the flow of the system
+While the use of descriptors is the basis for the majority of systems for object
+retrieval, in most cases there are several additional layers applied on top of
+the basic feature-feature matching in the lower levels. This often includes
+costly pre-segmentation of the input data, where it is necessary to determine
+what parts of the clouds are actually objects in order to create a description
+of them to use later. If the data is labelled in some way, this can be
+relatively easy to achieve, but we are interested in querying data which has no
+labels at all. As a result, we would like to investigate the effectiveness of
+using a very simple approach to the problem which does not required complex
+reasoning about the nature of objects.
 
 In chapter~\ref{chap:bg}, we explain some concepts that are important to
 understand the work, provide background information on relevant parts of the
 image processing literature, and attempt to introduce the reader to previous
-work in similar areas. The specific techniques used in our system are described
-in chapter~\ref{chap:devel}, and we also discuss our reasoning behind certain
-steps of the process. Chapter~\ref{chap:impl} deals with the software, and how
-the system was implemented, along with some explanation of how the system works.
-Our experimental setup and the results of the experiments are described in
-chapter~\ref{chap:exp}. We compare the quality of retrieval when different
+work in similar areas. The preprocessing steps that we apply to clouds are
+described in chapter~\ref{chap:preprocess}. Brief descriptions of the interest
+points and descriptors that we use are given in chapters~\ref{chap:interest} and
+\ref{chap:descriptors} along with some explanation as to why we wish to use
+these methods. Chapter~\ref{chap:query} is the final chapter describing our
+system, wherein we discuss our approach to using descriptors to retrieve
+objects. Our experimental setup and the results of the experiments are described
+in chapter~\ref{chap:exp}. We compare the quality of retrieval when different
 methods are used, and also investigate the time taken by the system under
-varying conditions. Finally, we summarise the system and our results in
+varying parameter settings. Finally, we summarise the system and our results in
 chapter~\ref{chap:conc}.
 \chapter{Background}
 \label{chap:bg}
@@ -636,6 +665,7 @@ presented, the user ranks them in terms of relevance, and this rank is then used
 to improve the relevance of future searches.
 
 \chapter{Preprocessing}
+\label{chap:preprocess}
 The first step in the object query system is to perform some preprocessing on
 the clouds in the data set --- while not strictly necessary, there are some
 benefits to doing so, chief of which is a reduction in computation time. The
@@ -964,6 +994,7 @@ lead to finding similar points anywhere where there is a flat surface.
   \label{fig:annotation_ds}
 \end{figure}
 \chapter{Interest Point Selection}
+\label{chap:interest}
 Once the preprocessing step has been completed, we can move on to computing
 features from the processed clouds. First, however, we need to choose the points
 at which the descriptors will be computed. The idea of interest point selection
@@ -1162,6 +1193,7 @@ by combining the determinant and trace of the matrix. The resulting responses
 for each point are then thinned using non-maximum suppression, and the remaining
 points are the interest points.
 \chapter{Descriptor Extraction}
+\label{chap:descriptors}
 In this step, we compute descriptors at each of the locations that was selected
 by the interest point method that was used. The end goal of the combination of
 the interest point selection and descriptor extraction steps is to produce a set
@@ -1279,14 +1311,16 @@ between two points in two different scenes is the correct one.
 
 To solve this problem, the PFH descriptor uses 16 dimensions, computed based on
 histograms, which allow for more distinctive features. As with all other
-descriptors, operations are done on points within a radius $r$ of the
-central point $p$. Each pair of points in the neighbourhood is examined. In each
-pair, a source point $p_s$ and a target point $p_t$ are determined by looking at
-the normals of the points, and comparing the angles relative to the line
-connecting the two points. The point whose normal has the smaller angle is the
-source, the other the target. A reference frame with the origin as the source
-point is defined using the normal of the source $n_s$ as
+descriptors, operations are done on points within a radius $r$ of the central
+point $p$. Each pair of points in the neighbourhood is examined, as in
+Figure~\ref{fig:pfhinfluence}. In each pair, a source point $p_s$ and a target
+point $p_t$ are determined by looking at the normals of the points, and
+comparing the angles relative to the line connecting the two points. The point
+whose normal has the smaller angle is the source, the other the target. A
+reference frame with the origin as the source point is defined using the normal
+of the source $n_s$ as
 \begin{align}
+  \label{eq:19}
   u&=n_s\\
   v&=(p_t-p_s)\times u\\
   w&=u\times v
@@ -1295,6 +1329,7 @@ as shown in Figure~\ref{fig:darboux}.
 
 Using this frame, four features are computed
 \begin{align}
+  \label{eq:20}
   f_0&=v\cdot n_t\\
   f_1&=\mid\mid p_t - p_s\mid\mid\\
   f_2&=\frac{u\cdot(p_t-p_s)}{f_1}\\
@@ -1303,10 +1338,12 @@ Using this frame, four features are computed
 where $n_t$ is the normal of the target point. These values are then used to
 compute an index
 \begin{equation}
-  \label{eq:19}
+  \label{eq:21}
   idx=\sum^3_{i=0}\left\lfloor \frac{f_i\cdot d}{f_{i\max}-f_{i\min}}\right\rfloor\cdot d^i
 \end{equation}
-that defines which of the histogram bins the pair of points falls.
+that defines which of the histogram bins the pair of points falls. $d$ is the
+number of divisions to apply to the possible feature value range
+$f_{i\max}-f_{i\min}$.
 
 Because this descriptor computation operates on \emph{all} point pairs in the
 neighbourhood, depending on the size of the neighbourhood and the point density,
@@ -1318,11 +1355,44 @@ computation can be slow.
   \caption{Influence diagrams of the PFH and FPFH descriptors \cite{rusu2009fast}.}
   \label{fig:pfhinfluence}
 \end{figure}
-
 \section{FPFH}
+The fast point feature histogram was introduced to tailor the PFH descriptor to
+real time applications while maintaining its discriminative power
+\cite{rusu2009fast}. Instead of computing the values in Equation~\eqref{eq:19}
+for every pair of points in the neighbourhood of $r$, they are only computed for
+each point and its $k$ neighbours $p_k$ within the same radius --- this is
+called the simplified point feature histogram (SPFH). Because of the use of two
+neighbourhoods, the final descriptor can include information from points up to
+$2r$ away. Once the SPFH value for each point in the neighbourhood is computed,
+it is integrated into the final FPFH descriptor using
+\begin{equation}
+  \label{eq:20}
+  FPFH(p)=SPFH(p)+\frac{1}{k}\sum^k_{i=1}\frac{1}{\omega_k}\cdot SPFH(p_k)
+\end{equation}
+where $k$ is the number of neighbours within $r$ and $\omega_k$ is the distance
+between $p$ and $p_k$.
+
+Because only direct neighbours of each point are considered, some
+interconnections that would exist in the PFH computation do not in FPFH, which
+contributes to its increased speed. The downside of this is that some of the
+geometric structures which exist in the region will not be included. In
+addition, due to the nature of the computation, the values for some points will
+be factored into the descriptor twice.
+
+A further improvement made by the authors is a modification of the way the
+histogram is populated. Instead of using Equation~\eqref{eq:21} to index into
+an array where a single index indicates certain value ranges for all the
+features, they use separate histograms for each feature and concatenate them.
+In the original case, there might be a large number of indices which do not
+contain any information, because combined feature values do not fall into the
+ranges. In the simplified case, there are likely to be fewer histogram indices
+which do not contain any information.
 \section{PFHRGB}
+An extension of the original PFH descriptor, this version also takes into
+account RGB values of points when computing features. 
 
 \chapter{Object Query}
+\label{chap:query}
 flann citations \cite{muja2009fast, muja2014scalable}
 
 \chapter{Experimental Results}
@@ -1356,9 +1426,9 @@ Table~\ref{tbl:preprocess_num}, Table~\ref{tbl:preprocess_time}
       rsi500.txt & 2.01$\pm$0.70 & 1.10$\pm$0.20 & 2.62$\pm$1.81 & 21.35$\pm$10.81 & 305.29$\pm$76.54 & 40.06$\pm$10.86 & n/a &1.77$\pm$0.83\\
       rsi100.txt & 2.13$\pm$0.69 & 1.14$\pm$0.38 & 1.25$\pm$1.63 & 14.92$\pm$6.96 & 62.68$\pm$21.67 & 10.59$\pm$3.78 & 1.51$\pm$0.86 & 1.86$\pm$0.99\\
       rsi50.txt & 1.38$\pm$0.25 & 0.70$\pm$0.09 & 0.17$\pm$0.06 & 15.86$\pm$0.99 & 16.02$\pm$5.02 & 3.82$\pm$1.02 & 0.20$\pm$0.05 & 2.15$\pm$0.48\\
-      ds0,02mp4500.txt & 1.80$\pm$0.92 & 0.91$\pm$0.25 & 0.06$\pm$0.02 & 2.66$\pm$1.09 & 72.53$\pm$125.90 & 9.85$\pm$21.12 & 0.14$\pm$0.07 & 0.48$\pm$0.20\\
-      ds0,02.txt & 1.35$\pm$0.10 & 0.58$\pm$0.07 & 0.03$\pm$0.00 & 1.31$\pm$0.14 & 13.32$\pm$2.06 & 7.71$\pm$1.56 & 0.08$\pm$0.02 & 0.41$\pm$0.06\\
       ds0,015.txt & 2.06$\pm$0.23 & 0.99$\pm$0.23 & 0.10$\pm$0.03 & 3.65$\pm$0.52 & 51.43$\pm$17.19 & 12.47$\pm$4.93 & 1.81$\pm$1.02 & 0.65$\pm$0.15\\
+      ds0,02.txt & 1.35$\pm$0.10 & 0.58$\pm$0.07 & 0.03$\pm$0.00 & 1.31$\pm$0.14 & 13.32$\pm$2.06 & 7.71$\pm$1.56 & 0.08$\pm$0.02 & 0.41$\pm$0.06\\
+      ds0,02mp4500.txt & 1.80$\pm$0.92 & 0.91$\pm$0.25 & 0.06$\pm$0.02 & 2.66$\pm$1.09 & 72.53$\pm$125.90 & 9.85$\pm$21.12 & 0.14$\pm$0.07 & 0.48$\pm$0.20
     \end{tabular}
     \caption{Average time taken for various stages of preprocessing.}
     \label{tbl:preprocess_time}
@@ -1368,15 +1438,15 @@ Apply different segmentation methods/parts of the segmentation method, and see
 how they affect the overall system performance, as well as the time taken to
 complete the segmentation.
 \section{Feature Extraction}
-Same as above, but for feature extraction. Try different features and see which
-give best performance. Consider normal extraction cost for those features which
-require it.
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{images/interest_agg}
+  \caption{Computation time for the various interest point methods. TODO: add in
+    data for annotation computations}
+  \label{fig:interest_agg}
+\end{figure}
+
 \section{Object Query}
-This is evaluated in the previous two sections, but maybe there is more than one
-method of finding the query object. Multi-index tree vs single index tree, for
-example.
-
-
 \chapter{Conclusion and Further Work}
 \label{chap:conc}
 Describe what the project was about, what was achieved, summarise the
