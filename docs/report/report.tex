@@ -1389,10 +1389,49 @@ ranges. In the simplified case, there are likely to be fewer histogram indices
 which do not contain any information.
 \section{PFHRGB}
 An extension of the original PFH descriptor, this version also takes into
-account RGB values of points when computing features. 
+account RGB values of points when computing features. This adds three features
+to the four from Equation~\eqref{eq:20}. The computation is simple, taking the
+ratio of colour values between the two points $p_s$ and $p_t$ and ensuring that
+they are in the interval $\left[-1,1\right]$.
+\begin{align}
+  \label{eq:22}
+  f_4=\frac{p_{s_r}}{p_{t_r}}\\
+  f_5=\frac{p_{s_g}}{p_{t_g}}\\
+  f_6=\frac{p_{s_b}}{p_{t_b}}
+\end{align}
+
+If one of the values $f_i$ is outside the interval, then it is pushed back into
+the interval using
+\begin{equation}
+  \label{eq:23}
+  f_i=-\frac{1}{f_i}
+\end{equation}
+
+These values are then added to the histogram and combined to create the final
+descriptor as with the basic PFH method.
 
 \chapter{Object Query}
 \label{chap:query}
+The final step in the system is to use the features that have been extracted
+from the original clouds, and from those clouds retrieve what we think is likely
+to be the object that we are looking for. It is necessary to mention here the
+assumption we make about objects received by the system. That is, we assume the
+cloud that makes up the object consists of points that come only from that
+object and nothing else. Or, to look at this from the opposite perspective, we
+assume that the entirety of the cloud received by the system is the object.
+
+This assumption changes the problem somewhat. Since our basic assumption from
+the beginning is that we do not have any labelled in the system, it would be
+much more complex for the system to receive, for example, a single frame from
+a scan of a room. In order to perform object query in this scenario, it would be
+necessary to have a definition of ``objectness'', which could facilitate the
+segmentation of the frame into objects and non-objects. These segmented objects
+could then be used effectively for object query as the cloud would actually be
+representative of that object. We will discuss why this is as we explain our
+approach to the task.
+
+
+
 flann citations \cite{muja2009fast, muja2014scalable}
 
 \chapter{Experimental Results}
