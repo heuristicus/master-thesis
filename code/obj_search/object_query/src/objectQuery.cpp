@@ -653,6 +653,7 @@ namespace objsearch {
 		if (clusterIndices.size() == 0) {
 		    ROS_INFO("!!!!! No clusters found. !!!!!");
 		    infoVec.push_back(QueryInfo());
+		    continue;
 		}
 		ROS_INFO("Found clusters");
 
@@ -915,6 +916,7 @@ void ObjectQuery::postProcess(const pclutil::Grid3D& grid,
 	    
 	    std::vector<int> maxHistogram(maxPoints[0].second + 1);
 	    info.votesMaxTotal = 0;
+	    info.pointsMaxTotal = maxPoints.size();
 	    for (size_t i = 0; i < maxPoints.size(); i++) {
 		maxHistogram[maxPoints[i].second]++;
 		info.votesMaxTotal += maxPoints[i].second;
@@ -926,12 +928,15 @@ void ObjectQuery::postProcess(const pclutil::Grid3D& grid,
 	    ROS_INFO("Max points histogram: %s", info.maxHistogram.c_str());
 
 	    std::string scores;
+	    std::string points;
+	    //and put information about clusters into the info struct
 	    for (size_t i = 0; i < clusterDetails.size(); i++) {
 		std::string end = (i + 1 == clusterDetails.size() ? "" : ",");
 		scores += std::to_string(clusterDetails[i].score) + end;
+		points += std::to_string(clusterDetails[i].points) + end;
 	    }
 	    info.clusterScores = scores;
-
+	    info.clusterPoints = points;
 
 	    // will be filled with all of the points in the hough cloud
 	    // which were within the bounding box of the annotation cloud
@@ -955,8 +960,6 @@ void ObjectQuery::postProcess(const pclutil::Grid3D& grid,
 		info.clusterCentroidInOBB = "-1";
 		info.pointsInBox = -1;
 		info.votesInBox = -1;
-		info.pointsMaxTotal = -1;
-		info.votesMaxTotal = -1;
 		info.pointsMaxInBox = -1;
 		info.votesMaxInBox = -1;
 		info.boxHistogram = "-1";
@@ -965,18 +968,14 @@ void ObjectQuery::postProcess(const pclutil::Grid3D& grid,
 		return;
 	    }
 
-	    // check whether cluster centres are in the obb, and put information
-	    // about clusters into the info struct
-
-	    std::string points;
+	    // check whether cluster centres are in the obb
 	    std::string inOBB;
 	    for (size_t i = 0; i < clusterDetails.size(); i++) {
 		// dont put a comma on the end if this is the last item
 		std::string end = (i + 1 == clusterDetails.size() ? "" : ",");
-		points += std::to_string(clusterDetails[i].points) + end;
 		inOBB += (bboxes[0].contains(clusterDetails[i].centroid, false) ? "1" : "0") + end;
 	    }
-	    info.clusterPoints = points;
+
 	    info.clusterCentroidInOBB = inOBB;
 	    
 	    info.pointsInBox = indices.size();

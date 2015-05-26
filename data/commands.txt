@@ -26,3 +26,6 @@ python featureprocess.py -af ../../../data/features/aggregate/ `find ../../../da
 
 # randomly select an instance of an object from the full annotations list
 while read ann; do cat fullannotations.txt | grep $ann | shuf -n 1 ; done < uniqueannotations.txt
+
+# look for the files in collected.txt in the given directory and copy them to this directory
+for itm in `sed -r 's/^.{57}//' collected.txt`; do fl=`find ~/Downloads/pcddata/processed/testing/dsannot/0\,01/annotated/rares/ -regex .*$itm.*`; cp $fl .; done
