@@ -132,9 +132,33 @@ clouds which can be used to check the efficacy of the system. We extract
 features from the complete cloud and an intermediate cloud, and then check the
 correspondences between the extracted features.
 
-    roslaunch preprocess preprocess.launch cloud:=/home/michal/Downloads/pcddata/raw/annotated/rares/20140901/patrol_run_31/room_2/intermediate_cloud0014.pcd
+    roslaunch preprocess preprocess.launch
+    cloud:=/home/michal/Downloads/pcddata/raw/annotated/rares/20140901/patrol_run_31/room_2/intermediate_cloud0014.pcd
+
+### Annotations
+The following will process only annotations, and output them to the specified directory.
+
+    roslaunch preprocess preprocess.launch cloud:=/media/michal/Pauli/masterdata/raw/annotated/rares/ output:=/home/michal/Downloads/pcddata/processed/testing/dsannot/0,01 downsample_leaf_size:=0.01 downsample:=false planes:=false trim:=false normals:=false annotations:=true
 
 ## Feature Extraction
+This will compute shot features using uniform interest point selection on all
+files that match `nonPlanes.pcd` in the given cloud directory. The data will be
+output to a directory according to the setting of the global parameter
+`obj_search/processed_data_dir`. If this is set to
+`/home/michal/Downloads/pcddata/processed/`, then an example output feature
+cloud would be
+`/home/michal/Downloads/pcddata/processed/paramtest/dt0_02/annotated/rares/20140909/patrol_run_59/room_3/features/nonPlanes<shotcolor_uniform_2015-05-26_11-12-20.pcd`,
+where the input cloud was
+`/home/michal/Downloads/pcddata/processed/paramtest/dt0_02/annotated/rares/20140909/patrol_run_59/room_3/nonPlanes.pcd`.
+
+    roslaunch feature_extraction feature_extraction.launch cloud:=/home/michal/Downloads/pcddata/processed/paramtest/dt0_02 feature:=shot feature_selection:=uniform
+
+One can also specify an output directory using the `output` parameter. With the following command, the cloud above would be output to `/home/michal/dt0_02/annotated/rares/20140909/patrol_run_59/room_3/nonPlanes.pcd`.
+
+    roslaunch feature_extraction feature_extraction.launch cloud:=/home/michal/Downloads/pcddata/processed/paramtest/dt0_02 feature:=shot feature_selection:=uniform output:=/home/michal
+
+If the input path does not match either the global raw data directory (`obj_search/raw_data_dir`) or the processed directory, then the subpath of that directory is not extracted, and data will be output directly - if one is processing multiple clouds then this is not ideal because all the results will be placed in a single location instead of being separated by directories.
+
 
 ## Object Query
 

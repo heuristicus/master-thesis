@@ -79,14 +79,14 @@ def go_to_data(datafile):
     for line in datafile:
         if (line.find("BEGIN_DATA") != -1):
             datafile.next() # advance to skip the headings
-            break
+            return
             
 def contains_interest_data(fname):
     f = open(fname, 'r')
 
     go_to_data(f)
     for line in f:
-        if(line.split(' ')[2] != '0'):
+        if(line.split(' ')[3] != '0'):
             f.close()
             return True
             
@@ -179,9 +179,8 @@ def fix_interest_files(args):
             except KeyError:
                 print(fname + ": key error for " + interest + " in file " + sp[0])
                     
-            # the filename, and first and last values we will keep, but will
-            # replace the middle two
-            out.write(sp[0] + " " + sp[1] + " " + tp[1] + " " + tp[2] + " " + sp[4])
+            # replace the number of interest points in the file
+            out.write(sp[0] + " " + sp[1] + " " + tp[1] + " 0 " + sp[4])
 
         f.close()
         out.close()
@@ -194,8 +193,9 @@ def aggregate(outputdir, files, dofeature=True):
     
     for fname in files:
         interest, feature = get_interest_feature_types(fname)
+        # decide what to use as the key based on boolean parameter
         agg = feature if dofeature else interest
-        if (not agg in fdict):
+        if (not agg in fdict): # open a file inside the dictionary if one doesn't exist yet
             out = outputdir + agg + "_data_agg.txt"
             print(agg + " will be output to " + out)
             fdict[agg] = open(out, 'w')
@@ -210,8 +210,26 @@ def aggregate(outputdir, files, dofeature=True):
     # close all the aggregate files
     for key in fdict:
         fdict[key].close()
-            
 
+def merge_interest(outputdir, files):
+    interest_files = get_interest_files(files)
+    if (outputdir[-1] != '/'): # make sure the dir has a slash
+        outputdir += '/'
+
+    fdict = {}
+    for fname in interest_files:
+        interest, feature = get_interest_feature_types(fname)
+        if (not interest in fdict):
+            out = outputdir + interest + "_data_short.txt"
+            fdict[interest] = open(out, 'w')
+
+        f = open(fname, 'r')
+        go_to_data(f)
+        for line in f:
+            # split the line, remove the filename and then put things back
+            # together and write them to the file
+            fdict[interest].write(" ".join(line.split()[1:]) + "\n")
+            
 # assumes that input is the data files, will parse parameter files
 def main():
     switch = sys.argv[1]
@@ -222,6 +240,7 @@ def main():
     fixinterest = False
     aggfiles = False
     aggfeatures = False
+    mergeint = False
     if (switch == "-c"):
         combine = True
     elif (switch == "-h"):
@@ -236,6 +255,9 @@ def main():
         # merge the data for files which use the same interest point types
         aggfiles = True
         aggfeatures = False
+    elif (switch == "-al"):
+        # merge data for interest points of the same type, without repetition
+        mergeint = True
     else:
         print("Must provide argument to define what action to perform.")
         return
@@ -252,6 +274,8 @@ def main():
         fix_interest_files(args)
     elif (aggfiles):
         aggregate(args[0], args[1:], aggfeatures) # first argument is the output location
+    elif (mergeint):
+        merge_interest(args[0], args[1:]) # first argument is output location
         
 if __name__ == '__main__':
     main()

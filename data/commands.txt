@@ -5,7 +5,11 @@
 # find all annotation files and put them into a file without their preceding paths
 for file in `find /home/michal/Downloads/pcddata/processed/annotated/rares/ ! -regex .*normals.pcd | grep label | xargs echo`; do basename $file; done > allannotations.txt
 
-# count the total number of annotated objects
+# full paths
+find /home/michal/Downloads/pcddata/processed/annotated/rares/ ! -regex .*normals.pcd | grep label > fullannotations.txt
+
+# count the total number of annotated objects, removing the rgb_0000 string
+preceding the label
 sed -r 's/^.{9}//' allannotations.txt | wc -l
 
 # show unique instances
@@ -19,3 +23,6 @@ rsync -rvi --ignore-existing ~/Downloads/pcddata/processed/paramtest/ /media/mic
 
 # process aggregate feature data
 python featureprocess.py -af ../../../data/features/aggregate/ `find ../../../data/features/ -regex .*fixed.* | xargs echo`
+
+# randomly select an instance of an object from the full annotations list
+while read ann; do cat fullannotations.txt | grep $ann | shuf -n 1 ; done < uniqueannotations.txt

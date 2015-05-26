@@ -1,6 +1,6 @@
 # plot aggregated data for interest point computations - sift, susan, iss and
 # uniform. Shows the computation time for the methods depending on the number of
-# points in the cloud
+# points to be computed
 reset
 set output "$0.png"
 
@@ -20,8 +20,8 @@ set border 3 back ls 11
 set tics nomirror
 
 
-plot "$1" using 1:2 with points title 'SIFT',\
-     "$2" using 1:2 with points title 'SUSAN',\
-     "$3" using 1:2 with points title 'ISS',\
-     "$4" using 1:2 with points title 'uniform'
+plot "$1" using 2:3 with points title 'SIFT',\
+     "$2" using 2:3 with points title 'SUSAN',\
+     "$3" using 2:3 with points title 'ISS',\
+     "$4" using 2:3 with points title 'uniform'
      

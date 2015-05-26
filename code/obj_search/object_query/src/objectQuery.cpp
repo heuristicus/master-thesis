@@ -184,6 +184,7 @@ namespace objsearch {
 
 	    std::string dataOutput = sysutil::fullDirPath(outPath_);
 
+
 	    // Depending on the type of the descriptor in the cloud, we need to
 	    // instantiate a different template for the search function
 	    if (queryType_.find("shot") != std::string::npos) {
@@ -485,8 +486,9 @@ namespace objsearch {
 	void ObjectQuery::doSearch() {
 	    ROS_INFO("Doing descriptor search.");
 	    
+
 	    std::string dateTime = sysutil::getDateTimeString();
-	    std::string fullResultsDir = sysutil::fullDirPath(resultsOut_ + "query_results/" + queryObjectLabel_ + "-" + dateTime);
+	    std::string fullResultsDir = sysutil::fullDirPath(resultsOut_ + "query_results/" + queryObjectLabel_ + "/" + interestType_ + "_" + featureType_ + "-" + dateTime);
 	    if (clustersToResults_) {
 		outDir_ = fullResultsDir;
 	    }
@@ -594,10 +596,12 @@ namespace objsearch {
 		info.queryTime = (ros::Time::now() - queryStart).toSec();
 		ROS_INFO("Finished finding neighbours");
 
+		ROS_INFO("Starting hough voting");
 		// do hough voting using the computed neighbours
 		ros::Time houghStart = ros::Time::now();
 		pclutil::Grid3D grid = houghVoting(targetPoints, nearest, square_dists);
 		info.houghTime = (ros::Time::now() - houghStart).toSec();
+		ROS_INFO("Hough voting done");
 
 		pcl::PointCloud<pcl::PointXYZRGB>::Ptr voteCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 		// convert the grid to a point cloud with rgb values
@@ -622,7 +626,7 @@ namespace objsearch {
 		    topCloud->points[j].x = p.x;
 		    topCloud->points[j].y = p.y;
 		    topCloud->points[j].z = p.z;
-		    pclutil::rgb colour = pclutil::getHeatColour(maxPoints[i].second,
+		    pclutil::rgb colour = pclutil::getHeatColour(maxPoints[j].second,
 								 maxPoints[0].second);
 		    topCloud->points[j].r = colour.r * 255;
 		    topCloud->points[j].g = colour.g * 255;
@@ -630,6 +634,7 @@ namespace objsearch {
 		}
 		writer.write<pcl::PointXYZRGB>(out + "_top.pcd", *topCloud, true);
 
+		ROS_INFO("Finding clusters");
 		// find clusters in the space of the top n points, with the user
 		// specified tolerances and min and max cluster sizes
 		pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>);
@@ -647,8 +652,9 @@ namespace objsearch {
 
 		if (clusterIndices.size() == 0) {
 		    ROS_INFO("!!!!! No clusters found. !!!!!");
-		    continue;
+		    infoVec.push_back(QueryInfo());
 		}
+		ROS_INFO("Found clusters");
 
 		// maybe try doing this on the the whole set of hough votes?
 		// i.e. find all unique points in the hough vote cloud in the
@@ -663,6 +669,7 @@ namespace objsearch {
 		// from the point of view of the topCloud. So, need to use the
 		// topCloud indices that we have in the maxPoints vector to get
 		// the correct values for the score
+		ROS_INFO("Creating cluster clouds");
 		for (size_t j = 0; j < clusterIndices.size(); j++) {
 			pcl::PointCloud<pcl::PointXYZRGB>::Ptr clusterCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 			// loop over indices in the individual cluster
@@ -696,15 +703,13 @@ namespace objsearch {
 			clusterCloud->is_dense = true;
 			clusterClouds.push_back(clusterCloud);
 		}
+		ROS_INFO("Done");
 
 		auto comp = [](ClusterInfo p, ClusterInfo q) {
 		    return p.score > q.score;
 		};
 		// sort the clusters to get them in order of the scores
 		std::sort(clusterDetails.begin(), clusterDetails.end(), comp);
-		// put the cluster with the top score into the information vector
-		info.topCluster = clusterDetails[0];
-		
 
 		info.nClusters = clusterDetails.size(); // save the number of clusters extracted
 		// base name for outputting clusters and other stuff
@@ -714,7 +719,7 @@ namespace objsearch {
 		    ROS_INFO("Cluster %d has %d points with score %d (%f avg/pt). Original index was %d",
 			     (int)j, (int)clusterIndices[j].indices.size(),
 			     clusterDetails[j].score,
-			     clusterDetails[j].score/(float)clusterClouds[clusterDetails[i].index]->size(),
+			     clusterDetails[j].score/(float)clusterClouds[clusterDetails[j].index]->size(),
 			     clusterDetails[j].index);
 
 		    pcl::PointXYZ c = clusterDetails[j].centroid;
@@ -763,7 +768,7 @@ namespace objsearch {
 		    // 				extents);
 		    pcl::PointCloud<pcl::PointXYZRGB>::Ptr filtered =
 			extractClusterRegionSphere(originalPoints,
-						   clusterDetails[i].centroid,
+						   clusterDetails[j].centroid,
 						   radius);
 		    std::string outLoc(cloudOut + "_region_" + featureType_
 				       + "_" + interestType_ + "_" + std::to_string(j) + ".pcd");
@@ -771,6 +776,10 @@ namespace objsearch {
 		    clusterDetails[j].regionCloud = outLoc;
 		    writer.write<pcl::PointXYZRGB>(outLoc, *filtered, true);
 		}
+		// put the cluster with the top score into the information
+		// vector, after we fill it with information about the files it uses
+		info.topCluster = clusterDetails[0];
+		
 		ROS_INFO("Starting post-processing.");
 		postProcess(grid, voteCloud, cellIndices, maxPoints, info, clusterDetails);
 		ROS_INFO("Post processing finished");
@@ -916,6 +925,13 @@ void ObjectQuery::postProcess(const pclutil::Grid3D& grid,
 	    ROS_INFO("%d max points have %d votes", (int)maxPoints.size(), info.votesMaxTotal);
 	    ROS_INFO("Max points histogram: %s", info.maxHistogram.c_str());
 
+	    std::string scores;
+	    for (size_t i = 0; i < clusterDetails.size(); i++) {
+		std::string end = (i + 1 == clusterDetails.size() ? "" : ",");
+		scores += std::to_string(clusterDetails[i].score) + end;
+	    }
+	    info.clusterScores = scores;
+
 
 	    // will be filled with all of the points in the hough cloud
 	    // which were within the bounding box of the annotation cloud
@@ -951,17 +967,15 @@ void ObjectQuery::postProcess(const pclutil::Grid3D& grid,
 
 	    // check whether cluster centres are in the obb, and put information
 	    // about clusters into the info struct
-	    std::string scores;
+
 	    std::string points;
 	    std::string inOBB;
 	    for (size_t i = 0; i < clusterDetails.size(); i++) {
 		// dont put a comma on the end if this is the last item
 		std::string end = (i + 1 == clusterDetails.size() ? "" : ",");
-		scores += std::to_string(clusterDetails[i].score) + end;
 		points += std::to_string(clusterDetails[i].points) + end;
 		inOBB += (bboxes[0].contains(clusterDetails[i].centroid, false) ? "1" : "0") + end;
 	    }
-	    info.clusterScores = scores;
 	    info.clusterPoints = points;
 	    info.clusterCentroidInOBB = inOBB;
 	    

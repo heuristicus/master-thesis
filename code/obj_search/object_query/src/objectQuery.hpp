@@ -52,6 +52,14 @@ namespace objsearch {
 
 	    
 	    struct QueryInfo {
+		QueryInfo(){
+		    fname = ""; queryTime = -1; houghTime = -1; clusterTime = -1;
+		    nClusters = -1; clusterScores = ""; clusterPoints = "";
+		    clusterCentroidInOBB = ""; pointsTotal = -1; pointsNonZero = -1;
+		    votesTotal = -1; pointsInBox = -1; votesInBox = -1; pointsMaxTotal = -1;
+		    votesMaxTotal = -1; pointsMaxInBox = -1; votesMaxInBox = -1; pointHistogram = "";
+		    boxHistogram = ""; maxHistogram = ""; boxMaxHistogram = ""; topCluster = ClusterInfo();
+		}
 		std::string fname;
 		// \brief time taken to find NNs for all the points in the query cloud
 		float queryTime;
