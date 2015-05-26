@@ -12,6 +12,8 @@ namespace objsearch {
 	    // feature extraction
 	    ROSUtil::getParam(handle, "/object_query/target_features", targetFile_);
 
+	    ROSUtil::getParam(handle, "/object_query/subdirs", keepNSubDirs_);
+	    
 	    // Extract the K parameter specified in the launch file. If it is
 	    // still at the default value of -1, read the parameter from the
 	    // param file instead.
@@ -23,7 +25,7 @@ namespace objsearch {
 	    ROSUtil::getParam(handle, "/obj_search/processed_data_dir", dataPath_);
 	    ROSUtil::getParam(handle, "/object_query/output_dir", outDir_);
 	    ROSUtil::getParam(handle, "/object_query/results_out", resultsOut_);
-
+	    ROSUtil::getParam(handle, "/object_query/clusters_to_results", clustersToResults_);
 
 	    ROSUtil::getParam(handle, "/object_query/x_step_hough", xStepHough_);
 	    ROSUtil::getParam(handle, "/object_query/y_step_hough", yStepHough_);
@@ -41,15 +43,17 @@ namespace objsearch {
 		resultsOut_ = sysutil::fullDirPath(resultsOut_);
 	    } else {
 		if (sysutil::isDir(targetFile_)) {
-		    resultsOut_ = targetFile_;
+		    resultsOut_ = sysutil::fullDirPath(targetFile_);
 		} else {
-		    resultsOut_ = sysutil::trimPath(queryFile_, 2);
+		    resultsOut_ = sysutil::fullDirPath(sysutil::trimPath(queryFile_, 2));
 		}
 	    }
 
 	    // If output is not specified, set the output directory to be the processed
 	    // data directory specified by the global parameters.
-	    if (std::string("NULL").compare(outDir_) == 0) {
+	    if (clustersToResults_){
+		outDir_ = resultsOut_;
+	    } else if (std::string("NULL").compare(outDir_) == 0) {
 		outDir_ = dataPath_;
 	    }
 
@@ -283,11 +287,17 @@ namespace objsearch {
 	    }
 	    
 	    targetPointFile_ = matches[0];
-	    // file which contains the cloud that the features we will look at was taken from
+
+	    // directory above the features directory
 	    std::string targetPath = sysutil::fullDirPath(sysutil::trimPath(targetFile_, 2));
+	    // file which contains the cloud that the features we will look at was taken from
 	    originalTargetCloudFile_ = targetPath + originalName + ".pcd";
 	    // output the cluster results to a new directory
-	    outPath_ = targetPath + "clusters/";
+	    if (clustersToResults_) {
+		outPath_ = outDir_ + sysutil::trimPath(targetPath, -1 * keepNSubDirs_) + "clusters/";
+	    } else {
+		outPath_ = targetPath + "clusters/";
+	    }
 
 	    if (!sysutil::makeDirs(outPath_)) {
 		ROS_INFO("Could not make output directory %s", outPath_.c_str());
@@ -474,15 +484,19 @@ namespace objsearch {
 	template<typename DescType>
 	void ObjectQuery::doSearch() {
 	    ROS_INFO("Doing descriptor search.");
-
-	    std::string fullResultsDir = sysutil::fullDirPath(resultsOut_ + "query_results/" + queryObjectLabel_);
+	    
+	    std::string dateTime = sysutil::getDateTimeString();
+	    std::string fullResultsDir = sysutil::fullDirPath(resultsOut_ + "query_results/" + queryObjectLabel_ + "-" + dateTime);
+	    if (clustersToResults_) {
+		outDir_ = fullResultsDir;
+	    }
 	    ROS_INFO("Results will be output to directory %s", fullResultsDir.c_str());
-		if (!sysutil::makeDirs(resultsOut_ + "query_results/" + queryObjectLabel_)){
-		    ROS_INFO("Could not create directory %s for results output", fullResultsDir.c_str());
-		    throw sysutil::objsearchexception("Failed to create output directory");
-		}
+	    if (!sysutil::makeDirs(fullResultsDir)){
+		ROS_INFO("Could not create directory %s for results output", fullResultsDir.c_str());
+		throw sysutil::objsearchexception("Failed to create output directory");
+	    }
 
-	    std::string dataFile = fullResultsDir + "queryresults" + "_" + sysutil::getDateTimeString() + ".txt";
+	    std::string dataFile = fullResultsDir + "queryresults" + "_" + dateTime + ".txt";
 	    ROS_INFO("Dumping parameters");
 	    // Dump parameters used for this run
 	    // dangerous, but otherwise annoying to output all parameters individually.
@@ -519,20 +533,11 @@ namespace objsearch {
 	    reader.read(queryPointFile_, *queryPoints);
 	    reader.read(queryFile_, *queryFeatures);
 
-	    // Create a flannsearch object to use to do the NN search
-	    typename pcl::search::FlannSearch<DescType, flann::L2_Simple<float> >
-		*search(new pcl::search::FlannSearch<DescType, flann::L2_Simple<float> >());
-	    // Flann needs to know the point representation so that it can
-	    // convert it to its internal format
-	    typename pcl::DefaultPointRepresentation<DescType>::ConstPtr
-		descRepr(new pcl::DefaultPointRepresentation<DescType>());
-	    search->setPointRepresentation(descRepr);
-
 	    std::vector<QueryInfo> infoVec;
 	    
 	    // loop over all clouds in the target cloud vector
 	    for (size_t i = 0; i < targetClouds_.size(); i++) {
-		ROS_INFO("====================Processing target cloud %d of %d====================\n%s", (int)i, (int)targetClouds_.size(), targetClouds_[i].c_str());
+		ROS_INFO("====================Processing target cloud %d of %d====================\n%s", (int)i + 1, (int)targetClouds_.size(), targetClouds_[i].c_str());
 		// initialise struct to store information about timings and so on
 		QueryInfo info = {};
 
@@ -551,6 +556,15 @@ namespace objsearch {
 		pcl::PointCloud<pcl::PointXYZRGB>::Ptr targetPoints(new pcl::PointCloud<pcl::PointXYZRGB>());
 		typename pcl::PointCloud<DescType>::Ptr targetFeatures(new pcl::PointCloud<DescType>());
 
+		// Create a flannsearch object to use to do the NN search
+		typename pcl::search::FlannSearch<DescType, flann::L2_Simple<float> >
+		    *search(new pcl::search::FlannSearch<DescType, flann::L2_Simple<float> >());
+		// Flann needs to know the point representation so that it can
+		// convert it to its internal format
+		typename pcl::DefaultPointRepresentation<DescType>::ConstPtr
+		    descRepr(new pcl::DefaultPointRepresentation<DescType>());
+		search->setPointRepresentation(descRepr);
+
 		info.fname = targetClouds_[i];
 		reader.read(targetClouds_[i], *targetFeatures);
 		reader.read(targetPointFile_, *targetPoints);
@@ -565,17 +579,17 @@ namespace objsearch {
 		std::vector<std::vector<float> > square_dists((int)queryFeatures->size());
 		// Initialise vectors to store the closest K points to the query point.
 		ros::Time queryStart = ros::Time::now();
-		for (int i = 0; i < queryFeatures->size(); i++) {
-		    if (i % 50 == 0 && i > 0) {
-			ROS_INFO("Query point %d of %d", i + 1, (int)queryFeatures->size());
+		for (int j = 0; j < queryFeatures->size(); j++) {
+		    if (j % 50 == 0 && j > 0) {
+			ROS_INFO("Query point %d of %d", j + 1, (int)queryFeatures->size());
 		    }
 		    // some features may have nan values and will crash if not excluded.
-		    if (!pclutil::isValid(queryFeatures->points[i])){
+		    if (!pclutil::isValid(queryFeatures->points[j])){
 			continue;
 		    }
 		    // Search for the closest K points to the query point
-		    search->nearestKSearch(queryFeatures->points[i], K_,
-					   nearest[i], square_dists[i]);
+		    search->nearestKSearch(queryFeatures->points[j], K_,
+					   nearest[j], square_dists[j]);
 		}
 		info.queryTime = (ros::Time::now() - queryStart).toSec();
 		ROS_INFO("Finished finding neighbours");
@@ -603,16 +617,16 @@ namespace objsearch {
 		// create a cloud containing only the top n points
 		pcl::PointCloud<pcl::PointXYZRGB>::Ptr topCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 		topCloud->resize(maxPoints.size());
-		for (size_t i = 0; i < maxPoints.size(); i++) {
-		    pcl::PointXYZ p = grid.cellCentreFromIndex(maxPoints[i].first);
-		    topCloud->points[i].x = p.x;
-		    topCloud->points[i].y = p.y;
-		    topCloud->points[i].z = p.z;
+		for (size_t j = 0; j < maxPoints.size(); j++) {
+		    pcl::PointXYZ p = grid.cellCentreFromIndex(maxPoints[j].first);
+		    topCloud->points[j].x = p.x;
+		    topCloud->points[j].y = p.y;
+		    topCloud->points[j].z = p.z;
 		    pclutil::rgb colour = pclutil::getHeatColour(maxPoints[i].second,
 								 maxPoints[0].second);
-		    topCloud->points[i].r = colour.r * 255;
-		    topCloud->points[i].g = colour.g * 255;
-		    topCloud->points[i].b = colour.b * 255;
+		    topCloud->points[j].r = colour.r * 255;
+		    topCloud->points[j].g = colour.g * 255;
+		    topCloud->points[j].b = colour.b * 255;
 		}
 		writer.write<pcl::PointXYZRGB>(out + "_top.pcd", *topCloud, true);
 
@@ -649,19 +663,19 @@ namespace objsearch {
 		// from the point of view of the topCloud. So, need to use the
 		// topCloud indices that we have in the maxPoints vector to get
 		// the correct values for the score
-		for (size_t i = 0; i < clusterIndices.size(); i++) {
+		for (size_t j = 0; j < clusterIndices.size(); j++) {
 			pcl::PointCloud<pcl::PointXYZRGB>::Ptr clusterCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 			// loop over indices in the individual cluster
-			clusterDetails[i].index = i; // keep track of the index of this cluster
+			clusterDetails[j].index = j; // keep track of the index of this cluster
 
 			// loop over the indices of the points in this cluster
 			pcl::PointXYZ centroid(0,0,0);
-			for (auto it = clusterIndices[i].indices.begin();
-			     it != clusterIndices[i].indices.end(); it++) {
+			for (auto it = clusterIndices[j].indices.begin();
+			     it != clusterIndices[j].indices.end(); it++) {
 			    // *it index refers to the index in topCloud, which
 			    // is constructed from the maxPoints vector. Use
 			    // the score values stored in maxPoints
-			    clusterDetails[i].score += maxPoints[*it].second;
+			    clusterDetails[j].score += maxPoints[*it].second;
 			    // push the points at the indices that this cluster
 			    // contains onto the cloud for the cluster
 			    pcl::PointXYZRGB p = topCloud->points[*it];
@@ -674,8 +688,8 @@ namespace objsearch {
 			centroid.x /= clusterCloud->points.size();
 			centroid.y /= clusterCloud->points.size();
 			centroid.z /= clusterCloud->points.size();
-			clusterDetails[i].centroid = centroid;
-			clusterDetails[i].points = clusterCloud->points.size();
+			clusterDetails[j].centroid = centroid;
+			clusterDetails[j].points = clusterCloud->points.size();
 			
 			clusterCloud->width = clusterCloud->points.size();
 			clusterCloud->height = 1;
@@ -688,30 +702,33 @@ namespace objsearch {
 		};
 		// sort the clusters to get them in order of the scores
 		std::sort(clusterDetails.begin(), clusterDetails.end(), comp);
+		// put the cluster with the top score into the information vector
+		info.topCluster = clusterDetails[0];
+		
 
 		info.nClusters = clusterDetails.size(); // save the number of clusters extracted
 		// base name for outputting clusters and other stuff
 		std::string cloudOut = std::string(sysutil::fullDirPath(outPath_).c_str()
 						   + queryObjectLabel_);
-		for (size_t i = 0; i < clusterDetails.size(); i++) {
+		for (size_t j = 0; j < clusterDetails.size(); j++) {
 		    ROS_INFO("Cluster %d has %d points with score %d (%f avg/pt). Original index was %d",
-			     (int)i, (int)clusterIndices[i].indices.size(),
-			     clusterDetails[i].score,
-			     clusterDetails[i].score/(float)clusterClouds[clusterDetails[i].index]->size(),
-			     clusterDetails[i].index);
+			     (int)j, (int)clusterIndices[j].indices.size(),
+			     clusterDetails[j].score,
+			     clusterDetails[j].score/(float)clusterClouds[clusterDetails[i].index]->size(),
+			     clusterDetails[j].index);
 
-		    pcl::PointXYZ c = clusterDetails[i].centroid;
+		    pcl::PointXYZ c = clusterDetails[j].centroid;
 		    ROS_INFO("Cluster centroid is (%f, %f, %f)", c.x, c.y, c.z);
 		    std::string outLoc(cloudOut + "_cluster_" + featureType_
-				       + "_" + interestType_ + "_" + std::to_string(i)
-				       + "_" + std::to_string(clusterDetails[i].score) + ".pcd");
+				       + "_" + interestType_ + "_" + std::to_string(j)
+				       + "_" + std::to_string(clusterDetails[j].score) + ".pcd");
 		    ROS_INFO("Outputting cluster cloud to %s", outLoc.c_str());
-		    clusterDetails[i].clusterCloud = outLoc;
-		    clusterDetails[i].parentCloud = originalTargetCloudFile_;
+		    clusterDetails[j].clusterCloud = outLoc;
+		    clusterDetails[j].parentCloud = originalTargetCloudFile_;
 		    // need to extract the correct index of the cloud by using
 		    // the index stored in the clusterscores vector
 		    writer.write<pcl::PointXYZRGB>(outLoc,
-						   *clusterClouds[clusterDetails[i].index], true);
+						   *clusterClouds[clusterDetails[j].index], true);
 		}
 		
 		pcl::PointCloud<pcl::PointXYZRGB>::Ptr originalPoints(new pcl::PointCloud<pcl::PointXYZRGB>());
@@ -739,7 +756,7 @@ namespace objsearch {
 
 		radius *= extractRadiusMult_; // multiply it a little bit
 
-		for (size_t i = 0; i < clusterDetails.size(); i++) {
+		for (size_t j = 0; j < clusterDetails.size(); j++) {
 		    // pcl::PointCloud<pcl::PointXYZRGB>::Ptr filtered =
 		    // 	extractClusterRegionBox(originalPoints,
 		    // 				centroids[clusterScores[i].first],
@@ -749,20 +766,20 @@ namespace objsearch {
 						   clusterDetails[i].centroid,
 						   radius);
 		    std::string outLoc(cloudOut + "_region_" + featureType_
-				       + "_" + interestType_ + "_" + std::to_string(i) + ".pcd");
+				       + "_" + interestType_ + "_" + std::to_string(j) + ".pcd");
 		    ROS_INFO("Outputting region cloud to %s", outLoc.c_str());
-		    clusterDetails[i].regionCloud = outLoc;
+		    clusterDetails[j].regionCloud = outLoc;
 		    writer.write<pcl::PointXYZRGB>(outLoc, *filtered, true);
 		}
-		info.topCluster = clusterDetails[i];
-
+		ROS_INFO("Starting post-processing.");
 		postProcess(grid, voteCloud, cellIndices, maxPoints, info, clusterDetails);
+		ROS_INFO("Post processing finished");
 		infoVec.push_back(info);
 	    }
 	    writeInfo(dataFile, infoVec);
 	}
 
-	void ObjectQuery::writeInfo(std::string outFile, std::vector<QueryInfo> infoVec) {
+	void ObjectQuery::writeInfo(std::string outFile, const std::vector<QueryInfo>& infoVec) {
 	    std::ofstream file;
 	    file.open(outFile, std::ios::app);
 	    file << "BEGIN_DATA" << std::endl;

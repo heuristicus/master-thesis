@@ -58,5 +58,21 @@
   <arg name="extract_mult" default="1.3"/>
   <param name="/object_query/extract_mult" value="$(arg extract_mult)" />
 
-  <node name="object_query" pkg="object_query" type="query_object" output="screen" required="false"/>
+  
+  <!-- Number of directories above the input file to add to the output file's
+       output directory. e.g. input is /one/two/three/four/features/feature.pcd and output
+       directory is set to /output/something, and this value is set to 3, then
+       the resulting output will go to /output/something/two/three/four/clusters -->
+  <arg name="subdirs" default="4"/>
+  <param name="/object_query/subdirs" value="$(arg subdirs)" />
+
+  <!-- If true, output the clusters and other cloud output from this node to the
+       same directory as the results-->
+  <arg name="clusters_to_results" default="true"/>
+  <param name="/object_query/clusters_to_results" value="$(arg clusters_to_results)" />
+  
+  
+
+  <node name="object_query" pkg="object_query" type="query_object"
+	output="screen" required="false" />
 </launch>

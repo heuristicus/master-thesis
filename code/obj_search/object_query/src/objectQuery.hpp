@@ -49,6 +49,7 @@ namespace objsearch {
 		std::string regionCloud; // cloud file of the region
 		std::string clusterCloud; // cloud file of the cluster
 	    };
+
 	    
 	    struct QueryInfo {
 		std::string fname;
@@ -129,7 +130,7 @@ namespace objsearch {
 	    pclutil::Grid3D houghVoting(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetPoints,
 					const std::vector<std::vector<int> >& indices,
 					const std::vector<std::vector<float> >& distances);
-	    void writeInfo(std::string outFile, std::vector<QueryInfo> infoVec);
+	    void writeInfo(std::string outFile, const std::vector<QueryInfo>& infoVec);
 	private:
 	    std::string queryFile_;
 	    std::string targetFile_;
@@ -161,9 +162,18 @@ namespace objsearch {
 	    int K_; // number of nearest neighbours to find
 
 	    bool outputRegions_; // unused
+	    bool clustersToResults_;
+	    int keepNSubDirs_;
 
 	    std::string vectorToString(std::vector<int> vec);
 	};
+
+	std::ostream& operator<<(std::ostream& os, const ObjectQuery::ClusterInfo& info) {
+	    os << "ClusterInfo: score=" << info.score << ", points=" << info.points
+	       << "centroid=" << info.centroid << ", parent=" << info.parentCloud
+	       << "region=" << info.regionCloud << ", cluster=" << info.clusterCloud;
+	    return os;
+	}
 	
     } // namespace objectquery
 } // namespace objsearch
