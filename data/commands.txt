@@ -29,3 +29,30 @@ while read ann; do cat fullannotations.txt | grep $ann | shuf -n 1 ; done < uniq
 
 # look for the files in collected.txt in the given directory and copy them to this directory
 for itm in `sed -r 's/^.{57}//' collected.txt`; do fl=`find ~/Downloads/pcddata/processed/testing/dsannot/0\,01/annotated/rares/ -regex .*$itm.*`; cp $fl .; done
+
+# remove make a file containing files created before a certain date and time
+fls=`find /media/michal/Pauli/masterdata/processed/paramtest/iter100/annotated/rares -regex .*nonPlanes\<pfhrgb_iss.*`
+first=1432210006
+for f in $fls; do
+    echo $f
+    bn=`basename $f`
+    fn="${bn%.*}"
+    dt=`echo $fn | sed -r 's/^.{23}//'`
+    ldt=`echo $dt | sed -r 's/.{9}$//'`
+    tm=`echo $dt | sed -r 's/^.{9}//'`
+    tm=`echo $tm | sed -r 's/-/:/g'`
+    echo $ldt
+    echo $tm
+    tme=`date --date="$ldt $tm" +%s`
+    echo $tme
+    if [[ "$tme" -lt "$first" ]]; then
+       echo $f >> tmp.txt
+    fi
+done
+
+# find files which do not contain any data
+fls=`find . -regex .*[0-9].txt`
+bad=`grep -L BEGIN_DATA $fls`
+for f in $bad; do
+    dirname $f
+done

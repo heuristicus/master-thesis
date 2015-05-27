@@ -7,8 +7,9 @@
 % \usepackage[top=1cm]{geometry}
 \usepackage{subfig}
 \usepackage{amsmath}
-\usepackage{graphicx}
 \usepackage{hyperref}
+\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{graphicx}
 \usepackage{moreverb}
 \usepackage{longtable}
 \usepackage{xhfill}
@@ -23,8 +24,7 @@
 \bibliography{report.bib}
 
 \author{Michal Staniaszek}
-\title{A Comparative Study on the Effect of Interest Point Methods and
-  Descriptors on Feature-Feature Matching for Object Query in Point Clouds}
+\title{A System for Object Query in Point Clouds Using Feature-Feature Matching}
 
 \begin{document}
 \maketitle
@@ -1427,20 +1427,109 @@ a scan of a room. In order to perform object query in this scenario, it would be
 necessary to have a definition of ``objectness'', which could facilitate the
 segmentation of the frame into objects and non-objects. These segmented objects
 could then be used effectively for object query as the cloud would actually be
-representative of that object. We will discuss why this is as we explain our
-approach to the task.
+representative of that object.
 
+The part of the system receives two clouds; the query cloud, containing the
+features extracted from the cloud of the object that we are interested in
+finding, and the target cloud, which contains features extracted from the cloud
+which we wish to search for the object. For point $q$ in the query cloud, we
+search the target cloud for the closest $K$ points using a nearest neighbour
+search. As we do not care about the exact distance, but only the relative
+distances of points, we use a simplified $L_2$ norm which does not take the
+square root of distances, returning only the sum of the squares of the
+differences between each dimension, which speeds up computation. The nearest
+neighbour search uses optimised functions implemented in the FLANN library
+\cite{muja2009fast, muja2014scalable}.
 
+In the next step, we use of the computed nearest neighbours of each point to
+place votes into a 3D grid overlaid onto the target cloud. We construct the grid
+with a width, depth and height based on the minimum and maximum values of the
+$x$, $y$ and $z$ dimensions of the points in the target cloud. This space is
+then subdivided using a step, which defines the dimensions of each of the
+individual voting spaces. For each neighbour descriptor, we add a vote in the
+grid in the cell that contains the point at which it was computed.
 
-flann citations \cite{muja2009fast, muja2014scalable}
+This voting scheme is more robust than simply taking the single nearest
+descriptor. In some cases there will be locations where the descriptor matches
+some other point in the space better than the actual corresponding point on the
+object we are interested in finding. By taking a number of nearest neighbours
+and using all of them to vote, we hope to populate the voting space in such a
+way that these false positive values are hidden by the true positives, leading
+to a space where the position of the actual object is the one where there is the
+highest concentration of votes. We would expect this to be the case, as while
+some of the descriptors will match other positions in the cloud, the majority
+are likely to be found in regions where the actual object is.
 
+Once the voting grid is populated, we perform clustering in this space to
+extract regions which contain potential matches. The clustering performed is
+simple Euclidean clustering, shown in Algorithm~\ref{alg:euc}. Essentially, at
+each point we grow a cluster by adding points to a queue until there are no more
+points that can be added that fall within a sphere of radius $r$ of any point in
+the queue. Once no more points can be found, the queue is converted to a cluster
+and the process begins again with another point from the cloud. We do not
+directly take into account the number of votes that points have when clustering
+them. Instead, rather than using all of the points in the voting grid, we take
+only the $N$ points which have the highest number of votes, and cluster those.
+If, as we would hope, most of the points with high numbers of votes correspond
+to the same object, then they are likely to be in the same spatial region, and
+can therefore be extracted by the clustering.
+
+\begin{algorithm}
+  \DontPrintSemicolon
+  \SetKwInput{Kw}{Init}
+  \KwData{$k$-d tree representation of cloud $P$, Empty cluster list $C$, empty queue $Q$, processed point list $L$}
+  \For{$p_i\in P,\, p_i \notin L$}{
+    $Q \longleftarrow p_i$\;
+    \For{$q_i\in Q$}{
+      Find set $P^j_k$ of neighbours $p_j$ of $q_i$ where $q_i - p_j < r$
+      \For{$p^j_k\in P^j_k$}{
+        \If{$p^j_k \notin L$}{
+          $Q \longleftarrow p^j_k$\;
+          $L \longleftarrow p^j_k$\;
+        }
+      }
+    }
+    $C \longleftarrow Q$\;
+    $Q \longleftarrow \emptyset$\;
+  }
+  \caption{Euclidean Cluster Extraction \cite{RusuDoctoralDissertation}}
+  \label{alg:euc}
+\end{algorithm}
+
+Once points have been clustered, the total score of each cluster is computed by
+summing the votes of all the points it contains. Once this is done, we rank the
+clusters by their scores. In this action, we make the assumption that the larger
+the score, the higher chance that the cluster lies on the object. Another option
+is to also consider the point density by dividing the score by the total number
+of points in the cluster. For each cluster, we find its centroid and then remove
+a sphere with a radius of $\alpha r$ centred on this point from the target
+cloud. $\alpha$ is a small multiplier greater than 1, used to ensure that a
+large part of the object is captured even if the centroid is offset from the
+object. This extracted region should contain the object.
 \chapter{Experimental Results}
 \label{chap:exp}
-Description of experiments and experimental results with different
-configurations of the system.
-\section{Segmentation}
-Table~\ref{tbl:preprocess_num}, Table~\ref{tbl:preprocess_time}
+In this chapter, we will investigate the effects of different variables or
+descriptors on the output of different parts of the system. We will also look at
+the computation time of the various parts of each step. In addition, we will
+attempt to discuss the reasons for the variations that we observe. The goal of
+this section is to give the reader an insight into the behaviour of the system
+under different parameter settings, and more importantly, to present retrieval
+results from our data set.
 
+\section{Preprocessing}
+Although each stage in the system is important, the preprocessing step has a
+large impact on the performance of the system in later stages. In particular,
+the number of points removed from a cloud can affect the results both positively
+and negatively, the plane extraction in particular. If tuned correctly, it can
+remove most of the extraneous planes, leaving only parts of the scene which have
+some non-planar structure, which are most likely to be objects. 
+
+
+
+\subsection{Computation Time}
+Table~\ref{tbl:preprocess_time}
+\subsection{Point Count Reduction}
+Table~\ref{tbl:preprocess_num}
 \begin{landscape}
   \begin{table}
     \begin{tabular}{r|llllll}
