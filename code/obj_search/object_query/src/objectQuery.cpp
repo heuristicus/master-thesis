@@ -536,7 +536,7 @@ namespace objsearch {
 	    reader.read(queryFile_, *queryFeatures);
 
 	    std::vector<QueryInfo> infoVec;
-	    
+	    bool append = false; // first run through, write headers to output file
 	    // loop over all clouds in the target cloud vector
 	    for (size_t i = 0; i < targetClouds_.size(); i++) {
 		ROS_INFO("====================Processing target cloud %d of %d====================\n%s", (int)i + 1, (int)targetClouds_.size(), targetClouds_[i].c_str());
@@ -567,9 +567,11 @@ namespace objsearch {
 		    descRepr(new pcl::DefaultPointRepresentation<DescType>());
 		search->setPointRepresentation(descRepr);
 
+		ROS_INFO("Reading target clouds");
 		info.fname = targetClouds_[i];
 		reader.read(targetClouds_[i], *targetFeatures);
 		reader.read(targetPointFile_, *targetPoints);
+		ROS_INFO("Reading complete");
 		search->setInputCloud(targetFeatures);
 	    
 		std::vector<int> indicesTarget;
@@ -652,7 +654,8 @@ namespace objsearch {
 
 		if (clusterIndices.size() == 0) {
 		    ROS_INFO("!!!!! No clusters found. !!!!!");
-		    infoVec.push_back(QueryInfo());
+		    //infoVec.push_back(QueryInfo());
+		    writeInfo(dataFile, info, append);
 		    continue;
 		}
 		ROS_INFO("Found clusters");
@@ -784,9 +787,42 @@ namespace objsearch {
 		ROS_INFO("Starting post-processing.");
 		postProcess(grid, voteCloud, cellIndices, maxPoints, info, clusterDetails);
 		ROS_INFO("Post processing finished");
-		infoVec.push_back(info);
+		writeInfo(dataFile, info, append);
+		append = true;
 	    }
-	    writeInfo(dataFile, infoVec);
+
+	}
+
+	void ObjectQuery::writeInfo(std::string outFile, const QueryInfo& info, bool append){
+	    std::ofstream file;
+	    file.open(outFile, std::ios::app);
+	    if (!append) {
+		file << "BEGIN_DATA" << std::endl;
+		file << "# fname t_query t_hough t_cluster cluster_n cluster_scores cluster_points cluster_inobb n_hough_tot nonzero_hough hough_votes boxpts boxvotes maxpts maxvotes maxboxpts maxboxvotes hough_hist box_hist max_hist boxmax_hist" << std::endl;
+	    }
+	    
+	    file << info.fname.c_str() << " " << info.queryTime << " " << info.houghTime << " "
+		 << info.clusterTime << " " << info.nClusters << " "
+		 << info.clusterScores.c_str() << " " << info.clusterPoints.c_str() << " "
+		 << info.clusterCentroidInOBB.c_str() << " " << info.pointsTotal << " "
+		 << info.pointsNonZero << " " << info.votesTotal << " "
+		 << info.pointsInBox << " " << info.votesInBox << " "
+		 << info.pointsMaxTotal << " " << info.votesMaxTotal << " "
+		 << info.pointsMaxInBox << " " << info.votesMaxInBox << " "
+		 << info.pointHistogram.c_str() << " " << info.boxHistogram.c_str() << " "
+		 << info.maxHistogram.c_str() << " " << info.boxMaxHistogram.c_str() << std::endl;
+	    file.close();
+		
+	    std::string clusterFile = sysutil::removeExtension(outFile, false) + "_clusters.txt";
+	    std::ofstream clf;
+	    clf.open(clusterFile, std::ios::app);
+	    if (!append) {
+		clf << "# score parent cluster region" << std::endl;
+	    }
+	    clf << info.topCluster.score << " " << info.topCluster.parentCloud.c_str() << " "
+		 << info.topCluster.clusterCloud.c_str() << " " << info.topCluster.regionCloud.c_str() << std::endl;
+
+	    clf.close();
 	}
 
 	void ObjectQuery::writeInfo(std::string outFile, const std::vector<QueryInfo>& infoVec) {

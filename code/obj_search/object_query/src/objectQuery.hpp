@@ -139,6 +139,7 @@ namespace objsearch {
 					const std::vector<std::vector<int> >& indices,
 					const std::vector<std::vector<float> >& distances);
 	    void writeInfo(std::string outFile, const std::vector<QueryInfo>& infoVec);
+	    void writeInfo(std::string outFile, const QueryInfo& info, bool append);
 	private:
 	    std::string queryFile_;
 	    std::string targetFile_;

@@ -74,5 +74,5 @@
   
 
   <node name="object_query" pkg="object_query" type="query_object"
-	output="screen" required="false" />
+	output="screen" required="true" />
 </launch>

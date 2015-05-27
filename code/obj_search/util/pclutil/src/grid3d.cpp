@@ -423,7 +423,7 @@ namespace objsearch {
 	    for (size_t i = 0; i < values_.size(); i++) {
 		int curVal = values_[i];
 		if (curVal > histogram.size() - 1) {
-		    histogram.resize(curVal);
+		    histogram.resize(curVal + 1);
 		}
 		if (curVal > maxVotes) {
 		    maxVotes = curVal;
