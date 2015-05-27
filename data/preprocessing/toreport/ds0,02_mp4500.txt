@@ -22,7 +22,7 @@
 /home/michal/Downloads/pcddata/raw/annotated/rares/20140905/patrol_run_21/room_2/complete_cloud.pcd 4412085 290137 205581 116796 1.28979 0.519534 0.0351959 1.24285 8 33.9118 0.238518 0.0674944
 /home/michal/Downloads/pcddata/raw/annotated/rares/20140905/patrol_run_23/room_2/complete_cloud.pcd 4301854 261152 195238 110757 1.28083 0.49982 0.0312182 1.12785 7 28.2797 0.287548 0.0681017
 /home/michal/Downloads/pcddata/raw/annotated/rares/20140905/patrol_run_25/room_1/complete_cloud.pcd 4151755 261039 184122 97363 1.43902 0.489788 0.0295667 1.09241 7 26.2218 0.215035 0.073597
-/home/michal/Downloads/pcddata/raw/annotated/rares/20140905/patrol_run_27/room_2/complete_cloud.pcd 4130589 249603 186286 103657 1.27519 0.524971 0.0357646 1.13816 6 1213.28 0.241761 0.0642623
+/home/michal/Downloads/pcddata/raw/annotated/rares/20140905/patrol_run_27/room_2/complete_cloud.pcd 4130589 249603 186286 103657 1.27519 0.524971 0.0357646 1.13816 6 35.28 0.241761 0.0642623
 /home/michal/Downloads/pcddata/raw/annotated/rares/20140905/patrol_run_29/room_2/complete_cloud.pcd 3962959 253300 183931 99437 0.943961 0.504477 0.0339645 1.26901 7 38.2967 0.282853 0.0627556
 /home/michal/Downloads/pcddata/raw/annotated/rares/20140905/patrol_run_30/room_1/complete_cloud.pcd 4125120 248832 187199 100116 2.0095 0.950581 0.047513 2.38735 7 40.9843 0.444505 0.106403
 /home/michal/Downloads/pcddata/raw/annotated/rares/20140905/patrol_run_30/room_7/complete_cloud.pcd 4444767 278455 206822 108918 1.60221 1.01393 0.070213 2.76139 9 78.4147 0.474203 0.117783

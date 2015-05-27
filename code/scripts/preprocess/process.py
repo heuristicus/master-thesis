@@ -1,4 +1,4 @@
-#!/bin/python3
+#!/usr/bin/python3
 import sys
 import statistics
 import os
@@ -7,7 +7,7 @@ import os
 def results_to_tex(results, addheader=False):
     number_line = ""
     if (addheader):
-        number_line += "Setting & Original & Downsampled & Trimmed & NPlanes & Planes & Final\\\\\hline\n"
+        number_line += "Setting & Original & Downsampled & Trimmed & NPlanes & Planes \\\\\hline\n"
     else:
         number_line += "\n"
 
@@ -18,30 +18,45 @@ def results_to_tex(results, addheader=False):
     number_line += "{:,}".format(results['downsample_pts_mean']) + "$\pm$" + "{:,}".format(results['downsample_pts_std']) + " & "
     number_line += "{:,}".format(results['trim_pts_mean']) + "$\pm$" + "{:,}".format(results['trim_pts_std']) + " & "
     number_line += "%.2f" % results['num_planes_mean']  + "$\pm$" +  "%.2f" % results['num_planes_std'] + " & "
-    number_line += "{:,}".format(results['plane_pts_mean']) + "$\pm$" + "{:,}".format(results['plane_pts_std']) + " & "
-    number_line += "{:,}".format(results['final_pts_mean']) + "$\pm$" + "{:,}".format(results['final_pts_std']) + "\\\\"
+    number_line += "{:,}".format(results['plane_pts_mean']) + "$\pm$" + "{:,}".format(results['plane_pts_std']) + " \\\\"
 
     time_line = ""
     if (addheader):
-        time_line += "Setting & Load & Downsample & Trim & Normals & Planes & PerPlane & Annotation & NormalsF \\\\\hline\n"
+        time_line += "Setting & Downsample & Trim & Normals & Planes & PerPlane & NormalsF & Total\\\\\hline\n"
     else:
         time_line += "\n"
     time_line += os.path.basename(results['fname']) + " & "
-    time_line += "%.2f" % results['load_time_mean']  + "$\pm$" +  "%.2f" % results['load_time_std'] + " & "
+#    time_line += "%.2f" % results['load_time_mean']  + "$\pm$" +  "%.2f" % results['load_time_std'] + " & "
     time_line += "%.2f" % results['downsample_time_mean']  + "$\pm$" +  "%.2f" % results['downsample_time_std'] + " & "
     time_line += "%.2f" % results['trim_time_mean']  + "$\pm$" +  "%.2f" % results['trim_time_std'] + " & "
     time_line += "%.2f" % results['normals_time_mean']  + "$\pm$" +  "%.2f" % results['normals_time_std'] + " & "
     time_line += "%.2f" % results['plane_time_mean']  + "$\pm$" +  "%.2f" % results['plane_time_std'] + " & "
-    time_line += "%.2f" % results['time_per_plane_mean']  + "$\pm$" +  "%.2f" % results['time_per_plane_std'] + " "
-    if ('annotation_time_mean' in results):
-        time_line += "& %.2f" % results['annotation_time_mean']  + "$\pm$" +  "%.2f" % results['annotation_time_std'] + " & "
+    time_line += "%.2f" % results['time_per_plane_mean']  + "$\pm$" +  "%.2f" % results['time_per_plane_std'] + " & "
+    # if ('annotation_time_mean' in results):
+    #     time_line += "& %.2f" % results['annotation_time_mean']  + "$\pm$" +  "%.2f" % results['annotation_time_std'] + " & "
     if ('feature_normal_time_mean' in results):
         if ('annotation_time_mean' not in results):
             time_line += "& n/a &"
-        time_line += "%.2f" % results['feature_normal_time_mean']  + "$\pm$" +  "%.2f" % results['feature_normal_time_std'] + ""
-        
+        time_line += "%.2f" % results['feature_normal_time_mean']  + "$\pm$" +  "%.2f" % results['feature_normal_time_std'] + " & "
+
+    time_line += "%.2f" % results['total_time_mean']  + "$\pm$" +  "%.2f" % results['total_time_std'] + " "
+    
     time_line += "\\\\"
-    return number_line, time_line
+
+    prop_line = ""
+    if (addheader):
+        prop_line += "Setting & Downsample & Trim & Trim Orig & Plane & Plane Orig \\\\\hline\n"
+    else:
+        prop_line += "\n"
+        
+    prop_line += os.path.basename(results['fname']) + " & "
+    prop_line += "%.2f" % results['downsample_prop_mean']  + "$\pm$" +  "%.2f" % results['downsample_prop_std'] + " & "
+    prop_line += "%.2f" % results['trim_prop_mean']  + "$\pm$" +  "%.2f" % results['trim_prop_std'] + " & "
+    prop_line += "%.2f" % results['trim_prop_orig_mean']  + "$\pm$" +  "%.2f" % results['trim_prop_orig_std'] + " & "
+    prop_line += "%.2f" % results['plane_prop_mean']  + "$\pm$" +  "%.2f" % results['plane_prop_std'] + " & "
+    prop_line += "%.2f" % results['plane_prop_orig_mean']  + "$\pm$" +  "%.2f" % results['plane_prop_orig_std'] + " \\\\ "
+        
+    return number_line, time_line, prop_line
 
 def processFile(fname):
     f = open(fname, 'r')
@@ -77,10 +92,30 @@ def processFile(fname):
 
     # average time to extract each plane
     time_per_plane = [(plane_time[i]/num_planes[i] if num_planes[i] != 0 else plane_time[i]) for i in range(0, nfiles - 1)]
-    # size of clouds after preprocessing
-    final_size = [trim_pts[i]-plane_pts[i] for i in range(0, len(orig_pts))]
+
     # relative size of original and downsampled
     downsample_prop = [downsample_pts[i]/orig_pts[i] for i in range(0, len(orig_pts))]
+    trim_prop = [trim_pts[i]/downsample_pts[i] for i in range(0, len(orig_pts))]
+    trim_prop_orig = [trim_pts[i]/orig_pts[i] for i in range(0, len(orig_pts))]
+    plane_prop = [plane_pts[i]/trim_pts[i] for i in range(0, len(orig_pts))]
+    plane_prop_orig = [plane_pts[i]/orig_pts[i] for i in range(0, len(orig_pts))]
+
+    total_time=[downsample_time[i] + trim_time[i] + normals_time[i] + plane_time[i] for i in range(0, len(orig_pts))]
+
+    # proportions
+    results['downsample_prop_mean'] = statistics.mean(downsample_prop)
+    results['downsample_prop_std'] = statistics.stdev(downsample_prop)
+    results['trim_prop_mean'] = statistics.mean(trim_prop)
+    results['trim_prop_std'] = statistics.stdev(trim_prop)
+    results['trim_prop_orig_mean'] = statistics.mean(trim_prop_orig)
+    results['trim_prop_orig_std'] = statistics.stdev(trim_prop_orig)
+    results['plane_prop_mean'] = statistics.mean(plane_prop)
+    results['plane_prop_std'] = statistics.stdev(plane_prop)
+    results['plane_prop_orig_mean'] = statistics.mean(plane_prop_orig)
+    results['plane_prop_orig_std'] = statistics.stdev(plane_prop_orig)
+
+    results['total_time_mean'] = statistics.mean(total_time)
+    results['total_time_std'] = statistics.stdev(total_time)
 
     results['orig_pts_mean'] = int(statistics.mean(orig_pts))
     results['orig_pts_std'] = int(statistics.stdev(orig_pts))
@@ -112,10 +147,8 @@ def processFile(fname):
         results['annotation_time_mean'] = statistics.mean(annotation_time)
         results['annotation_time_std'] = statistics.stdev(annotation_time)
     
-    downsample_prop_mean = statistics.mean(downsample_prop)
-    
-    results['final_pts_mean'] = int(statistics.mean(final_size))
-    results['final_pts_std'] = int(statistics.stdev(final_size))
+    # results['final_pts_mean'] = int(statistics.mean(final_size))
+    # results['final_pts_std'] = int(statistics.stdev(final_size))
 
     return results
 
@@ -136,15 +169,18 @@ def main():
 
     numbers = ""
     times = ""
+    props = ""
     addhead = True
     for result in results:
         textuple = results_to_tex(result, addhead)
         numbers += textuple[0]
         times += textuple[1]
+        props += textuple[2]
         addhead = False
 
     print(numbers)
     print(times)
+    print(props)
 
 if __name__ == '__main__':
     main()

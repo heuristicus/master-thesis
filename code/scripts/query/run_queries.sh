@@ -5,8 +5,9 @@ base="/media/michal/Pauli/masterdata/processed/paramtest"
 outbase="/home/michal/Downloads/pcddata/processed/query"
 dirs="iter100" # iter50 iter500 nr0_04 ds0_015 ds0_02mp_4500 #dt0,02_mp8000_pp0,001
 features="shot shotcolor pfh fpfh pfhrgb"
-fselect="uniform sift susan iss"
-objects="backpack2 chair1 hanger_jacket helmet laptop1 pillow top_couch_jacket2" # trash_bin
+fselect="uniform iss susan sift"
+objects="top_couch_jacket2"
+# trash_bin backpack2 hanger_jacket laptop1 pillow
 
 var=0
 for dir in $dirs; do
@@ -23,4 +24,5 @@ for dir in $dirs; do
     	done
     done
 done
+echo -e "\007"
 echo $var
