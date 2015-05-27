@@ -615,15 +615,51 @@ namespace objsearch {
 		pcl::PCDWriter writer;
 		writer.write<pcl::PointXYZRGB>(out + ".pcd", *voteCloud, true);
 
+		// populate some of the values in the info struct
+		int total = grid.getValuesTotal();
+		info.votesTotal = total;
+		int empty = grid.getEmptyTotal();
+		int size = grid.size();
+		info.pointsTotal = size;
+		info.pointsNonZero = size - empty;
+		ROS_INFO("Hough grid has size %d, containing %d votes. %d cells have no votes -> %d cells have votes", size, total, empty, size - empty);
+		
 		// find the n points in the hough grid with the maximum value -
 		// this should indicate the points in the target cloud which most
 		// closely match the query object
-		std::vector<std::pair<int, int> > maxPoints = grid.getMaxN(nMax_);
+		int nToGet = (size - empty < nMax_) ? size - empty : nMax_;
+		std::vector<std::pair<int, int> > maxPoints = grid.getMaxN(nToGet);
+		
+		std::vector<int> gridHist = grid.valueHistogram();
+		info.pointHistogram = vectorToString(gridHist);
+		ROS_INFO("Histogram of grid values: %s", info.pointHistogram.c_str());
+	    
+		std::vector<int> maxHistogram(maxPoints[0].second + 1);
+		info.votesMaxTotal = 0;
+		info.pointsMaxTotal = maxPoints.size();
+		for (size_t i = 0; i < maxPoints.size(); i++) {
+		    maxHistogram[maxPoints[i].second]++;
+		    info.votesMaxTotal += maxPoints[i].second;
+		}
+		info.maxHistogram = vectorToString(maxHistogram);
+
+		ROS_INFO("Max point has %d votes.", maxPoints[0].second);
+		ROS_INFO("%d max points have %d votes", (int)maxPoints.size(), info.votesMaxTotal);
+		ROS_INFO("Max points histogram: %s", info.maxHistogram.c_str());
 		
 		// create a cloud containing only the top n points
 		pcl::PointCloud<pcl::PointXYZRGB>::Ptr topCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 		topCloud->resize(maxPoints.size());
+		// keep track of the index of the maximum valued point so that
+		// we can use it later if there are no clusters
+		int maxVote = -1;
+		int maxInd = -1;
 		for (size_t j = 0; j < maxPoints.size(); j++) {
+		    if (maxPoints[j].second > maxVote) {
+			maxVote = maxPoints[j].second;
+			maxInd = j;
+		    }
+		    
 		    pcl::PointXYZ p = grid.cellCentreFromIndex(maxPoints[j].first);
 		    topCloud->points[j].x = p.x;
 		    topCloud->points[j].y = p.y;
@@ -652,13 +688,17 @@ namespace objsearch {
 		ec.extract(clusterIndices);
 		info.clusterTime = (ros::Time::now() - clusterStart).toSec();		
 
+		// if we didn't find any clusters, just take the maximum point
+		// and take that as the cluster
 		if (clusterIndices.size() == 0) {
 		    ROS_INFO("!!!!! No clusters found. !!!!!");
-		    //infoVec.push_back(QueryInfo());
-		    writeInfo(dataFile, info, append);
-		    continue;
+		    ROS_INFO("Using max point as cluster");
+		    clusterIndices.resize(1);
+		    // push the index of the maximum point that was computed earlier
+		    clusterIndices[0].indices.push_back(maxInd);
+		} else {
+		    ROS_INFO("Found %d clusters", (int)clusterIndices.size());
 		}
-		ROS_INFO("Found clusters");
 
 		// maybe try doing this on the the whole set of hough votes?
 		// i.e. find all unique points in the hough vote cloud in the
@@ -938,31 +978,6 @@ void ObjectQuery::postProcess(const pclutil::Grid3D& grid,
 				      const std::vector<int> cellIndices,
 				      const std::vector<std::pair<int, int> >& maxPoints,
 				      QueryInfo& info, std::vector<ClusterInfo> clusterDetails) {
-	    int total = grid.getValuesTotal();
-	    info.votesTotal = total;
-	    int empty = grid.getEmptyTotal();
-	    int size = grid.size();
-	    info.pointsTotal = size;
-	    info.pointsNonZero = size - empty;
-	    ROS_INFO("Hough grid has size %d, containing %d votes. %d cells have no votes -> %d cells have votes", size, total, empty, size - empty);
-
-	    std::vector<int> gridHist = grid.valueHistogram();
-	    info.pointHistogram = vectorToString(gridHist);
-	    ROS_INFO("Histogram of grid values: %s", info.pointHistogram.c_str());
-	    
-	    std::vector<int> maxHistogram(maxPoints[0].second + 1);
-	    info.votesMaxTotal = 0;
-	    info.pointsMaxTotal = maxPoints.size();
-	    for (size_t i = 0; i < maxPoints.size(); i++) {
-		maxHistogram[maxPoints[i].second]++;
-		info.votesMaxTotal += maxPoints[i].second;
-	    }
-	    info.maxHistogram = vectorToString(maxHistogram);
-
-	    ROS_INFO("Max point has %d votes.", maxPoints[0].second);
-	    ROS_INFO("%d max points have %d votes", (int)maxPoints.size(), info.votesMaxTotal);
-	    ROS_INFO("Max points histogram: %s", info.maxHistogram.c_str());
-
 	    std::string scores;
 	    std::string points;
 	    //and put information about clusters into the info struct
