@@ -7,10 +7,9 @@ import os
 def results_to_tex(results, addheader=False):
     number_line = ""
     if (addheader):
-        number_line += "Setting & Original & Downsampled & Trimmed & NPlanes & Planes \\\\\hline\n"
+        number_line += "Setting & Original & Downsampled & Trimmed & NPlanes & PerPlane & Planes \\\\\hline\n"
     else:
         number_line += "\n"
-
 
     #        "{:,}".format(number);
     number_line += os.path.basename(results['fname']) + " & "
@@ -18,6 +17,7 @@ def results_to_tex(results, addheader=False):
     number_line += "{:,}".format(results['downsample_pts_mean']) + "$\pm$" + "{:,}".format(results['downsample_pts_std']) + " & "
     number_line += "{:,}".format(results['trim_pts_mean']) + "$\pm$" + "{:,}".format(results['trim_pts_std']) + " & "
     number_line += "%.2f" % results['num_planes_mean']  + "$\pm$" +  "%.2f" % results['num_planes_std'] + " & "
+    number_line += "{:,}".format(results['per_plane_points_mean'])  + "$\pm$" +  "{:,}".format(results['per_plane_points_std']) + " & "
     number_line += "{:,}".format(results['plane_pts_mean']) + "$\pm$" + "{:,}".format(results['plane_pts_std']) + " \\\\"
 
     time_line = ""
@@ -99,6 +99,7 @@ def processFile(fname):
     trim_prop_orig = [trim_pts[i]/orig_pts[i] for i in range(0, len(orig_pts))]
     plane_prop = [plane_pts[i]/trim_pts[i] for i in range(0, len(orig_pts))]
     plane_prop_orig = [plane_pts[i]/orig_pts[i] for i in range(0, len(orig_pts))]
+    per_plane_points= [(int((trim_pts[i]-plane_pts[i])/num_planes[i]) if num_planes[i] !=0 else 0) for i in range(0, len(orig_pts))]
 
     total_time=[downsample_time[i] + trim_time[i] + normals_time[i] + plane_time[i] for i in range(0, len(orig_pts))]
 
@@ -113,6 +114,9 @@ def processFile(fname):
     results['plane_prop_std'] = statistics.stdev(plane_prop)
     results['plane_prop_orig_mean'] = statistics.mean(plane_prop_orig)
     results['plane_prop_orig_std'] = statistics.stdev(plane_prop_orig)
+
+    results['per_plane_points_mean'] = int(statistics.mean(per_plane_points))
+    results['per_plane_points_std'] = int(statistics.stdev(per_plane_points))
 
     results['total_time_mean'] = statistics.mean(total_time)
     results['total_time_std'] = statistics.stdev(total_time)

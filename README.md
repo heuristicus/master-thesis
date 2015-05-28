@@ -138,7 +138,7 @@ correspondences between the extracted features.
 ### Annotations
 The following will process only annotations, and output them to the specified directory.
 
-    roslaunch preprocess preprocess.launch cloud:=/media/michal/Pauli/masterdata/raw/annotated/rares/ output:=/home/michal/Downloads/pcddata/processed/testing/dsannot/0,01 downsample_leaf_size:=0.01 downsample:=false planes:=false trim:=false normals:=false annotations:=true
+    roslaunch preprocess preprocess.launch cloud:=/media/michal/Pauli/masterdata/raw/annotated/rares/ output:=/home/michal/Downloads/pcddata/processed/testing/dsannot/0,01 downsample_leafsize:=0.01 downsample:=false planes:=false trim:=false normals:=false annotations:=true
 
 ## Feature Extraction
 This will compute shot features using uniform interest point selection on all
@@ -157,7 +157,11 @@ One can also specify an output directory using the `output` parameter. With the 
 
     roslaunch feature_extraction feature_extraction.launch cloud:=/home/michal/Downloads/pcddata/processed/paramtest/dt0_02 feature:=shot feature_selection:=uniform output:=/home/michal
 
-If the input path does not match either the global raw data directory (`obj_search/raw_data_dir`) or the processed directory, then the subpath of that directory is not extracted, and data will be output directly - if one is processing multiple clouds then this is not ideal because all the results will be placed in a single location instead of being separated by directories.
+If the input path does not match either the global raw data directory
+(`obj_search/raw_data_dir`) or the processed directory, then the subpath of that
+directory is not extracted, and data will be output directly - if one is
+processing multiple clouds then this is not ideal because all the results will
+be placed in a single location instead of being separated by directories.
 
 
 ## Object Query
@@ -166,3 +170,15 @@ Comparing SHOT features extracted from the 14th intermediate cloud to the
 features extracted from the complete cloud.
 	
     roslaunch object_query object_query.launch query:=/home/michal/Downloads/pcddata/processed/annotated/rares/20140901/patrol_run_31/room_2/features/0014_nonPlanes_shot.pcd target:=/home/michal/Downloads/pcddata/processed/annotated/rares/20140901/patrol_run_31/room_2/features/nonPlanes_shot.pcd
+
+
+Compare shot uniform features from the chair 1 object to the same features for
+the room cloud, with some modified parameters. Results will be output to the
+directory `/home/michal/Downloads/pcddata/processed/query/iter500`. A
+subdirectory for `chair1` will be created there.
+
+    roslaunch object_query object_query.launch query:=/home/michal/Downloads/pcddata/processed/testing/querytest/features/rgb_0015_label_chair1\<shot_uniform_2015-05-19_13-24-47.pcd target:=/media/michal/Pauli/masterdata/processed/paramtest/iter500/annotated/rares/20140901/patrol_run_33/room_1/features/nonPlanes\<shot_uniform_2015-05-19_00-51-50.pcd n_max_points:=200 cluster_tolerance:=0.2 K:=5 results_out:=/home/michal/Downloads/pcddata/processed/query/iter500
+
+Run on a target directory, on all feature clouds which match the string `nonPlanes<pfhrgb_sift`.
+
+    roslaunch object_query object_query.launch query:=/home/michal/Downloads/pcddata/processed/query/queryobjects/0,01/top_couch_jacket2/features/rgb_0003_label_top_couch_jacket2<pfhrgb_sift_2015-05-26_15-12-21.pcd target:=/media/michal/Pauli/masterdata/processed/annotated/rares n_max_points:=200 match:=nonPlanes<pfhrgb_sift cluster_tolerance:=0.2 K:=5 results_out:=/home/michal/Downloads/pcddata/processed/query/rares

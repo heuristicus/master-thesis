@@ -18,7 +18,7 @@ namespace objsearch {
     namespace pclutil {
 
 	std::string viewerHelp("-n cloud normals : display a cloud with its normals.\n"
-			       "-m[co] cloud ... [camera_params] : display multiple clouds. If c is added, the last cloud is used as the camera params. o will automatically colour clouds - blue, yellow, magenta, orange. Subsequent clouds are random colours.");
+			       "-m[clo] cloud ... [camera_params] : display multiple clouds. If c is added, the last cloud is used as the camera params. l will automatically colour clouds - blue, yellow, magenta, orange. Subsequent clouds are random colours. o displays the origin");
 
 	pcl::visualization::PCLVisualizer::Ptr createVisualiser() {
 	    pcl::visualization::PCLVisualizer::Ptr viewer(new pcl::visualization::PCLVisualizer("Cloud Viewer"));
