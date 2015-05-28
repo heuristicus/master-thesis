@@ -23,7 +23,7 @@
 
 \bibliography{report.bib}
 
-\author{Michal Staniaszek}
+\author{Michal Staniaszek \\  \vskip 3cm Supervisor: John Folkesson \\ Examiner: Danica Kragic}
 \title{A System for Object Query in Point Clouds Using Feature-Feature Matching}
 
 \begin{document}
@@ -1614,29 +1614,20 @@ them using the shortened keys below.
   \item $P_{\min}=4500$
   \end{itemize}
 \end{description}
-\subsection{Computation Time}
-Table~\ref{tbl:preprocess_time} shows the time taken by various stages of
-preprocessing. As is clear from the table, and as expected, the majority of the
-time is spent on RANSAC, for plane extraction. The second most costly operation
-is the normal computation. In DT and RI500 there appear to be some variations in
-the normal computation time that deviate from the times of other settings with
-the same value of $n_p$. 
-\subsection{Point Count Reduction}
-Table~\ref{tbl:preprocess_num}
-
+\subsection{Analysis}
 \begin{table}
   \centerline{
-    \begin{tabular}{r|cccccccc}
+    \begin{tabular}{r|llllllll}
       Setting & Downsample & Trim & Normals & Planes & PerPlane &  NormalsF & Total \\\hline
       DEF & 0.72$\pm$0.08 & 0.16$\pm$0.06 & 16.33$\pm$1.11 & 116.12$\pm$13.63 & 15.10$\pm$1.43 & 1.42$\pm$0.21  & 133.32$\pm$14.13 \\
-      DT & 0.88$\pm$0.38 & 0.36$\pm$0.17 & 22.99$\pm$11.73 & 300.13$\pm$47.78 & 36.78$\pm$3.40 & 3.20$\pm$1.79  & 336.05$\pm$49.69\\
+      DT & 0.54$\pm$0.06 & 0.23$\pm$0.02 & 12.29$\pm$1.30 & 114.30$\pm$18.81 & 13.69$\pm$1.65 & 1.65$\pm$0.17 & 127.35$\pm$19.44 \\
       NR & 0.88$\pm$0.35 & 0.18$\pm$0.08 & 4.12$\pm$0.54 & 175.35$\pm$35.32 & 26.31$\pm$5.32 & 1.60$\pm$0.27  & 180.52$\pm$35.44 \\
-      RI500 & 1.10$\pm$0.20 & 2.62$\pm$1.81 & 21.35$\pm$10.81 & 305.29$\pm$76.54 & 40.06$\pm$10.86 &1.77$\pm$0.83  & 330.37$\pm$85.24 \\
+      RI500 & 1.07$\pm$0.22 & 1.82$\pm$0.81 & 13.20$\pm$1.23 & 262.81$\pm$60.10 & 34.19$\pm$9.00 & 1.17$\pm$0.20 & 278.90$\pm$60.37 \\
       RI100 & 1.14$\pm$0.38 & 1.25$\pm$1.63 & 14.92$\pm$6.96 & 62.68$\pm$21.67 & 10.59$\pm$3.78 & 1.86$\pm$0.99  & 80.00$\pm$24.77 \\
       RI50 & 0.70$\pm$0.09 & 0.17$\pm$0.06 & 15.86$\pm$0.99 & 16.02$\pm$5.02 & 3.82$\pm$1.02 & 2.15$\pm$0.48  & 32.75$\pm$5.30 \\                                          
       DS15 & 0.99$\pm$0.23 & 0.10$\pm$0.03 & 3.65$\pm$0.52 & 51.43$\pm$17.19 & 12.47$\pm$4.93 & 0.65$\pm$0.15  & 56.17$\pm$17.27 \\
       DS2 & 0.58$\pm$0.07 & 0.03$\pm$0.00 & 1.31$\pm$0.14 & 13.32$\pm$2.06 & 7.71$\pm$1.56 & 0.41$\pm$0.06  & 15.24$\pm$2.08 \\
-      DS2M & 0.91$\pm$0.25 & 0.06$\pm$0.02 & 2.66$\pm$1.09 & 72.53$\pm$125.90 & 9.85$\pm$21.12 & 0.48$\pm$0.20 & 76.16$\pm$125.87 
+      DS2M & 0.56$\pm$0.10 & 0.03$\pm$0.00 & 1.23$\pm$0.25 & 32.13$\pm$4.06 & 4.26$\pm$0.61 & 0.23$\pm$0.05 & 33.96$\pm$4.27 \\
     \end{tabular}
   }
   \caption{Average time taken for various stages of preprocessing. The total
@@ -1645,21 +1636,23 @@ Table~\ref{tbl:preprocess_num}
   \label{tbl:preprocess_time}
 
   \centerline{
-    \begin{tabular}{r|lllll}
-      Setting & Original & Downsampled & Trimmed & NPlanes & Planes \\\hline
-      DEF & 4,347,665$\pm$125,147 & 988,703$\pm$40,359 & 783,173$\pm$34,610 & 7.78$\pm$1.30 & 394,992$\pm$46,514\\
-      DT & \ditto & \ditto &  \ditto & 8.42$\pm$1.87 & 615,910$\pm$40,667 \\
-      NR & \ditto & \ditto & \ditto & 6.75$\pm$1.03 & 508,862$\pm$48,995 \\
-      RI500 & \ditto & \ditto & \ditto & 7.74$\pm$1.10 & 386,967$\pm$39,903 \\
-      RI100 & \ditto & \ditto & \ditto & 6.22$\pm$1.85 & 519,703$\pm$102,722 \\
-      RI50 & \ditto & \ditto & \ditto & 4.60$\pm$2.32 & 583,620$\pm$115,296 \\
-      DS15 & \ditto & 485,732$\pm$20,386 & 368,765$\pm$16,645 & 4.42$\pm$1.53 & 248,010$\pm$45,101 \\
-      DS2 & \ditto & 276,378$\pm$11,503 & 203,385$\pm$8,910 & 1.58$\pm$0.94 & 180,607$\pm$17,235 \\
-      DS2M & \ditto & \ditto & \ditto & 7.84$\pm$1.29 & 110,543$\pm$12,245
+    \begin{tabular}{r|llllll}
+      Setting & Original & Downsampled & Trimmed & NPlanes & PerPlane & Planes \\\hline
+      DEF & 4,347,665$\pm$125,147 & 988,703$\pm$40,359 & 783,173$\pm$34,610 & 7.78$\pm$1.30 & 50,542$\pm$6,301 & 394,992$\pm$46,514\\
+      DT & \ditto & \ditto &  \ditto & 8.42$\pm$1.87 & 20,114$\pm$2,382 & 615,910$\pm$40,667 \\
+      NR & \ditto & \ditto & \ditto & 6.75$\pm$1.03 & 44,261$\pm$4,269 & 508,862$\pm$48,995 \\
+      RI500 & \ditto & \ditto & \ditto & 7.74$\pm$1.10 & 52,250$\pm$6,407 & 386,967$\pm$39,903 \\
+      RI100 & \ditto & \ditto & \ditto & 6.22$\pm$1.85 & 45,224$\pm$9,510 & 519,703$\pm$102,722 \\
+      RI50 & \ditto & \ditto & \ditto & 4.60$\pm$2.32 & 38,566$\pm$15,670 & 583,620$\pm$115,296 \\
+      DS15 & \ditto & 485,732$\pm$20,386 & 368,765$\pm$16,645 & 4.42$\pm$1.53 & 26,500$\pm$4,772 & 248,010$\pm$45,101 \\
+      DS2 & \ditto & 276,378$\pm$11,503 & 203,385$\pm$8,910 & 1.58$\pm$0.94 & 10,766$\pm$6,312 & 180,607$\pm$17,235 \\
+      DS2M & \ditto & \ditto & \ditto & 7.84$\pm$1.29 & 12,001$\pm$1,505 & 110,543$\pm$12,245
     \end{tabular}
   }
   \caption{Number of points in various stages of preprocessing, taken as an
-    average over 86 clouds. NPlanes indicates the number of planes extracted
+    average over 86 clouds. NPlanes indicates the number of planes extracted.
+    PerPlane is the number of points per plane, computed from the number of
+    planes and the difference in number of points between Trimmed and Planes.
     ($\mu\pm\sigma$)}
   \label{tbl:preprocess_num}
   \centering
@@ -1675,11 +1668,94 @@ Table~\ref{tbl:preprocess_num}
     DS2 & 0.06$\pm$0.00 & 0.74$\pm$0.02 & 0.05$\pm$0.00 & 0.89$\pm$0.07 & 0.04$\pm$0.00 \\
     DS2M & \ditto & \ditto & \ditto & 0.54$\pm$0.06 & 0.03$\pm$0.00
   \end{tabular}
-  \caption{Reduction of point numbers as percentage of previous step
+  \caption{Reduction of point numbers as proportion of cloud size at previous step
     (columns 1,2 and 4) and original cloud (columns 3 and 5), as an
     average over 86 clouds. ($\mu\pm\sigma$)}
   \label{tbl:time_reduction}
 \end{table}
+
+\begin{figure}
+  % cloud from 20140901/patrol_run_33/room_1
+  \centering
+  \centerline{
+    \subfloat[DEF]{\includegraphics[width=0.45\textwidth]{images/exp_planes_def}}
+    \subfloat[DT]{\includegraphics[width=0.45\textwidth]{images/exp_planes_dt}}
+    \subfloat[NR]{\includegraphics[width=0.45\textwidth]{images/exp_planes_nr}}\\
+  }
+  \centerline{
+    \subfloat[RI500]{\includegraphics[width=0.45\textwidth]{images/exp_planes_ri500}}
+    \subfloat[RI100]{\includegraphics[width=0.45\textwidth]{images/exp_planes_ri100}}
+    \subfloat[RI50]{\includegraphics[width=0.45\textwidth]{images/exp_planes_ri50}}\\
+  }
+  \centerline{
+    \subfloat[DS15]{\includegraphics[width=0.45\textwidth]{images/exp_planes_ds15}}
+    \subfloat[DS2]{\includegraphics[width=0.45\textwidth]{images/exp_planes_ds2}}
+    \subfloat[DS2M]{\includegraphics[width=0.45\textwidth]{images/exp_planes_ds2m}}
+  }
+  \caption{Comparison of the result of plane extraction on the same cloud for
+    different parameter settings. Green regions are extracted planes, blue
+    regions are the remaining cloud which is output by the preprocessing step.}
+  \label{fig:ransaciter}
+\end{figure}
+
+Table~\ref{tbl:preprocess_time} shows the time taken by various stages of
+preprocessing. As is clear from the table, and as expected, the majority of the
+time is spent on RANSAC, for plane extraction. The second most costly operation
+is the normal computation. From
+Tables~\ref{tbl:preprocess_num}~and~\ref{tbl:time_reduction}, we can see that
+the largest reduction in points occurs in the downsampling step, as expected.
+The trimming and plane extraction also reduce the clouds by a large proportion,
+but the number in terms of raw points is much smaller due to the downsampling.
+
+Looking at the timings for the decreased distance threshold (DT), we see that
+they are almost the same as the default setting, as we would expect. However,
+even though DT extracts more planes, likely as a result of the reduced minimum
+number of points, the size of the clouds at the end of the process is
+approximately 1.3 times the size of those produced by the default setting. This
+is because the number of inlier points on each plane is greatly reduced by the
+limit on the distance. In general the smaller distance threshold results in
+fewer points being removed from the clouds.
+
+The NR set has a normal computation time that is much faster than those of other
+settings with the same downsampling size. This is because the number of points
+used to compute the normal at each point is smaller, and as a result the
+computation of the plane parallel to the normal is faster. Although NR performs
+better in terms of reduction than DT, it is still not as good as the default
+setting from that perspective. This is because the smaller normal radius results
+in less smoothing, which means that points which are actually on planes may have
+noise on the normals which result in them not being added. While the NR set
+should have timings for planes similar to DEF and DT, the plane computation time
+seems to have increased a lot. We do not have a satisfactory explanation for
+this --- we ran a second shorter experiment to check the timings, and the
+results were similar. This is an unexpected result as the number of planes
+extracted on average is also very similar. Furthermore, the internal
+computations done by RANSAC should not be affected, since the same number of
+normals must be compared in each case. We are unable to determine the reason
+behind this effect.
+
+The RI sets look at the effect of the RANSAC iterations, and as expected it is
+very noticeable. RI500 has a much increased computation time due to the
+increased iterations, but the reduction that results is not much better than the
+result using only 300 iterations in the DEF set. We can see that increasing the
+number of iterations has diminishing returns in terms of the increased number of
+points removed versus the additional computation time. Decreasing the number of
+iterations has the opposite effect --- reducing computation time, but also
+reducing the number of points removed.
+
+In the DS sets, we look at the effect of the leaf size used for downsampling.
+Increasing the leaf size greatly reduces the number of points in the cloud, as
+is to be expected. This also affects subsequent steps, as both normal
+computation and RANSAC examine fewer points. In terms of the proportion of
+points removed, for DS15 and DS2 we did not reduce the minimum points per plane,
+and this effect shows in the results. Fewer planes were removed, and as a
+consequence the effectiveness of the plane extraction is reduced. In the DS2M
+set, we decrease the minimum points per plane, and the proportions are more in
+line with what would be expected, extracting proportionally almost as many
+points as that extracted by the default setting.
+
+Figure~\ref{fig:ransaciter} shows examples of planes extracted using the
+different parameter settings.
+
 \section{Feature Extraction}
 \begin{figure}
   \centering
