@@ -128,6 +128,8 @@ namespace objsearch {
 	    
 	    // pfhrgb
 	    float pfhrgbRadius_;
+
+	    bool doFeatures_;
 	};
 
     } // namespace feature_extraction

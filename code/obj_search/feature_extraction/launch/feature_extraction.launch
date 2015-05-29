@@ -128,7 +128,14 @@
   <param name="/feature_extraction/pfh_radius" value="$(arg pfh_radius)" />
   
   <arg name="pfhrgb_radius" default="0.05"/>
-  <param name="/feature_extraction/pfhrgb_radius" value="$(arg pfhrgb_radius)" />
+  <param name="/feature_extraction/pfhrgb_radius" value="$(arg pfhrgb_radius)"/>
+
+  <!-- disable this to just compute the interest points -->
+  <arg name="compute_features" default="true"/>
+  <param name="/feature_extraction/compute_features" value="$(arg compute_features)"/>
+  <!-- always need to either compute or retrieve interest points -->
+  <!-- <arg name="compute_interest" default="true"/> -->
+  <!-- <param name="/feature_extraction/compute_interest" value="$(arg compute_interest)" /> -->
   
   <node name="feature_extraction" pkg="feature_extraction" type="extract_features" output="screen" required="true"/>
 </launch>

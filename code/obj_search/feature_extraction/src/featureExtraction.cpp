@@ -69,7 +69,8 @@ namespace objsearch {
 	    ROSUtil::getParam(handle, "/feature_extraction/pfh_radius", pfhRadius_);
 	    // PFHRGB
 	    ROSUtil::getParam(handle, "/feature_extraction/pfhrgb_radius", pfhrgbRadius_);
-	    
+
+	    ROSUtil::getParam(handle, "/feature_extraction/compute_features", doFeatures_);
 	    
 	    std::string match;
 	    ROSUtil::getParam(handle, "/feature_extraction/match", match);
@@ -426,9 +427,14 @@ namespace objsearch {
 
 	    // Define points at which descriptors should be computed.
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr descriptorLocations(new pcl::PointCloud<pcl::PointXYZRGB>());
+
 	    getDescriptorLocations(cloud, descriptorLocations, info);
 	    info.featureSize = descriptorLocations->size();
 	    writeDescriptorLocs<pcl::PointXYZRGB>(descriptorLocations);
+
+	    if (!doFeatures_) {
+		return info;
+	    }
 	    
 	    ROS_INFO("Number of points to compute features at: %d", (int)descriptorLocations->size());
 
