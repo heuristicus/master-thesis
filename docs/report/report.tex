@@ -250,21 +250,45 @@ cost \cite{chum2005matching}.
 
 
 \section{Interest Points and Saliency}
+Interest points are an important concept in many image processing applications,
+and often form part of two stage process for extracting descriptor information
+from images or scenes. As the name suggests, techniques which use this approach
+try to find points in the image which are interesting, by some measure. This can
+be any of a number of things, depending on the types of images or objects that
+is being described. The general idea is that regions which have extreme values
+for something are more likely to be picked up later when the same object is
+observed in another image. This is very important, as when computing descriptors
+one would like to extract them at the same points on the same objects every time
+in order to ensure that two instances of the object can be matched.
+
 Sipiran and Bustos extend the popular Harris detector \cite{harris1988combined}
-to 3D \cite{sipiran2011harris}. Knopp et al. extend the SURF detector to 3D
-\cite{knopp2010hough}.
+to 3D \cite{sipiran2011harris}. The original detector for 2D finds edges and
+corners in images by computing a matrix of the sum of squared distances between
+points in one patch of an image, and points in a shifted copy of this patch.
+Interest points are then selected using the eigenvalues of these matrices. The
+extended 3D version uses normals to do the computation.
+
+The SUSAN detector \cite{smith1997susan} uses sub-regions of circular masks
+placed on an image to define a value for the intensity variation in a region.
+This method is extended to 3D by combining normal direction variation with
+intensity variation and using a spherical mask.
+ 
+A multi-scale signature defined by the heat diffusion properties of objects 
+called the Heat Kernel Signature (HKS) \cite{sun2009concise} is used in
+\cite{ovsjanikov2009shape} to retrieve shapes. The method is applied to meshes
+and is robust to deformations of the shape, which is particularly important for
+model matching.
 
 Shilane and Funkhouser introduce a distinctiveness measure over classes of
-meshed objects \cite{shilane2007distinctive}.
+meshed objects which uses a database of existing objects to compute the
+distinctiveness of descriptors computed all over the object, based on how
+similar descriptors are to those inside the class compared to those from other
+classes. This distinctiveness measure is then used to discriminate between
+different classes of objects \cite{shilane2007distinctive}.
 
-A multi-scale signature defined by the heat diffusion properties of an object
-called the Heat Kernel Signature (HKS) \cite{sun2009concise} is used in
-\cite{ovsjanikov2009shape} to retrieve shapes.
-
-\cite{zhong2009intrinsic}
-
-\cite{smith1997susan} extended to 3d by adding normal direction variation to
-intensity variation
+Zhong introduces an interest point selection method specifically for 3D, which
+uses the covariance matrix to define the region around a point, and extracts
+information about the region using the eigenvalues \cite{zhong2009intrinsic}.
 
 \section{Descriptors}
 The problem of describing regions of an image in a compact and useful manner has
@@ -571,39 +595,39 @@ points cannot be used. By modifying the radius of the sphere used to generate
 the descriptor, interest points at different scales can be selected
 \cite{gelfand2005robust}.
 
-\section{Matching Point Clouds}
-\subsection{Point Matching}
-In \cite{chui2003new}, Chui and Rangarajan introduce an extension to ICP which
-allows for non-rigid registration and improved robustness to outliers. In
-contrast to ICP, their approach does not use the nearest-neighbour approach to
-define correspondence. Instead, they use an alternating algorithm similar to
-expectation maximisation. Annealing is used to prevent binary correspondences
-when the algorithm is not yet close to the solution --- at the beginning there
-is a large search range for correspondences, which gradually shrinks as the
-temperature decreases.
+% \section{Matching Objects}
+% \subsection{Point Matching}
+% In \cite{chui2003new}, Chui and Rangarajan introduce an extension to the
+% iterative closest point (ICP) method, which allows for non-rigid registration and
+% improved robustness to outliers. In contrast to ICP, their approach does not use
+% the nearest-neighbour approach to define correspondence. Instead, they use an
+% alternating algorithm similar to expectation maximisation. Annealing is used to
+% prevent binary correspondences when the algorithm is not yet close to the
+% solution --- at the beginning there is a large search range for correspondences,
+% which gradually shrinks as the temperature decreases.
 
-\subsection{Model Matching}
-\begin{figure}
-  \centering
-  \subfloat[Conformal factors. High value indicates high required deformation to
-  sphere \cite{ben2008characterizing}.]{
-    \includegraphics[width=0.48\textwidth]{images/conformal.png}
-    \label{fig:conform}
-  }
-  \caption{Model matching approaches}
-  \label{fig:modelmatch}
-\end{figure}
-In \cite{ben2008characterizing}, Chen et al. describe another approach to model
-matching using conformal factors. This technique uses ideas from conformal
-geometry, transforming the mesh of an object such that it has a uniform Gaussian
-curvature. Information is stored about how much deformation is needed locally to
-globally transform the object into a sphere --- this is the conformal factor.
-The factor is based on a global computation on the whole mesh, as opposed to
-per-vertex computations of the Gaussian curvature, which makes it much smoother
-and appropriate for use in histograms. The histogram of a sample of the factors
-is used as a descriptor, and is pose invariant, as seen in
-Figure~\ref{fig:conform}. The authors say that it should be possible to use the
-approach in partial model matching.
+% \subsection{Model Matching}
+% \begin{figure}
+%   \centering
+%   \subfloat[Conformal factors. High value indicates high required deformation to
+%   sphere \cite{ben2008characterizing}.]{
+%     \includegraphics[width=0.48\textwidth]{images/conformal.png}
+%     \label{fig:conform}
+%   }
+%   \caption{Model matching approaches}
+%   \label{fig:modelmatch}
+% \end{figure}
+% In \cite{ben2008characterizing}, Chen et al. describe another approach to model
+% matching using conformal factors. This technique uses ideas from conformal
+% geometry, transforming the mesh of an object such that it has a uniform Gaussian
+% curvature. Information is stored about how much deformation is needed locally to
+% globally transform the object into a sphere --- this is the conformal factor.
+% The factor is based on a global computation on the whole mesh, as opposed to
+% per-vertex computations of the Gaussian curvature, which makes it much smoother
+% and appropriate for use in histograms. The histogram of a sample of the factors
+% is used as a descriptor, and is pose invariant, as seen in
+% Figure~\ref{fig:conform}. The authors say that it should be possible to use the
+% approach in partial model matching.
 
 \section{Storing and Querying Descriptors}
 There are several techniques for storing and querying descriptors, mostly based
@@ -677,12 +701,6 @@ the room, changing the angle of the camera after each sweep. The clouds are
 constructed using frames taken from a sweep where the camera is pointing
 slightly below the horizontal. Examples of the raw clouds can be seen in
 Figure~\ref{fig:orig}.
-
-We also have a number of subsets of the raw cloud which represent objects in the
-raw cloud. These annotation clouds are generally quite small, varying in size
-from 134 points to 14,149. We also apply some preprocessing steps for these
-clouds.
-
 \begin{figure}
   \centering
   \includegraphics[width=0.49\textwidth]{images/orig_side}
@@ -693,22 +711,22 @@ clouds.
   \label{fig:orig}
 \end{figure}
 
-\begin{figure}
-  \centering
-  \subfloat[backpack1]{\includegraphics[width=0.30\textwidth]{images/annotations/original/backpack1_front_ut}}
-  \subfloat[backpack2]{\includegraphics[width=0.30\textwidth]{images/annotations/original/backpack2_front_ut}}
-  \subfloat[helmet]{\includegraphics[width=0.30\textwidth]{images/annotations/original/helmet_front_ut}}\\
-  \subfloat[chair3]{\includegraphics[width=0.30\textwidth]{images/annotations/original/chair3_front_ut}}
-  \subfloat[pillow3]{\includegraphics[width=0.30\textwidth]{images/annotations/original/pillow3_front_ut}}
-  \subfloat[laptop1]{\includegraphics[width=0.30\textwidth]{images/annotations/original/laptop1_front_ut}}\\
-  \subfloat[laptop2]{\includegraphics[width=0.30\textwidth]{images/annotations/original/laptop2_front_ut}}
-  \subfloat[hanger\_jacket]{\includegraphics[width=0.30\textwidth]{images/annotations/original/hanger_jacket_front_ut}}
-  \subfloat[trash\_bin]{\includegraphics[width=0.30\textwidth]{images/annotations/original/trash_bin_front_ut}}\\
-  \subfloat[chair1]{\includegraphics[width=0.30\textwidth]{images/annotations/original/chair1_front_ut}}
-  \subfloat[chair2]{\includegraphics[width=0.30\textwidth]{images/annotations/original/chair2_front_ut}}
-  \caption{Selection of objects from the dataset.}
-  \label{fig:objects_ut}
-\end{figure}
+% \begin{figure}
+%   \centering
+%   \subfloat[backpack1]{\includegraphics[width=0.30\textwidth]{images/annotations/original/backpack1_front_ut}}
+%   \subfloat[backpack2]{\includegraphics[width=0.30\textwidth]{images/annotations/original/backpack2_front_ut}}
+%   \subfloat[helmet]{\includegraphics[width=0.30\textwidth]{images/annotations/original/helmet_front_ut}}\\
+%   \subfloat[chair3]{\includegraphics[width=0.30\textwidth]{images/annotations/original/chair3_front_ut}}
+%   \subfloat[pillow3]{\includegraphics[width=0.30\textwidth]{images/annotations/original/pillow3_front_ut}}
+%   \subfloat[laptop1]{\includegraphics[width=0.30\textwidth]{images/annotations/original/laptop1_front_ut}}\\
+%   \subfloat[laptop2]{\includegraphics[width=0.30\textwidth]{images/annotations/original/laptop2_front_ut}}
+%   \subfloat[hanger\_jacket]{\includegraphics[width=0.30\textwidth]{images/annotations/original/hanger_jacket_front_ut}}
+%   \subfloat[trash\_bin]{\includegraphics[width=0.30\textwidth]{images/annotations/original/trash_bin_front_ut}}\\
+%   \subfloat[chair1]{\includegraphics[width=0.30\textwidth]{images/annotations/original/chair1_front_ut}}
+%   \subfloat[chair2]{\includegraphics[width=0.30\textwidth]{images/annotations/original/chair2_front_ut}}
+%   \caption{Selection of objects from the dataset.}
+%   \label{fig:objects_ut}
+% \end{figure}
 
 \section{Downsampling}
 In their merged forms, the clouds on average contain approximately 4,300,000
@@ -974,25 +992,6 @@ normals, and resulting in less patchy extraction of planes
   \label{fig:plane_normrad}
 \end{figure}
 
-\section{Annotations}
-To ensure that the annotations for each cloud are in a similar form, we apply
-the downsampling, transformation and normal extraction steps. The downsampling
-step is particularly important here, as the raw annotations have issues with a
-``slicing'' effect caused by the positioning of the camera when the frames were
-taken, and its depth resolution (Figure~\ref{fig:slicing}). Using the raw clouds
-to compute features would most likely result in worse performance as the surface
-structure of the cloud is essentially a series of stacked planes, which would
-lead to finding similar points anywhere where there is a flat surface.
-
-\begin{figure}
-  \centering
-  \subfloat[Before downsampling]{
-    \label{fig:slicing}
-  }
-  \subfloat[After downsampling]{}
-  \caption{Annotations original and downsampled}
-  \label{fig:annotation_ds}
-\end{figure}
 \chapter{Interest Point Selection}
 \label{chap:interest}
 Once the preprocessing step has been completed, we can move on to computing
@@ -1429,6 +1428,29 @@ segmentation of the frame into objects and non-objects. These segmented objects
 could then be used effectively for object query as the cloud would actually be
 representative of that object.
 
+\section{Preprocessing Objects}
+To ensure that the objects are in a usable form, we apply the downsampling,
+transformation and normal extraction steps from preprocessing. Without
+downsampling the feature extraction step is particularly expensive, because
+there are a large number of points concentrated in small regions, so even with a
+small radius, the number of neighbours that have to be examined is generally
+very large. In addition, the raw annotations have issues with a ``slicing''
+effect caused by the positioning of the camera when the frames were taken, and
+its depth resolution (Figure~\ref{fig:slicing}). Using the raw clouds to compute
+features would most likely result in worse retrieval performance as the surface
+structure of the cloud is essentially a series of stacked planes, which is not
+actually what the surface looks like in the target clouds that we are passing to
+the system.
+
+\begin{figure}
+  \centering
+  
+  \caption{Slicing effect}
+  \label{fig:slicing}
+\end{figure}
+
+\section{Query Process}
+
 The part of the system receives two clouds; the query cloud, containing the
 features extracted from the cloud of the object that we are interested in
 finding, and the target cloud, which contains features extracted from the cloud
@@ -1506,6 +1528,9 @@ a sphere with a radius of $\alpha r$ centred on this point from the target
 cloud. $\alpha$ is a small multiplier greater than 1, used to ensure that a
 large part of the object is captured even if the centroid is offset from the
 object. This extracted region should contain the object.
+
+
+
 \chapter{Experimental Results}
 \label{chap:exp}
 In this chapter, we will investigate the effects of different variables or
@@ -1763,16 +1788,39 @@ are more in line with what would be expected, extracting proportionally almost
 as many points as that extracted by the default setting.
 
 Figure~\ref{fig:ransaciter} shows examples of planes extracted using the
-different parameter settings.
+different parameter settings, and the clouds that go on to the next stage of processing.
 
 \section{Feature Extraction}
 \begin{figure}
   \centering
-  \includegraphics[width=\textwidth]{images/interest_agg}
-  \caption{Computation time for the various interest point methods. TODO: add in
-    data for annotation computations}
+  \subfloat[0.01m]{\includegraphics[width=0.8\textwidth]{images/exp_interest_points}}\\
+  \subfloat[0.015m]{\includegraphics[width=0.49\textwidth]{images/interest_points_0,015}}
+  \subfloat[0.02m]{\includegraphics[width=0.49\textwidth]{images/interest_points_0,02}}
+  \caption{Number of points extracted from clouds by different methods relative
+    to the number of points in the cloud. The anomalies from the uniform
+    extraction come from the fact that it does not exclude lone points, while
+    other methods do. Subcaption indicates downsample leaf size.}
+  \label{fig:interest_points}
+\end{figure}
+\begin{figure}
+  \centering
+  \subfloat[Scene clouds]{\includegraphics[width=0.49\textwidth]{images/interest_agg}}
+  \subfloat[Annotation clouds]{\includegraphics[width=0.49\textwidth]{images/interest_agg_annot}}
+  \caption{Time taken for interest point extraction for different numbers of
+    points for the various interest point methods, shown on a logarithmic scale.
+    All clouds downsampled with 0.01 leaf size. Each point indicates the time to
+    compute interest points for a single cloud.}
   \label{fig:interest_agg}
 \end{figure}
+\begin{figure}
+  \centering
+  \subfloat[SHOT family]{\includegraphics[width=0.49\textwidth]{images/feature_agg_shot}}
+  \subfloat[PFH family]{\includegraphics[width=0.49\textwidth]{images/feature_agg_pfh}}
+  \caption{Computation time for each feature type in relation to number of
+    interest points. All clouds downsampled with 0.01 leaf size.}
+  \label{fig:feature_agg}
+\end{figure}
+
 
 \section{Object Query}
 \chapter{Conclusion and Further Work}

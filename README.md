@@ -189,12 +189,12 @@ Run on a target directory, on all feature clouds which match the string `nonPlan
 
 Having computed various types of features using different interest point selection methods, one can use featureprocess.py to aggregate the data into a usable form. The following command creates files in `.` which contain the data from all the files in `.` which have the extension `.txt`, grouped by which feature was used. 
 
-    python scripts/featureprocess.py -af . `find . -regex .*.txt | xargs echo`
+    python scripts/features/featureprocess.py -af . `find . -regex .*.txt | xargs echo`
 
 This command is similar to the above, but instead groups by interest point selection method
 
-    python scripts/featureprocess.py -ai . `find . -regex .*.txt | xargs echo`
+    python scripts/features/featureprocess.py -ai . `find . -regex .*.txt | xargs echo`
 
 Finally, this command can be used to create files which contain only information about the timings for interest point selection.
 
-    python scripts/featureprocess.py -al . `find . -regex .*.txt | xargs echo`
+    python scripts/features/featureprocess.py -al . `find . -regex .*.txt | xargs echo`

@@ -2,6 +2,7 @@ import sys
 import os
 
 def get_interest_feature_types(pfname):
+    print("finding feature type in " + pfname)
     try:
         pf = open(pfname, 'r')
     except IOError:
@@ -89,9 +90,8 @@ def contains_interest_data(fname):
         if(line.split(' ')[3] != '0'):
             f.close()
             return True
-            
-    f.close()
-    return False
+        f.close()
+        return False
 
 def get_feature_data(fname):
     f = open(fname, 'r')
@@ -174,6 +174,7 @@ def fix_interest_files(args):
         for line in f:
             sp = line.split(' ')
             # this should give the data tuple that we are looking for
+            print(idict[sp[0]])
             try:
                 tp = idict[sp[0]][interest]
             except KeyError:
@@ -201,8 +202,11 @@ def aggregate(outputdir, files, dofeature=True):
             fdict[agg] = open(out, 'w')
 
         f = open(fname, 'r')
+        fdict[agg].write("#" + fname + "\n")
         go_to_data(f)
         for line in f:
+            if (line[0] == '#'):
+                continue
             # split the line, remove the filename and then put things back
             # together and write them to the file
             fdict[agg].write(" ".join(line.split()[1:]) + "\n")
@@ -223,12 +227,19 @@ def merge_interest(outputdir, files):
             out = outputdir + interest + "_data_short.txt"
             fdict[interest] = open(out, 'w')
 
+        
         f = open(fname, 'r')
+        fdict[interest].write("#" + fname + "\n")
         go_to_data(f)
         for line in f:
+            if (line[0] == '#'):
+                continue
+            splt = line.split()[1:]
+            if (line[2] == 0):
+                continue
             # split the line, remove the filename and then put things back
             # together and write them to the file
-            fdict[interest].write(" ".join(line.split()[1:]) + "\n")
+            fdict[interest].write(" ".join(splt) + "\n")
             
 # assumes that input is the data files, will parse parameter files
 def main():

@@ -1,6 +1,6 @@
 # plot aggregated data for interest point computations - sift, susan, iss and
 # uniform. Shows the computation time for the methods depending on the number of
-# points to be computed
+# points to be computed. extract using featureprocess.py -ai
 reset
 set output "$0.png"
 
@@ -8,8 +8,8 @@ set terminal pngcairo
 set logscale x
 set ylabel 'Time (s)'
 set xlabel '# points'
-set xrange [100:40000]
-set xtics (0,100,500,1000,5000,10000,40000)
+#set xrange [100:40000]
+#set xtics (0,100,500,1000,5000,10000,40000)
 set key top left
 
 set style line 12 lc rgb '#808080' lt 0 lw 1
