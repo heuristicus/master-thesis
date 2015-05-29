@@ -1,0 +1,273 @@
+obj_search:
+  camera_z: 1.7
+  ceiling_z: 2.27
+  floor_z: 0
+  object_query: {K: 5}
+  processed_data_dir: /home/michal/Downloads/pcddata/processed/
+  raw_data_dir: /media/michal/Pauli/masterdata/raw/
+object_query: {K: 5, cluster_maxsize: 500, cluster_minsize: 12, cluster_tolerance: 0.2,
+  clusters_to_results: true, extract_mult: 1.3, match: nonPlanes<shot_uniform, n_max_points: 200,
+  output_dir: 'NULL', query_features: '/home/michal/Downloads/pcddata/processed/query/queryobjects/0,01/pillow/features/rgb_0003_label_pillow<shot_uniform_2015-05-26_14-45-47.pcd',
+  results_out: /home/michal/Downloads/pcddata/processed/query/rares, subdirs: 4, target_features: /media/michal/Pauli/masterdata/processed/annotated/rares,
+  x_step_hough: 0.05, y_step_hough: 0.05, z_step_hough: 0.05}
+rosdistro: 'indigo
+
+  '
+roslaunch:
+  uris: {host_tycho__32873: 'http://tycho:32873/', host_tycho__32890: 'http://tycho:32890/',
+    host_tycho__33049: 'http://tycho:33049/', host_tycho__33201: 'http://tycho:33201/',
+    host_tycho__33243: 'http://tycho:33243/', host_tycho__33292: 'http://tycho:33292/',
+    host_tycho__33355: 'http://tycho:33355/', host_tycho__33409: 'http://tycho:33409/',
+    host_tycho__33453: 'http://tycho:33453/', host_tycho__33496: 'http://tycho:33496/',
+    host_tycho__33776: 'http://tycho:33776/', host_tycho__33818: 'http://tycho:33818/',
+    host_tycho__33830: 'http://tycho:33830/', host_tycho__33868: 'http://tycho:33868/',
+    host_tycho__33885: 'http://tycho:33885/', host_tycho__33955: 'http://tycho:33955/',
+    host_tycho__33977: 'http://tycho:33977/', host_tycho__33987: 'http://tycho:33987/',
+    host_tycho__34105: 'http://tycho:34105/', host_tycho__34207: 'http://tycho:34207/',
+    host_tycho__34388: 'http://tycho:34388/', host_tycho__34430: 'http://tycho:34430/',
+    host_tycho__34557: 'http://tycho:34557/', host_tycho__34614: 'http://tycho:34614/',
+    host_tycho__34671: 'http://tycho:34671/', host_tycho__34790: 'http://tycho:34790/',
+    host_tycho__34812: 'http://tycho:34812/', host_tycho__34881: 'http://tycho:34881/',
+    host_tycho__34882: 'http://tycho:34882/', host_tycho__34942: 'http://tycho:34942/',
+    host_tycho__35174: 'http://tycho:35174/', host_tycho__35177: 'http://tycho:35177/',
+    host_tycho__35252: 'http://tycho:35252/', host_tycho__35289: 'http://tycho:35289/',
+    host_tycho__35465: 'http://tycho:35465/', host_tycho__35591: 'http://tycho:35591/',
+    host_tycho__35640: 'http://tycho:35640/', host_tycho__35813: 'http://tycho:35813/',
+    host_tycho__35849: 'http://tycho:35849/', host_tycho__36048: 'http://tycho:36048/',
+    host_tycho__36114: 'http://tycho:36114/', host_tycho__36199: 'http://tycho:36199/',
+    host_tycho__36232: 'http://tycho:36232/', host_tycho__36265: 'http://tycho:36265/',
+    host_tycho__36275: 'http://tycho:36275/', host_tycho__36335: 'http://tycho:36335/',
+    host_tycho__36408: 'http://tycho:36408/', host_tycho__36540: 'http://tycho:36540/',
+    host_tycho__36602: 'http://tycho:36602/', host_tycho__36699: 'http://tycho:36699/',
+    host_tycho__36945: 'http://tycho:36945/', host_tycho__37071: 'http://tycho:37071/',
+    host_tycho__37227: 'http://tycho:37227/', host_tycho__37240: 'http://tycho:37240/',
+    host_tycho__37385: 'http://tycho:37385/', host_tycho__37408: 'http://tycho:37408/',
+    host_tycho__37424: 'http://tycho:37424/', host_tycho__37459: 'http://tycho:37459/',
+    host_tycho__37475: 'http://tycho:37475/', host_tycho__37523: 'http://tycho:37523/',
+    host_tycho__37646: 'http://tycho:37646/', host_tycho__37762: 'http://tycho:37762/',
+    host_tycho__37767: 'http://tycho:37767/', host_tycho__37827: 'http://tycho:37827/',
+    host_tycho__37903: 'http://tycho:37903/', host_tycho__37992: 'http://tycho:37992/',
+    host_tycho__37995: 'http://tycho:37995/', host_tycho__38004: 'http://tycho:38004/',
+    host_tycho__38198: 'http://tycho:38198/', host_tycho__38205: 'http://tycho:38205/',
+    host_tycho__38239: 'http://tycho:38239/', host_tycho__38396: 'http://tycho:38396/',
+    host_tycho__38459: 'http://tycho:38459/', host_tycho__38494: 'http://tycho:38494/',
+    host_tycho__38537: 'http://tycho:38537/', host_tycho__38576: 'http://tycho:38576/',
+    host_tycho__38578: 'http://tycho:38578/', host_tycho__38797: 'http://tycho:38797/',
+    host_tycho__38903: 'http://tycho:38903/', host_tycho__38983: 'http://tycho:38983/',
+    host_tycho__39104: 'http://tycho:39104/', host_tycho__39189: 'http://tycho:39189/',
+    host_tycho__39214: 'http://tycho:39214/', host_tycho__39228: 'http://tycho:39228/',
+    host_tycho__39367: 'http://tycho:39367/', host_tycho__39546: 'http://tycho:39546/',
+    host_tycho__39951: 'http://tycho:39951/', host_tycho__39974: 'http://tycho:39974/',
+    host_tycho__40040: 'http://tycho:40040/', host_tycho__40223: 'http://tycho:40223/',
+    host_tycho__40251: 'http://tycho:40251/', host_tycho__40273: 'http://tycho:40273/',
+    host_tycho__40337: 'http://tycho:40337/', host_tycho__40385: 'http://tycho:40385/',
+    host_tycho__40394: 'http://tycho:40394/', host_tycho__40479: 'http://tycho:40479/',
+    host_tycho__40570: 'http://tycho:40570/', host_tycho__40693: 'http://tycho:40693/',
+    host_tycho__40758: 'http://tycho:40758/', host_tycho__40806: 'http://tycho:40806/',
+    host_tycho__41430: 'http://tycho:41430/', host_tycho__41465: 'http://tycho:41465/',
+    host_tycho__41607: 'http://tycho:41607/', host_tycho__41642: 'http://tycho:41642/',
+    host_tycho__41767: 'http://tycho:41767/', host_tycho__42111: 'http://tycho:42111/',
+    host_tycho__42264: 'http://tycho:42264/', host_tycho__42304: 'http://tycho:42304/',
+    host_tycho__42307: 'http://tycho:42307/', host_tycho__42436: 'http://tycho:42436/',
+    host_tycho__42513: 'http://tycho:42513/', host_tycho__42543: 'http://tycho:42543/',
+    host_tycho__42565: 'http://tycho:42565/', host_tycho__42831: 'http://tycho:42831/',
+    host_tycho__42870: 'http://tycho:42870/', host_tycho__42977: 'http://tycho:42977/',
+    host_tycho__42994: 'http://tycho:42994/', host_tycho__43164: 'http://tycho:43164/',
+    host_tycho__43332: 'http://tycho:43332/', host_tycho__43341: 'http://tycho:43341/',
+    host_tycho__43353: 'http://tycho:43353/', host_tycho__43367: 'http://tycho:43367/',
+    host_tycho__43436: 'http://tycho:43436/', host_tycho__43482: 'http://tycho:43482/',
+    host_tycho__43483: 'http://tycho:43483/', host_tycho__43522: 'http://tycho:43522/',
+    host_tycho__43599: 'http://tycho:43599/', host_tycho__43655: 'http://tycho:43655/',
+    host_tycho__43671: 'http://tycho:43671/', host_tycho__43678: 'http://tycho:43678/',
+    host_tycho__43788: 'http://tycho:43788/', host_tycho__43870: 'http://tycho:43870/',
+    host_tycho__43876: 'http://tycho:43876/', host_tycho__43966: 'http://tycho:43966/',
+    host_tycho__44012: 'http://tycho:44012/', host_tycho__44365: 'http://tycho:44365/',
+    host_tycho__44387: 'http://tycho:44387/', host_tycho__44489: 'http://tycho:44489/',
+    host_tycho__44602: 'http://tycho:44602/', host_tycho__44681: 'http://tycho:44681/',
+    host_tycho__44725: 'http://tycho:44725/', host_tycho__44755: 'http://tycho:44755/',
+    host_tycho__44882: 'http://tycho:44882/', host_tycho__44913: 'http://tycho:44913/',
+    host_tycho__45112: 'http://tycho:45112/', host_tycho__45266: 'http://tycho:45266/',
+    host_tycho__45282: 'http://tycho:45282/', host_tycho__45432: 'http://tycho:45432/',
+    host_tycho__45522: 'http://tycho:45522/', host_tycho__45852: 'http://tycho:45852/',
+    host_tycho__45931: 'http://tycho:45931/', host_tycho__45933: 'http://tycho:45933/',
+    host_tycho__45980: 'http://tycho:45980/', host_tycho__46072: 'http://tycho:46072/',
+    host_tycho__46305: 'http://tycho:46305/', host_tycho__46312: 'http://tycho:46312/',
+    host_tycho__46403: 'http://tycho:46403/', host_tycho__46491: 'http://tycho:46491/',
+    host_tycho__46534: 'http://tycho:46534/', host_tycho__46566: 'http://tycho:46566/',
+    host_tycho__46601: 'http://tycho:46601/', host_tycho__46614: 'http://tycho:46614/',
+    host_tycho__46639: 'http://tycho:46639/', host_tycho__46837: 'http://tycho:46837/',
+    host_tycho__46839: 'http://tycho:46839/', host_tycho__46862: 'http://tycho:46862/',
+    host_tycho__46977: 'http://tycho:46977/', host_tycho__46989: 'http://tycho:46989/',
+    host_tycho__47156: 'http://tycho:47156/', host_tycho__47170: 'http://tycho:47170/',
+    host_tycho__47207: 'http://tycho:47207/', host_tycho__47451: 'http://tycho:47451/',
+    host_tycho__47556: 'http://tycho:47556/', host_tycho__47570: 'http://tycho:47570/',
+    host_tycho__47589: 'http://tycho:47589/', host_tycho__47645: 'http://tycho:47645/',
+    host_tycho__47657: 'http://tycho:47657/', host_tycho__47910: 'http://tycho:47910/',
+    host_tycho__47998: 'http://tycho:47998/', host_tycho__48017: 'http://tycho:48017/',
+    host_tycho__48121: 'http://tycho:48121/', host_tycho__48154: 'http://tycho:48154/',
+    host_tycho__48170: 'http://tycho:48170/', host_tycho__48183: 'http://tycho:48183/',
+    host_tycho__48287: 'http://tycho:48287/', host_tycho__48336: 'http://tycho:48336/',
+    host_tycho__48363: 'http://tycho:48363/', host_tycho__48621: 'http://tycho:48621/',
+    host_tycho__48663: 'http://tycho:48663/', host_tycho__48688: 'http://tycho:48688/',
+    host_tycho__48790: 'http://tycho:48790/', host_tycho__48847: 'http://tycho:48847/',
+    host_tycho__48887: 'http://tycho:48887/', host_tycho__48914: 'http://tycho:48914/',
+    host_tycho__48990: 'http://tycho:48990/', host_tycho__49192: 'http://tycho:49192/',
+    host_tycho__49233: 'http://tycho:49233/', host_tycho__49372: 'http://tycho:49372/',
+    host_tycho__49376: 'http://tycho:49376/', host_tycho__49537: 'http://tycho:49537/',
+    host_tycho__49590: 'http://tycho:49590/', host_tycho__49639: 'http://tycho:49639/',
+    host_tycho__49746: 'http://tycho:49746/', host_tycho__49775: 'http://tycho:49775/',
+    host_tycho__49790: 'http://tycho:49790/', host_tycho__50117: 'http://tycho:50117/',
+    host_tycho__50170: 'http://tycho:50170/', host_tycho__50187: 'http://tycho:50187/',
+    host_tycho__50283: 'http://tycho:50283/', host_tycho__50422: 'http://tycho:50422/',
+    host_tycho__50670: 'http://tycho:50670/', host_tycho__50688: 'http://tycho:50688/',
+    host_tycho__50730: 'http://tycho:50730/', host_tycho__50885: 'http://tycho:50885/',
+    host_tycho__50955: 'http://tycho:50955/', host_tycho__51003: 'http://tycho:51003/',
+    host_tycho__51019: 'http://tycho:51019/', host_tycho__51221: 'http://tycho:51221/',
+    host_tycho__51237: 'http://tycho:51237/', host_tycho__51372: 'http://tycho:51372/',
+    host_tycho__51775: 'http://tycho:51775/', host_tycho__51896: 'http://tycho:51896/',
+    host_tycho__52383: 'http://tycho:52383/', host_tycho__52435: 'http://tycho:52435/',
+    host_tycho__52503: 'http://tycho:52503/', host_tycho__52528: 'http://tycho:52528/',
+    host_tycho__52539: 'http://tycho:52539/', host_tycho__52547: 'http://tycho:52547/',
+    host_tycho__52550: 'http://tycho:52550/', host_tycho__52613: 'http://tycho:52613/',
+    host_tycho__52715: 'http://tycho:52715/', host_tycho__52730: 'http://tycho:52730/',
+    host_tycho__52733: 'http://tycho:52733/', host_tycho__52784: 'http://tycho:52784/',
+    host_tycho__52814: 'http://tycho:52814/', host_tycho__52924: 'http://tycho:52924/',
+    host_tycho__53131: 'http://tycho:53131/', host_tycho__53143: 'http://tycho:53143/',
+    host_tycho__53257: 'http://tycho:53257/', host_tycho__53290: 'http://tycho:53290/',
+    host_tycho__53313: 'http://tycho:53313/', host_tycho__53347: 'http://tycho:53347/',
+    host_tycho__53365: 'http://tycho:53365/', host_tycho__53405: 'http://tycho:53405/',
+    host_tycho__53427: 'http://tycho:53427/', host_tycho__53445: 'http://tycho:53445/',
+    host_tycho__53498: 'http://tycho:53498/', host_tycho__53554: 'http://tycho:53554/',
+    host_tycho__53607: 'http://tycho:53607/', host_tycho__53633: 'http://tycho:53633/',
+    host_tycho__53765: 'http://tycho:53765/', host_tycho__53800: 'http://tycho:53800/',
+    host_tycho__53968: 'http://tycho:53968/', host_tycho__54036: 'http://tycho:54036/',
+    host_tycho__54123: 'http://tycho:54123/', host_tycho__54140: 'http://tycho:54140/',
+    host_tycho__54220: 'http://tycho:54220/', host_tycho__54240: 'http://tycho:54240/',
+    host_tycho__54361: 'http://tycho:54361/', host_tycho__54395: 'http://tycho:54395/',
+    host_tycho__54429: 'http://tycho:54429/', host_tycho__54490: 'http://tycho:54490/',
+    host_tycho__54598: 'http://tycho:54598/', host_tycho__54603: 'http://tycho:54603/',
+    host_tycho__54837: 'http://tycho:54837/', host_tycho__54989: 'http://tycho:54989/',
+    host_tycho__55024: 'http://tycho:55024/', host_tycho__55164: 'http://tycho:55164/',
+    host_tycho__55190: 'http://tycho:55190/', host_tycho__55193: 'http://tycho:55193/',
+    host_tycho__55377: 'http://tycho:55377/', host_tycho__55396: 'http://tycho:55396/',
+    host_tycho__55468: 'http://tycho:55468/', host_tycho__55477: 'http://tycho:55477/',
+    host_tycho__55627: 'http://tycho:55627/', host_tycho__55660: 'http://tycho:55660/',
+    host_tycho__55689: 'http://tycho:55689/', host_tycho__55722: 'http://tycho:55722/',
+    host_tycho__55772: 'http://tycho:55772/', host_tycho__55989: 'http://tycho:55989/',
+    host_tycho__56032: 'http://tycho:56032/', host_tycho__56185: 'http://tycho:56185/',
+    host_tycho__56791: 'http://tycho:56791/', host_tycho__56901: 'http://tycho:56901/',
+    host_tycho__56919: 'http://tycho:56919/', host_tycho__56982: 'http://tycho:56982/',
+    host_tycho__57002: 'http://tycho:57002/', host_tycho__57184: 'http://tycho:57184/',
+    host_tycho__57199: 'http://tycho:57199/', host_tycho__57222: 'http://tycho:57222/',
+    host_tycho__57269: 'http://tycho:57269/', host_tycho__57327: 'http://tycho:57327/',
+    host_tycho__57407: 'http://tycho:57407/', host_tycho__57502: 'http://tycho:57502/',
+    host_tycho__57607: 'http://tycho:57607/', host_tycho__57690: 'http://tycho:57690/',
+    host_tycho__57714: 'http://tycho:57714/', host_tycho__57915: 'http://tycho:57915/',
+    host_tycho__58049: 'http://tycho:58049/', host_tycho__58052: 'http://tycho:58052/',
+    host_tycho__58188: 'http://tycho:58188/', host_tycho__58214: 'http://tycho:58214/',
+    host_tycho__58237: 'http://tycho:58237/', host_tycho__58574: 'http://tycho:58574/',
+    host_tycho__58679: 'http://tycho:58679/', host_tycho__58911: 'http://tycho:58911/',
+    host_tycho__59058: 'http://tycho:59058/', host_tycho__59181: 'http://tycho:59181/',
+    host_tycho__59296: 'http://tycho:59296/', host_tycho__59466: 'http://tycho:59466/',
+    host_tycho__59505: 'http://tycho:59505/', host_tycho__59583: 'http://tycho:59583/',
+    host_tycho__59624: 'http://tycho:59624/', host_tycho__59631: 'http://tycho:59631/',
+    host_tycho__59677: 'http://tycho:59677/', host_tycho__59777: 'http://tycho:59777/',
+    host_tycho__59779: 'http://tycho:59779/', host_tycho__59921: 'http://tycho:59921/',
+    host_tycho__59931: 'http://tycho:59931/', host_tycho__60105: 'http://tycho:60105/',
+    host_tycho__60227: 'http://tycho:60227/', host_tycho__60243: 'http://tycho:60243/',
+    host_tycho__60570: 'http://tycho:60570/', host_tycho__60612: 'http://tycho:60612/',
+    host_tycho__60664: 'http://tycho:60664/', host_tycho__60686: 'http://tycho:60686/',
+    host_tycho__60750: 'http://tycho:60750/', host_tycho__60799: 'http://tycho:60799/',
+    host_tycho__60838: 'http://tycho:60838/', host_tycho__60918: 'http://tycho:60918/'}
+rosversion: '1.11.10
+
+  '
+run_id: f538eaae-043e-11e5-87e1-247703f96bc4
+BEGIN_DATA
+# fname t_query t_hough t_cluster cluster_n cluster_scores cluster_points cluster_inobb n_hough_tot nonzero_hough hough_votes boxpts boxvotes maxpts maxvotes maxboxpts maxboxvotes hough_hist box_hist max_hist boxmax_hist
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140820/patrol_run_2/room_1/features/nonPlanes<shot_uniform_2015-05-17_10-55-10.pcd 0.39856 0.000676379 0.000366633 5 32,29,21,20,16 22,13,18,12,12 -1 449955 563 690 -1 -1 200 327 -1 -1 449392,463,79,16,4,1 -1 0,100,79,16,4,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140820/patrol_run_4/room_0/features/nonPlanes<shot_uniform_2015-05-17_10-55-09.pcd 1.19156 0.000709051 0.000808282 3 35,31,31 21,27,22 -1 424446 576 690 -1 -1 200 314 -1 -1 423870,478,84,12,2 -1 0,102,84,12,2 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140828/patrol_run_19/room_3/features/nonPlanes<shot_uniform_2015-05-17_10-56-19.pcd 1.18535 0.00148174 0.000786013 4 30,19,17,17 27,12,14,13 -1 445269 564 690 -1 -1 200 326 -1 -1 444705,470,70,21,2,0,0,0,0,1 -1 0,106,70,21,2,0,0,0,0,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140829/patrol_run_20/room_3/features/nonPlanes<shot_uniform_2015-05-17_10-56-01.pcd 1.22047 0.000994106 0.00109085 4 36,31,28,23 24,25,20,20 -1 461736 585 690 -1 -1 200 305 -1 -1 461151,498,71,14,2 -1 0,113,71,14,2 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140829/patrol_run_26/room_2/features/nonPlanes<shot_uniform_2015-05-17_10-56-00.pcd 1.15501 0.00149168 0.000963617 3 31,19,19 19,13,12 1,0,0 404481 568 690 24 35 200 322 18 29 403913,470,77,19,1,1 0,17,4,2,1,0 0,102,77,19,1,1 0,11,4,2,1,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140901/patrol_run_27/room_2/features/nonPlanes<shot_uniform_2015-05-17_10-56-07.pcd 1.16612 0.00154848 0.000806948 5 43,27,27,19,19 23,14,12,15,14 -1 424710 550 690 -1 -1 200 340 -1 -1 424160,450,70,23,4,3 -1 0,100,70,23,4,3 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140901/patrol_run_31/room_2/features/nonPlanes<shot_uniform_2015-05-17_10-56-09.pcd 1.13501 0.00193481 0.000896067 5 42,37,34,29,21 26,22,13,16,14 -1 456456 518 690 -1 -1 200 372 -1 -1 455938,394,90,25,5,3,1 -1 0,76,90,25,5,3,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140901/patrol_run_32/room_2/features/nonPlanes<shot_uniform_2015-05-17_10-56-08.pcd 1.06335 0.000916568 0.000480364 4 40,28,28,18 29,22,15,14 -1 449592 562 690 -1 -1 200 328 -1 -1 449030,461,80,16,4,1 -1 0,99,80,16,4,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140901/patrol_run_33/room_1/features/nonPlanes<shot_uniform_2015-05-17_10-56-10.pcd 1.18604 0.00157103 0.000867208 5 35,33,26,25,21 22,24,15,17,15 -1 451044 563 690 -1 -1 200 327 -1 -1 450481,469,68,19,7 -1 0,106,68,19,7 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140902/patrol_run_35/room_2/features/nonPlanes<shot_uniform_2015-05-17_10-56-23.pcd 0.935447 0.00135652 0.000807226 4 39,37,31,19 28,20,23,15 -1 451044 572 690 -1 -1 200 318 -1 -1 450472,485,65,14,7,1 -1 0,113,65,14,7,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140902/patrol_run_38/room_0/features/nonPlanes<shot_uniform_2015-05-17_10-56-22.pcd 1.07146 0.001567 0.000900712 5 52,23,22,17,17 35,17,21,14,14 0,0,0,0,0 427977 591 690 10 15 200 299 10 15 427386,507,74,5,5 0,7,2,0,1 0,116,74,5,5 0,7,2,0,1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140903/patrol_run_1/room_4/features/nonPlanes<shot_uniform_2015-05-17_10-55-45.pcd 1.21204 0.00095311 0.000803182 2 46,21 30,13 0,0 470184 555 690 11 18 200 335 9 16 469629,443,91,20,0,1 0,5,5,1,0,0 0,88,91,20,0,1 0,3,5,1,0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140903/patrol_run_10/room_2/features/nonPlanes<shot_uniform_2015-05-17_10-55-42.pcd 0.953079 0.00163025 0.000838448 2 70,26 54,19 -1 453024 556 690 -1 -1 200 334 -1 -1 452468,456,81,12,3,3,0,0,0,1 -1 0,100,81,12,3,3,0,0,0,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140903/patrol_run_12/room_2/features/nonPlanes<shot_uniform_2015-05-17_10-55-48.pcd 0.407691 0.000601305 0.000287051 4 44,38,29,24 17,25,18,16 -1 434214 548 690 -1 -1 200 342 -1 -1 433666,436,89,18,3,2 -1 0,88,89,18,3,2 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140903/patrol_run_14/room_1/features/nonPlanes<shot_uniform_2015-05-17_10-55-43.pcd 0.41759 0.000710851 0.000304035 4 27,26,25,23 12,17,19,13 -1 434313 554 690 -1 -1 200 336 -1 -1 433759,448,83,16,7 -1 0,94,83,16,7 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140903/patrol_run_2/room_4/features/nonPlanes<shot_uniform_2015-05-17_10-55-47.pcd 0.410145 0.000268343 0.00029575 4 35,29,24,15 27,22,17,14 0,0,0,0 462264 583 690 10 15 200 307 10 15 461681,501,63,14,4,1 0,7,2,0,1,0 0,118,63,14,4,1 0,7,2,0,1,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140903/patrol_run_9/room_2/features/nonPlanes<shot_uniform_2015-05-17_10-55-45.pcd 1.16952 0.00167734 0.000842296 2 66,15 43,12 -1 491568 577 690 -1 -1 200 313 -1 -1 490991,490,68,13,5,1 -1 0,113,68,13,5,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140904/patrol_run_15/room_2/features/nonPlanes<shot_uniform_2015-05-17_10-56-21.pcd 1.26502 0.000668485 0.000785597 4 21,20,17,15 13,19,12,12 -1 517902 583 690 -1 -1 200 307 -1 -1 517319,498,67,16,0,2 -1 0,115,67,16,0,2 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140905/patrol_run_17/room_2/features/nonPlanes<shot_uniform_2015-05-17_10-55-19.pcd 0.431488 0.000301784 0.000296987 3 35,30,16 21,22,12 -1 446160 554 690 -1 -1 200 336 -1 -1 445606,451,81,14,5,3 -1 0,97,81,14,5,3 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140905/patrol_run_19/room_1/features/nonPlanes<shot_uniform_2015-05-17_10-55-16.pcd 0.430794 0.000282311 0.000295539 4 22,22,22,18 16,15,13,13 -1 453024 577 690 -1 -1 200 313 -1 -1 452447,485,77,11,2,2 -1 0,108,77,11,2,2 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140905/patrol_run_21/room_2/features/nonPlanes<shot_uniform_2015-05-17_10-55-11.pcd 0.419331 0.000521418 0.000290094 3 47,30,16 33,15,12 -1 419265 556 690 -1 -1 200 334 -1 -1 418709,448,87,17,3,1 -1 0,92,87,17,3,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140905/patrol_run_23/room_2/features/nonPlanes<shot_uniform_2015-05-17_10-55-13.pcd 1.13052 0.00172817 0.000832985 4 37,33,28,22 27,23,21,13 -1 463320 564 690 -1 -1 200 326 -1 -1 462756,467,78,12,5,1,1 -1 0,103,78,12,5,1,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140905/patrol_run_25/room_1/features/nonPlanes<shot_uniform_2015-05-17_10-55-11.pcd 1.05905 0.00140471 0.000887615 4 43,33,24,21 28,24,14,16 -1 410652 543 690 -1 -1 200 347 -1 -1 410109,429,87,21,6 -1 0,86,87,21,6 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140905/patrol_run_27/room_2/features/nonPlanes<shot_uniform_2015-05-17_10-55-12.pcd 1.03059 0.00205336 0.000826471 4 42,36,33,27 22,22,20,19 -1 470448 551 690 -1 -1 200 339 -1 -1 469897,446,81,17,5,1,1 -1 0,95,81,17,5,1,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140905/patrol_run_29/room_2/features/nonPlanes<shot_uniform_2015-05-17_10-55-14.pcd 1.09816 0.00139732 0.00029899 3 45,20,16 30,17,12 -1 437580 559 690 -1 -1 200 331 -1 -1 437021,461,76,16,3,2,0,1 -1 0,102,76,16,3,2,0,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140905/patrol_run_30/room_1/features/nonPlanes<shot_uniform_2015-05-17_10-55-18.pcd 1.02314 0.00134409 0.000821065 6 36,31,29,25,21,21 16,24,17,20,15,12 -1 451044 533 690 -1 -1 200 357 -1 -1 450511,420,87,15,6,4,0,1 -1 0,87,87,15,6,4,0,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140905/patrol_run_30/room_7/features/nonPlanes<shot_uniform_2015-05-17_10-55-17.pcd 1.26377 0.00144134 0.0008106 6 19,17,17,17,16,14 14,14,13,12,13,14 -1 458865 604 690 -1 -1 200 286 -1 -1 458261,527,69,7,1 -1 0,123,69,7,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140908/patrol_run_32/room_2/features/nonPlanes<shot_uniform_2015-05-17_10-55-50.pcd 1.03403 0.00160862 0.00081769 3 26,16,15 14,13,12 -1 448668 568 690 -1 -1 200 322 -1 -1 448100,474,75,12,5,2 -1 0,106,75,12,5,2 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140908/patrol_run_34/room_2/features/nonPlanes<shot_uniform_2015-05-17_10-55-58.pcd 1.15299 0.000770757 0.000820303 2 53,46 30,32 -1 423720 563 690 -1 -1 200 327 -1 -1 423157,458,88,12,5 -1 0,95,88,12,5 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140908/patrol_run_36/room_3/features/nonPlanes<shot_uniform_2015-05-17_10-55-52.pcd 1.16518 0.000719376 0.000419393 5 33,29,28,16,15 16,12,23,13,13 -1 423654 552 690 -1 -1 200 338 -1 -1 423102,447,81,16,7,1 -1 0,95,81,16,7,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140908/patrol_run_38/room_2/features/nonPlanes<shot_uniform_2015-05-17_10-55-49.pcd 1.22289 0.00136446 0.000799759 5 35,34,24,21,20 20,12,19,13,15 -1 433356 557 690 -1 -1 200 333 -1 -1 432799,460,73,15,6,3 -1 0,103,73,15,6,3 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140908/patrol_run_39/room_3/features/nonPlanes<shot_uniform_2015-05-17_10-55-56.pcd 1.06108 0.000779384 0.000298338 3 38,34,25 16,22,20 -1 414678 549 690 -1 -1 200 341 -1 -1 414129,448,70,27,1,1,2 -1 0,99,70,27,1,1,2 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140908/patrol_run_41/room_3/features/nonPlanes<shot_uniform_2015-05-17_10-55-51.pcd 1.32363 0.000608535 0.000845052 5 68,36,24,21,18 35,22,14,15,14 -1 455400 559 690 -1 -1 200 331 -1 -1 454841,455,84,14,5,1 -1 0,96,84,14,5,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140908/patrol_run_43/room_3/features/nonPlanes<shot_uniform_2015-05-17_10-55-59.pcd 1.09517 0.00154768 0.000908629 4 48,42,38,24 27,23,29,14 -1 414018 539 690 -1 -1 200 351 -1 -1 413479,425,84,24,5,1 -1 0,86,84,24,5,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140908/patrol_run_45/room_2/features/nonPlanes<shot_uniform_2015-05-17_10-55-53.pcd 0.477822 0.000358451 0.000286633 3 61,60,15 35,32,13 -1 442200 555 690 -1 -1 200 335 -1 -1 441645,448,85,20,0,1,0,1 -1 0,93,85,20,0,1,0,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140908/patrol_run_47/room_3/features/nonPlanes<shot_uniform_2015-05-17_10-55-55.pcd 1.23074 0.000896602 0.000860152 3 53,29,27 32,24,24 -1 465300 584 690 -1 -1 200 306 -1 -1 464716,495,73,15,1 -1 0,111,73,15,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140909/patrol_run_49/room_3/features/nonPlanes<shot_uniform_2015-05-17_10-56-14.pcd 1.08849 0.000456215 0.000865919 4 44,26,23,22 32,16,14,19 -1 437778 562 690 -1 -1 200 328 -1 -1 437216,454,89,18,1 -1 0,92,89,18,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140909/patrol_run_51/room_3/features/nonPlanes<shot_uniform_2015-05-17_10-56-17.pcd 0.434316 0.000418979 0.000294407 3 38,32,19 28,24,15 -1 816816 589 690 -1 -1 200 301 -1 -1 816227,507,65,15,2 -1 0,118,65,15,2 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140909/patrol_run_53/room_3/features/nonPlanes<shot_uniform_2015-05-17_10-56-11.pcd 0.399039 0.000580295 0.000283622 4 39,31,25,18 20,18,12,15 -1 456456 522 690 -1 -1 200 368 -1 -1 455934,408,76,27,7,3,1 -1 0,86,76,27,7,3,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140909/patrol_run_55/room_3/features/nonPlanes<shot_uniform_2015-05-17_10-56-15.pcd 1.32788 0.000950434 0.000857534 3 78,29,12 56,23,12 -1 446622 598 690 -1 -1 200 292 -1 -1 446024,521,67,7,1,2 -1 0,123,67,7,1,2 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140909/patrol_run_59/room_3/features/nonPlanes<shot_uniform_2015-05-17_21-39-31.pcd 1.61834 0.00215444 0.000805045 3 67,19,17 57,13,13 -1 1089992 607 690 -1 -1 200 283 -1 -1 1089385,540,55,9,2,1 -1 0,133,55,9,2,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140909/patrol_run_61/room_3/features/nonPlanes<shot_uniform_2015-05-17_21-39-33.pcd 1.57412 0.00276158 0.000869659 3 25,22,17 19,13,15 -1 1053360 587 690 -1 -1 200 303 -1 -1 1052773,500,76,7,3,1 -1 0,113,76,7,3,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140909/patrol_run_63/room_3/features/nonPlanes<shot_uniform_2015-05-17_21-39-35.pcd 1.55502 0.00248959 0.000836068 3 40,29,25 30,23,20 0,1,0 1102304 581 690 22 26 200 309 22 26 1101723,501,60,13,5,2 0,19,2,1,0,0 0,120,60,13,5,2 0,19,2,1,0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140910/patrol_run_67/room_3/features/nonPlanes<shot_uniform_2015-05-17_21-39-37.pcd 0.697222 0.000730744 0.000279816 4 41,34,24,21 24,26,14,18 -1 1057571 581 690 -1 -1 200 309 -1 -1 1056990,493,69,17,2 -1 0,112,69,17,2 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140910/patrol_run_69/room_3/features/nonPlanes<shot_uniform_2015-05-17_21-39-39.pcd 1.56006 0.00254299 0.00113919 2 31,23 15,19 -1 1078478 601 690 -1 -1 200 289 -1 -1 1077877,532,52,14,3 -1 0,131,52,14,3 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140910/patrol_run_71/room_3/features/nonPlanes<shot_uniform_2015-05-17_21-39-41.pcd 1.50576 0.00220228 0.000887945 5 33,31,21,18,18 22,19,15,14,12 -1 1098656 563 690 -1 -1 200 327 -1 -1 1098093,457,87,17,2 -1 0,94,87,17,2 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140910/patrol_run_74/room_3/features/nonPlanes<shot_uniform_2015-05-17_21-39-43.pcd 0.535094 0.00106614 0.000316028 4 34,21,18,18 22,20,14,12 -1 1048800 585 690 -1 -1 200 305 -1 -1 1048215,498,75,8,3,0,1 -1 0,113,75,8,3,0,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140910/patrol_run_77/room_4/features/nonPlanes<shot_uniform_2015-05-17_21-39-44.pcd 1.54687 0.00207158 0.000813454 3 38,33,17 27,24,17 -1 1101506 596 690 -1 -1 200 294 -1 -1 1100910,510,80,4,2 -1 0,114,80,4,2 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140910/patrol_run_79/room_2/features/nonPlanes<shot_uniform_2015-05-17_21-39-47.pcd 0.456268 0.00052963 0.000419917 2 73,20 51,15 -1 1097668 581 690 -1 -1 200 309 -1 -1 1097087,490,74,16,1 -1 0,109,74,16,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140910/patrol_run_81/room_2/features/nonPlanes<shot_uniform_2015-05-17_21-39-48.pcd 1.49433 0.00203483 0.000819548 4 43,32,22,20 26,24,17,15 -1 1075400 557 690 -1 -1 200 333 -1 -1 1074843,449,90,14,2,1,1 -1 0,92,90,14,2,1,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140911/patrol_run_82/room_3/features/nonPlanes<shot_uniform_2015-05-17_21-39-49.pcd 0.530043 0.00105546 0.000295599 3 44,19,15 34,16,13 -1 1146612 595 690 -1 -1 200 295 -1 -1 1146017,517,63,14,0,1 -1 0,122,63,14,0,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140911/patrol_run_84/room_3/features/nonPlanes<shot_uniform_2015-05-17_21-39-51.pcd 1.33837 0.00288241 0.000816032 3 31,28,15 26,22,13 -1 1094400 596 690 -1 -1 200 294 -1 -1 1093804,521,60,12,2,1 -1 0,125,60,12,2,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140911/patrol_run_88/room_3/features/nonPlanes<shot_uniform_2015-05-17_21-39-53.pcd 1.45166 0.00196697 0.000821045 3 48,41,32 23,29,25 -1 960636 583 690 -1 -1 200 307 -1 -1 960053,495,73,12,2,1 -1 0,112,73,12,2,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140911/patrol_run_90/room_3/features/nonPlanes<shot_uniform_2015-05-17_21-39-55.pcd 1.64212 0.00155007 0.000802984 6 24,21,20,17,17,16 18,15,15,14,13,12 -1 1165840 603 690 -1 -1 200 287 -1 -1 1165237,534,55,11,2,1 -1 0,131,55,11,2,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140911/patrol_run_92/room_3/features/nonPlanes<shot_uniform_2015-05-17_21-39-57.pcd 0.537898 0.0010383 0.000301905 4 34,26,25,18 20,20,12,13 -1 1127840 576 690 -1 -1 200 314 -1 -1 1127264,485,74,12,4,1 -1 0,109,74,12,4,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140912/patrol_run_100/room_3/features/nonPlanes<shot_uniform_2015-05-17_21-39-59.pcd 1.33266 0.00240186 0.000314143 2 46,18 38,15 -1 1057122 593 690 -1 -1 200 297 -1 -1 1056529,521,52,16,3,1 -1 0,128,52,16,3,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140912/patrol_run_102/room_3/features/nonPlanes<shot_uniform_2015-05-17_21-40-01.pcd 0.526181 0.000650373 0.000285068 2 59,48 32,32 -1 1110512 565 690 -1 -1 200 325 -1 -1 1109947,471,72,13,9 -1 0,106,72,13,9 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140912/patrol_run_104/room_3/features/nonPlanes<shot_uniform_2015-05-17_21-40-02.pcd 1.4166 0.00143928 0.00121398 5 39,36,19,17,14 34,22,14,16,13 -1 1109600 608 690 -1 -1 200 282 -1 -1 1108992,543,50,14,0,1 -1 0,135,50,14,0,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140912/patrol_run_94/room_3/features/nonPlanes<shot_uniform_2015-05-17_21-40-04.pcd 1.44301 0.00097668 0.000293017 3 48,32,17 32,20,15 -1 948600 585 690 -1 -1 200 305 -1 -1 948015,506,62,11,4,1,1 -1 0,121,62,11,4,1,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140912/patrol_run_96/room_2/features/nonPlanes<shot_uniform_2015-05-17_21-40-07.pcd 1.27993 0.00147046 0.000808649 3 39,34,20 30,25,14 -1 1124838 572 690 -1 -1 200 318 -1 -1 1124266,477,76,16,2,1 -1 0,105,76,16,2,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140912/patrol_run_98/room_3/features/nonPlanes<shot_uniform_2015-05-17_21-40-09.pcd 1.49061 0.00306713 0.000817305 4 35,24,18,16 26,19,15,12 -1 1043936 603 690 -1 -1 200 287 -1 -1 1043333,530,62,8,3 -1 0,127,62,8,3 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140921/patrol_run_110/room_2/features/nonPlanes<shot_uniform_2015-05-17_21-40-11.pcd 1.59304 0.00166839 0.000842787 3 40,30,17 26,17,16 -1 1150032 591 690 -1 -1 200 299 -1 -1 1149441,509,69,11,1,0,1 -1 0,118,69,11,1,0,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140921/patrol_run_112/room_2/features/nonPlanes<shot_uniform_2015-05-17_21-40-13.pcd 1.31178 0.00119294 0.000851968 4 31,26,22,15 19,18,17,12 1,0,0,0 1137150 587 690 13 23 200 303 13 23 1136563,506,65,12,2,2 0,7,4,1,0,1 0,119,65,12,2,2 0,7,4,1,0,1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140921/patrol_run_114/room_1/features/nonPlanes<shot_uniform_2015-05-17_21-40-15.pcd 1.2312 0.00130157 0.000811576 4 34,28,19,16 22,19,12,12 1,0,0,0 1135060 563 690 13 19 200 327 13 19 1134497,463,78,17,5 0,9,2,2,0 0,100,78,17,5 0,9,2,2,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140922/patrol_run_116/room_2/features/nonPlanes<shot_uniform_2015-05-17_21-40-17.pcd 1.50692 0.00279279 0.000781986 3 24,22,18 19,18,13 0,0,0 1135668 587 690 9 9 200 303 7 7 1135081,501,70,15,1 0,9,0,0,0 0,114,70,15,1 0,7,0,0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140922/patrol_run_118/room_2/features/nonPlanes<shot_uniform_2015-05-17_21-40-20.pcd 0.533978 0.00109915 0.000292554 3 45,44,34 36,35,20 0,0,0 1197684 588 690 8 11 200 302 8 11 1197096,512,54,19,2,1 0,6,1,1,0,0 0,124,54,19,2,1 0,6,1,1,0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140922/patrol_run_120/room_1/features/nonPlanes<shot_uniform_2015-05-17_21-40-21.pcd 1.5023 0.00245748 0.000818842 4 46,35,30,20 30,22,20,12 0,0,0,0 1163902 571 690 6 7 200 319 4 5 1163331,475,78,14,3,1 0,5,1,0,0,0 0,104,78,14,3,1 0,3,1,0,0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140922/patrol_run_124/room_2/features/nonPlanes<shot_uniform_2015-05-17_21-40-23.pcd 0.588645 0.000631154 0.000286811 2 25,14 19,12 0,0 1189476 602 690 6 9 200 288 6 9 1188874,528,61,12,1 0,4,1,1,0 0,126,61,12,1 0,4,1,1,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140922/patrol_run_126/room_2/features/nonPlanes<shot_uniform_2015-05-17_21-40-26.pcd 1.53483 0.00167866 0.00031427 3 54,24,14 42,20,12 0,0,0 1158810 595 690 13 19 200 295 13 19 1158215,517,63,13,2 0,7,6,0,0 0,122,63,13,2 0,7,6,0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140922/patrol_run_128/room_2/features/nonPlanes<shot_uniform_2015-05-17_21-40-29.pcd 0.512516 0.00101554 0.000317311 4 29,26,20,15 16,21,14,12 0,1,0,0 1108536 603 690 11 14 200 287 11 14 1107933,524,71,8 0,8,3,0 0,121,71,8 0,8,3,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140922/patrol_run_130/room_2/features/nonPlanes<shot_uniform_2015-05-17_21-40-31.pcd 0.543654 0.00105639 0.000297151 6 42,36,19,18,17,14 21,29,13,16,15,12 0,0,0,0,0,0 1066964 597 690 10 14 200 293 10 14 1066367,519,67,8,2,1 0,7,2,1,0,0 0,122,67,8,2,1 0,7,2,1,0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140922/patrol_run_132/room_1/features/nonPlanes<shot_uniform_2015-05-17_21-40-34.pcd 1.57885 0.00195118 0.00029539 4 50,24,23,22 31,19,18,19 0,1,0,0 1156036 593 690 12 15 200 297 12 15 1155443,509,72,11,1 0,9,3,0,0 0,116,72,11,1 0,9,3,0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140922/patrol_run_134/room_2/features/nonPlanes<shot_uniform_2015-05-17_21-40-36.pcd 0.527979 0.00105253 0.000293186 2 25,22 18,19 0,1 1114464 606 690 10 11 200 284 10 11 1113858,532,65,8,1 0,9,1,0,0 0,126,65,8,1 0,9,1,0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140922/patrol_run_138/room_2/features/nonPlanes<shot_uniform_2015-05-17_21-40-38.pcd 1.30263 0.00063988 0.000313971 5 42,38,35,26,16 28,26,17,15,14 1,0,0,0,0 1197912 567 690 10 17 200 323 9 16 1197345,459,98,7,2,0,1 0,7,2,0,0,0,1 0,92,98,7,2,0,1 0,6,2,0,0,0,1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140923/patrol_run_139/room_2/features/nonPlanes<shot_uniform_2015-05-17_21-40-39.pcd 1.40277 0.00119914 0.000309967 6 35,32,25,24,21,20 25,22,15,12,15,13 0,0,0,0,0,0 996812 575 690 7 8 200 315 7 8 996237,482,74,17,1,1 0,6,1,0,0,0 0,107,74,17,1,1 0,6,1,0,0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140923/patrol_run_141/room_2/features/nonPlanes<shot_uniform_2015-05-17_21-40-42.pcd 0.524896 0.00103203 0.000307994 4 41,26,22,17 26,17,15,12 0,0,1,0 1166676 575 690 4 6 200 315 4 6 1166101,487,69,13,4,2 0,3,0,1,0,0 0,112,69,13,4,2 0,3,0,1,0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140923/patrol_run_144/room_2/features/nonPlanes<shot_uniform_2015-05-17_21-40-43.pcd 0.502005 0.000620348 0.000285847 2 33,30 22,22 0,0 1021554 586 690 5 5 200 304 5 5 1020968,502,70,11,0,3 0,5,0,0,0,0 0,116,70,11,0,3 0,5,0,0,0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140923/patrol_run_146/room_2/features/nonPlanes<shot_uniform_2015-05-17_21-40-45.pcd 0.505609 0.000734481 0.000282841 3 32,27,25 24,19,21 0,0,0 961792 575 690 4 5 200 315 4 5 961217,491,63,14,4,3 0,3,1,0,0,0 0,116,63,14,4,3 0,3,1,0,0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140923/patrol_run_148/room_2/features/nonPlanes<shot_uniform_2015-05-17_21-40-47.pcd 1.5322 0.00331554 0.000850765 2 47,25 33,22 0,0 1143952 596 690 9 13 200 294 9 13 1143356,519,64,11,0,2 0,6,2,1,0,0 0,123,64,11,0,2 0,6,2,1,0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140923/patrol_run_150/room_2/features/nonPlanes<shot_uniform_2015-05-17_21-40-49.pcd 1.49769 0.00174313 0.000830676 3 42,36,19 30,27,14 0,0,0 1115756 596 690 10 13 200 294 8 11 1115160,521,60,12,2,1 0,8,1,1,0,0 0,125,60,12,2,1 0,6,1,1,0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140924/patrol_run_152/room_2/features/nonPlanes<shot_uniform_2015-05-17_21-40-50.pcd 1.00966 0.000566007 0.000287074 4 25,24,21,16 16,17,13,14 0,1,0,0 1068522 567 690 10 14 200 323 10 14 1067955,469,81,12,3,1,1 0,6,4,0,0,0,0 0,102,81,12,3,1,1 0,6,4,0,0,0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140924/patrol_run_156/room_2/features/nonPlanes<shot_uniform_2015-05-17_21-40-51.pcd 0.505025 0.000823354 0.000316646 4 56,36,27,21 48,31,20,17 0,0,0,0 1129170 613 690 7 7 200 277 7 7 1128557,549,53,9,2 0,7,0,0,0 0,136,53,9,2 0,7,0,0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140924/patrol_run_158/room_1/features/nonPlanes<shot_uniform_2015-05-17_21-40-53.pcd 1.37797 0.00111692 0.000787453 3 28,22,16 20,14,13 0,0,0 1068522 595 690 9 13 200 295 8 12 1067927,514,71,7,2,1 0,7,1,0,1,0 0,119,71,7,2,1 0,6,1,0,1,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140924/patrol_run_162/room_2/features/nonPlanes<shot_uniform_2015-05-17_21-40-55.pcd 1.25058 0.00197616 0.000812211 1 81 59 -1 1090600 594 690 -1 -1 200 296 -1 -1 1090006,516,62,14,2 -1 0,122,62,14,2 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140924/patrol_run_164/room_1/features/nonPlanes<shot_uniform_2015-05-17_21-40-56.pcd 0.481756 0.000535423 0.000305252 3 68,28,18 56,14,17 -1 975936 613 690 -1 -1 200 277 -1 -1 975323,547,58,5,3 -1 0,134,58,5,3 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140924/patrol_run_166/room_2/features/nonPlanes<shot_uniform_2015-05-17_21-40-58.pcd 1.5368 0.00275929 0.000844381 3 71,23,13 50,12,12 -1 1121076 594 690 -1 -1 200 296 -1 -1 1120482,517,61,13,3 -1 0,123,61,13,3 -1
