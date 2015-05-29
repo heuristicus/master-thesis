@@ -182,3 +182,19 @@ subdirectory for `chair1` will be created there.
 Run on a target directory, on all feature clouds which match the string `nonPlanes<pfhrgb_sift`.
 
     roslaunch object_query object_query.launch query:=/home/michal/Downloads/pcddata/processed/query/queryobjects/0,01/top_couch_jacket2/features/rgb_0003_label_top_couch_jacket2<pfhrgb_sift_2015-05-26_15-12-21.pcd target:=/media/michal/Pauli/masterdata/processed/annotated/rares n_max_points:=200 match:=nonPlanes<pfhrgb_sift cluster_tolerance:=0.2 K:=5 results_out:=/home/michal/Downloads/pcddata/processed/query/rares
+
+# Data Processing
+
+## Feature Data
+
+Having computed various types of features using different interest point selection methods, one can use featureprocess.py to aggregate the data into a usable form. The following command creates files in `.` which contain the data from all the files in `.` which have the extension `.txt`, grouped by which feature was used. 
+
+    python scripts/featureprocess.py -af . `find . -regex .*.txt | xargs echo`
+
+This command is similar to the above, but instead groups by interest point selection method
+
+    python scripts/featureprocess.py -ai . `find . -regex .*.txt | xargs echo`
+
+Finally, this command can be used to create files which contain only information about the timings for interest point selection.
+
+    python scripts/featureprocess.py -al . `find . -regex .*.txt | xargs echo`

@@ -243,7 +243,7 @@ def main():
     mergeint = False
     if (switch == "-c"):
         combine = True
-    elif (switch == "-h"):
+    elif (switch == "-h"): # look for files which contain interest point timings
         check = True
     elif (switch == "-f"):
         fixinterest = True

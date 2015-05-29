@@ -144,10 +144,10 @@ def processFile(fname):
     results['time_per_plane_mean'] = statistics.mean(time_per_plane)
     results['time_per_plane_std'] = statistics.stdev(time_per_plane)
 
-    if (ncols > 11):
+    if (ncols > 11 and len(feature_normal_time) != 0):
         results['feature_normal_time_mean'] = statistics.mean(feature_normal_time)
         results['feature_normal_time_std'] = statistics.stdev(feature_normal_time)
-    if (ncols > 12):
+    if (ncols > 12 and len(annotation_time) != 0):
         results['annotation_time_mean'] = statistics.mean(annotation_time)
         results['annotation_time_std'] = statistics.stdev(annotation_time)
     

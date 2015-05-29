@@ -1604,6 +1604,11 @@ them using the shortened keys below.
   \begin{itemize}
   \item $l=0.015$
   \end{itemize}
+\item[DS15M] Increased downsample leafsize, decreased minimum points
+  \begin{itemize}
+  \item $l=0.015$
+  \item $P_{\min}=9000$
+  \end{itemize}
 \item[DS2] Increased downsample leafsize
   \begin{itemize}
   \item $l=0.02$
@@ -1626,13 +1631,14 @@ them using the shortened keys below.
       RI100 & 1.14$\pm$0.38 & 1.25$\pm$1.63 & 14.92$\pm$6.96 & 62.68$\pm$21.67 & 10.59$\pm$3.78 & 1.86$\pm$0.99  & 80.00$\pm$24.77 \\
       RI50 & 0.70$\pm$0.09 & 0.17$\pm$0.06 & 15.86$\pm$0.99 & 16.02$\pm$5.02 & 3.82$\pm$1.02 & 2.15$\pm$0.48  & 32.75$\pm$5.30 \\                                          
       DS15 & 0.99$\pm$0.23 & 0.10$\pm$0.03 & 3.65$\pm$0.52 & 51.43$\pm$17.19 & 12.47$\pm$4.93 & 0.65$\pm$0.15  & 56.17$\pm$17.27 \\
+      DS15M & 0.87$\pm$0.31 & 0.34$\pm$0.50 & 4.77$\pm$2.27 & 100.47$\pm$116.74 & 13.05$\pm$16.78 &0.68$\pm$0.29 & 106.45$\pm$116.80 \\
       DS2 & 0.58$\pm$0.07 & 0.03$\pm$0.00 & 1.31$\pm$0.14 & 13.32$\pm$2.06 & 7.71$\pm$1.56 & 0.41$\pm$0.06  & 15.24$\pm$2.08 \\
       DS2M & 0.56$\pm$0.10 & 0.03$\pm$0.00 & 1.23$\pm$0.25 & 32.13$\pm$4.06 & 4.26$\pm$0.61 & 0.23$\pm$0.05 & 33.96$\pm$4.27 \\
     \end{tabular}
   }
   \caption{Average time taken for various stages of preprocessing. The total
     time is a sum of downsample, trim, normals and planes, skipping the feature
-    normal computation. ($\mu\pm\sigma$)}
+    normal computation. Average over 86 clouds. ($\mu\pm\sigma$)}
   \label{tbl:preprocess_time}
 
   \centerline{
@@ -1645,6 +1651,7 @@ them using the shortened keys below.
       RI100 & \ditto & \ditto & \ditto & 6.22$\pm$1.85 & 45,224$\pm$9,510 & 519,703$\pm$102,722 \\
       RI50 & \ditto & \ditto & \ditto & 4.60$\pm$2.32 & 38,566$\pm$15,670 & 583,620$\pm$115,296 \\
       DS15 & \ditto & 485,732$\pm$20,386 & 368,765$\pm$16,645 & 4.42$\pm$1.53 & 26,500$\pm$4,772 & 248,010$\pm$45,101 \\
+      DS15M & \ditto & \ditto & \ditto & 7.90$\pm$1.20 & 22,657$\pm$3,172 & 192,516$\pm$16,784 \\
       DS2 & \ditto & 276,378$\pm$11,503 & 203,385$\pm$8,910 & 1.58$\pm$0.94 & 10,766$\pm$6,312 & 180,607$\pm$17,235 \\
       DS2M & \ditto & \ditto & \ditto & 7.84$\pm$1.29 & 12,001$\pm$1,505 & 110,543$\pm$12,245
     \end{tabular}
@@ -1653,7 +1660,7 @@ them using the shortened keys below.
     average over 86 clouds. NPlanes indicates the number of planes extracted.
     PerPlane is the number of points per plane, computed from the number of
     planes and the difference in number of points between Trimmed and Planes.
-    ($\mu\pm\sigma$)}
+    Average over 86 clouds. ($\mu\pm\sigma$)}
   \label{tbl:preprocess_num}
   \centering
   \begin{tabular}{r|ccccc}
@@ -1664,7 +1671,8 @@ them using the shortened keys below.
     RI500 & \ditto & \ditto & \ditto & 0.49$\pm$0.05 & 0.09$\pm$0.01 \\ 
     RI100 & \ditto & \ditto & \ditto & 0.65$\pm$0.12 & 0.12$\pm$0.02 \\ 
     RI50 & \ditto & \ditto & \ditto & 0.75$\pm$0.15 & 0.13$\pm$0.03 \\
-    DS15 & 0.11$\pm$0.00 & 0.76$\pm$0.02 & 0.08$\pm$0.00 & 0.67$\pm$0.12 & 0.06$\pm$0.01 \\ 
+    DS15 & 0.11$\pm$0.00 & 0.76$\pm$0.02 & 0.08$\pm$0.00 & 0.67$\pm$0.12 & 0.06$\pm$0.01 \\
+    DS15M & \ditto & \ditto & \ditto & 0.52$\pm$0.04 & 0.04$\pm$0.00 \\ 
     DS2 & 0.06$\pm$0.00 & 0.74$\pm$0.02 & 0.05$\pm$0.00 & 0.89$\pm$0.07 & 0.04$\pm$0.00 \\
     DS2M & \ditto & \ditto & \ditto & 0.54$\pm$0.06 & 0.03$\pm$0.00
   \end{tabular}
@@ -1689,12 +1697,13 @@ them using the shortened keys below.
   }
   \centerline{
     \subfloat[DS15]{\includegraphics[width=0.45\textwidth]{images/exp_planes_ds15}}
-    \subfloat[DS2]{\includegraphics[width=0.45\textwidth]{images/exp_planes_ds2}}
+    \subfloat[DS15M]{\includegraphics[width=0.45\textwidth]{images/exp_planes_ds15m}}
     \subfloat[DS2M]{\includegraphics[width=0.45\textwidth]{images/exp_planes_ds2m}}
   }
-  \caption{Comparison of the result of plane extraction on the same cloud for
-    different parameter settings. Green regions are extracted planes, blue
-    regions are the remaining cloud which is output by the preprocessing step.}
+  \caption{Comparison of the result of plane extraction on the same arbitrarily
+    chosen cloud for different parameter settings. Green regions are extracted
+    planes, blue regions are the remaining cloud which is output by the
+    preprocessing step. DS2 result not shown as no planes were extracted.}
   \label{fig:ransaciter}
 \end{figure}
 
@@ -1749,9 +1758,9 @@ computation and RANSAC examine fewer points. In terms of the proportion of
 points removed, for DS15 and DS2 we did not reduce the minimum points per plane,
 and this effect shows in the results. Fewer planes were removed, and as a
 consequence the effectiveness of the plane extraction is reduced. In the DS2M
-set, we decrease the minimum points per plane, and the proportions are more in
-line with what would be expected, extracting proportionally almost as many
-points as that extracted by the default setting.
+and DS15M sets, we decrease the minimum points per plane, and the proportions
+are more in line with what would be expected, extracting proportionally almost
+as many points as that extracted by the default setting.
 
 Figure~\ref{fig:ransaciter} shows examples of planes extracted using the
 different parameter settings.

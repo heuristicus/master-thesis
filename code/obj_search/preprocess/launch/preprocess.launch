@@ -67,7 +67,7 @@
   <arg name="y_filter_min" default="NULL" />
   <param name="/preprocess/y_filter_min" value="$(arg y_filter_min)" />
   <!-- Set this to true to perform the filtering -->
-  <arg name="filter_x" default="false" />
+  <arg name="filter_x" default="true" />
   <param name="/preprocess/filter_x" value="$(arg filter_x)" />
   <!-- Defaults are set for the annotated dataset -->
   <arg name="x_filter_max" default="-1" />
