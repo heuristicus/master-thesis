@@ -1790,39 +1790,200 @@ as many points as that extracted by the default setting.
 Figure~\ref{fig:ransaciter} shows examples of planes extracted using the
 different parameter settings, and the clouds that go on to the next stage of processing.
 
-\section{Feature Extraction}
+\section{Descriptor Extraction and Interest Point Selection}
+As mentioned before, the descriptor extraction and interest point selection steps
+are important for the effectiveness of queries, in terms of selecting points
+that are on the object in the cloud that we are interested in searching.
+An evaluation of the retrieval process can be found in Section~\ref{queryexp}.
+In this section we will mention the parameter settings for the various methods,
+and do a simple analysis of the results of our experiments.
+
+\subsection{Parameter Settings}
+\subsubsection{Interest Point Selection}
+Since all of the selection methods we use a radius value for computation, we
+have selected values that are similar for all of the methods. During some
+preliminary evaluations, we also attempted to use the Harris method, but we
+received anomalous values from it and decided to drop it from further testing.
+\begin{description}
+\item[Uniform] Uniform feature selection has only a single parameter; the
+  downsample leaf size $l$. This setting varies the number of points selected,
+  and their locations, but in a much more structured way than the other methods.
+  For the experiments we have set $l=0.05$.
+\item[ISS] For this method, we have set the saliency radius $r_s=6R$, where $R$
+  is the resolution of the cloud. The resolution is simply the average squared
+  distance between points in the cloud. The non-maximum suppression radius
+  $r_n=4R$ --- we check to see if this point is non-maximum in a smaller
+  region than is used to contribute to the computation of the point's value. The
+  minimum number of points $n_{\min}$ for non-maximum suppression is set to 5.
+  The eigenvalue thresholds $\gamma_{21}=\gamma_{32}=0.975$. This setting is
+  based off the default value in PCL.
+\item[SUSAN] The mask and non-maximum suppression radius $r_m=0.05$. The
+  intensity threshold $I_t=7$, and the threshold on the angle between normals is
+  $\theta_t=0.001$. These latter values are also based on the default found in
+  PCL.
+\item[SIFT] For SIFT, we have set the minimum scale $S_{\min}$ to 0.04, with 4
+  octaves $o$ and 5 octave scales $o_s$. The minimum contrast has been set to
+  zero, so we retain all features.
+\end{description}
+
+\subsubsection{Descriptor Extraction}
+For our experiments we have used the SHOT, SHOTCOLOR, PFH, FPFH and PFHRGB
+methods. We decided not to use the USC descriptor as in preliminary evaluations
+the time required for comparing large numbers of the descriptors was high.
+
+The descriptor extraction methods all have only a single setting, which is their
+radius. We have decided to use a radius of 0.05m for our experiments. The
+objects that we have selected are large enough that this radius should give a
+good description of interesting regions, without losing too much of the fine
+detail.
+
 \begin{figure}
   \centering
-  \subfloat[0.01m]{\includegraphics[width=0.8\textwidth]{images/exp_interest_points}}\\
+  \subfloat[0.01m]{\includegraphics[width=0.8\textwidth]{images/interest_points_0,01}}\\
   \subfloat[0.015m]{\includegraphics[width=0.49\textwidth]{images/interest_points_0,015}}
   \subfloat[0.02m]{\includegraphics[width=0.49\textwidth]{images/interest_points_0,02}}
   \caption{Number of points extracted from clouds by different methods relative
-    to the number of points in the cloud. The anomalies from the uniform
-    extraction come from the fact that it does not exclude lone points, while
-    other methods do. Subcaption indicates downsample leaf size.}
+    to the number of points in the cloud. Subcaption indicates downsample leaf
+    size.}
   \label{fig:interest_points}
 \end{figure}
+
+\section{Analysis}
+Figure~\ref{fig:interest_points} shows the number of points that are extracted
+by the various selection methods relative to the size of the input cloud. As we
+would expect, the uniform selection method uses by far the most points to
+describe the cloud. Part of the reason behind this is that points which are
+separated from other points by a large margin are still included in the final
+selection, whereas the other methods remove these kinds of points as part of the
+process either by using non-maximum suppression or checking the number of
+neighbours of a point within a certain radius. ISS selects the next largest
+number of points, most likely due to its relatively simple approach to the
+selection. However, the number of points that it selects is affected much more
+by the downsampling, in terms of its position on the plots relative to the other
+methods --- it is above SUSAN at 0.01m downsampling, in line with it at 0.015,
+and below it at 0.02. We believe the likely cause of this effect is likely to do
+with the non-maximum suppression that is applied as part of the process. SUSAN
+extracts the next largest number of points, being more selective than the
+uniform method, and depending on the downsampling value, slightly more selective
+than ISS. The fewest points are extracted by SIFT, which does much more pruning
+of points using the difference of Gaussians and the various scales that it
+applies.
+
 \begin{figure}
   \centering
-  \subfloat[Scene clouds]{\includegraphics[width=0.49\textwidth]{images/interest_agg}}
-  \subfloat[Annotation clouds]{\includegraphics[width=0.49\textwidth]{images/interest_agg_annot}}
+  \centerline{
+    \subfloat[Default]{\includegraphics[width=0.45\textwidth]{images/int/iss_def}}
+    \subfloat[$n_{\min}=12$]{\includegraphics[width=0.45\textwidth]{images/int/iss_def_minn12}}
+    \subfloat[$r_s=12R$]{\includegraphics[width=0.45\textwidth]{images/int/iss_sal12}}\\
+  }
+  \centerline{
+    \subfloat[$r_s=12R,\, r_n=8R$]{\includegraphics[width=0.45\textwidth]{images/int/iss_sal12_nm8}}
+    \subfloat[$r_s=12R,\, r_n=8R,\, n_{\min}=10 $]{\includegraphics[width=0.45\textwidth]{images/int/iss_sal12_nm8_minn10}}
+    \subfloat[$r_s=4R,\, n_{\min}=2$]{\includegraphics[width=0.45\textwidth]{images/int/iss_sal4_nm2}}
+  }
+  \caption{Interest points extracted using ISS for various parameter settings.}
+  \label{fig:issparam}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \centerline{
+    \subfloat[Default]{\includegraphics[width=0.45\textwidth]{images/int/sift_ms0_04}}
+    \subfloat[$S_{\min}=0.01$]{\includegraphics[width=0.45\textwidth]{images/int/sift_ms0_01}}
+    \subfloat[$S_{\min}=0.02$]{\includegraphics[width=0.45\textwidth]{images/int/sift_ms0_02}}\\
+  }
+  \centerline{
+    \subfloat[$S_{\min}=0.03$]{\includegraphics[width=0.45\textwidth]{images/int/sift_ms0_03}}
+    \subfloat[$S_{\min}=0.03,\, o=2$]{\includegraphics[width=0.45\textwidth]{images/int/sift_ms0_03_oc2}}
+    \subfloat[$S_{\min}=0.03,\, o_s=3$]{\includegraphics[width=0.45\textwidth]{images/int/sift_ms0_03_os3}}
+  }
+  \caption{Interest points extracted using SIFT for various parameter settings.}
+  \label{fig:intparam}
+\end{figure}
+
+
+Figure~\ref{fig:interest_agg} shows the time taken by the various interest point
+methods to extract interest points, relative to the number of interest points to
+be extracted. We can see that the computation time is basically linear in the
+number of points to be computed. Although the operations that SIFT performs are
+relatively costly, computing Gaussian differences at each point, the number of
+points that it usually has to perform these computations at is quite small, and
+this the computation is faster than the other methods, apart from uniform, which
+is always very fast due to its inherent simplicity. However, if one observes the
+trend, it becomes clear that SIFT is among the most expensive to compute, as
+increasing the number of points by only a small amount raises the computation
+time by quite a large amount. This is particularly noticeable in
+Figure~\ref{subf:agg0015} and \ref{subf:agg002}. The next most expensive method
+in terms of time cost is SUSAN, which makes sense as it must do some quite
+involved computations in order to extract the sub-regions of spheres with
+similar values. ISS comes next, with its relatively simple covariance matrix and
+eigenvalue computations. We can also see here how, as mentioned above, the
+number of points extracted with ISS using higher downsampling shifts to the
+lower side of SUSAN.
+
+Figure~\ref{fig:feature_agg} shows the computation time for different feature
+types. We can see that SHOT and SHOTCOLOR follow have very similar times, with
+the colour extension slightly shifted from the basic version, as would be
+expected, since the extension simply adds another layer to the computations.
+Even for the largest clouds we process, the computation time is very reasonable.
+The expensive multiple nearest neighbour checks done by the PFH descriptors
+clearly show in the plots, and we can also see that the FPFH descriptor does
+indeed greatly reduce the computation time. For PFH and PFHRGB, we see that
+although there is quite a high variance, the increase in computation time
+relative to number of points appears to be quadratic rather than linear, as
+might be expected from the computations performed.
+
+These observations show that the preprocessing step is important for a reasons
+beyond simply ensuring that most of the points in the cloud might be objects ---
+the number of points remaining in the cloud after preprocessing has a large
+impact on the computation time. If we remove too few points we incur a high cost
+in the descriptor extraction and interest point selection steps. While this is
+not of direct concern to the system, since in all likelihood processing would be
+performed offline, it is still something that must be considered.
+
+\begin{figure}
+  \centering
+  \subfloat[Scene clouds 0.01m]{\includegraphics[width=0.49\textwidth]{images/interest_agg_0,01}}
+  \subfloat[Annotation clouds 0.01m]{\includegraphics[width=0.49\textwidth]{images/interest_agg_annot_0,01}}\\
+  \subfloat[Scene clouds 0.015m]{
+    \includegraphics[width=0.49\textwidth]{images/interest_agg_0,015}
+    \label{subf:agg0015}
+  }
+  \subfloat[Annotation clouds 0.015m]{\includegraphics[width=0.49\textwidth]{images/interest_agg_annot_0,015}}\\
+  \subfloat[Scene clouds 0.02m]{
+    \includegraphics[width=0.49\textwidth]{images/interest_agg_0,02}
+    \label{subf:agg002}
+  }
+  \subfloat[Annotation clouds 0.02m]{\includegraphics[width=0.49\textwidth]{images/interest_agg_annot_0,02}}
   \caption{Time taken for interest point extraction for different numbers of
     points for the various interest point methods, shown on a logarithmic scale.
-    All clouds downsampled with 0.01 leaf size. Each point indicates the time to
-    compute interest points for a single cloud.}
+    Caption indicates downsampling used. Each point indicates the time to
+    compute interest points for a single cloud. The right hand plots show
+    computation times for clouds containing single objects with much smaller numbers of points.}
   \label{fig:interest_agg}
 \end{figure}
 \begin{figure}
   \centering
-  \subfloat[SHOT family]{\includegraphics[width=0.49\textwidth]{images/feature_agg_shot}}
-  \subfloat[PFH family]{\includegraphics[width=0.49\textwidth]{images/feature_agg_pfh}}
+  \subfloat[SHOT family 0.01m]{\includegraphics[width=0.49\textwidth]{images/feature_agg_shot_0,01}}
+  \subfloat[PFH family 0.01m]{\includegraphics[width=0.49\textwidth]{images/feature_agg_pfh_0,01}}\\
+  \subfloat[SHOT family 0.015m]{\includegraphics[width=0.49\textwidth]{images/feature_agg_shot_0,015}}
+  \subfloat[PFH family 0.015m]{\includegraphics[width=0.49\textwidth]{images/feature_agg_pfh_0,015}}\\
+  \subfloat[SHOT family 0.02m]{\includegraphics[width=0.49\textwidth]{images/feature_agg_shot_0,02}}
+  \subfloat[PFH family 0.02m]{\includegraphics[width=0.49\textwidth]{images/feature_agg_pfh_0,02}}
   \caption{Computation time for each feature type in relation to number of
-    interest points. All clouds downsampled with 0.01 leaf size.}
+    interest points. Caption indicates the downsampling used.}
   \label{fig:feature_agg}
 \end{figure}
 
+Due to time constraints, we were unable to evaluate the performance of the
+system with different settings for the interest point or descriptor computation
+methods. We have computed all combinations of features and interest point
+methods for several of the parameter settings in the preprocessing step, and
+will be using those to evaluate the final output of the system.
 
 \section{Object Query}
+
+\label{queryexp}
 \chapter{Conclusion and Further Work}
 \label{chap:conc}
 Describe what the project was about, what was achieved, summarise the
