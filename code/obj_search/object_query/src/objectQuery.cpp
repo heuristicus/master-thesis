@@ -358,6 +358,7 @@ namespace objsearch {
 		pcl::transformPointCloud(*cloud, *transformed, bboxes[i].transformInverse);
 
 		std::string currentLabel = annotations[i].label;
+		ROS_INFO("Transformed cloud size is %d", (int)transformed->size());
 		for (size_t j = 0; j < transformed->size(); j++) {
 		    if (bboxes[i].contains(transformed->points[j], true)){
 			indices.push_back(j);
@@ -535,6 +536,27 @@ namespace objsearch {
 	    reader.read(queryPointFile_, *queryPoints);
 	    reader.read(queryFile_, *queryFeatures);
 
+	    // load the points and computed features for the target cloud
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr targetPoints(new pcl::PointCloud<pcl::PointXYZRGB>());
+	    typename pcl::PointCloud<DescType>::Ptr targetFeatures(new pcl::PointCloud<DescType>());
+
+	    // Create a flannsearch object to use to do the NN search
+	    typename pcl::search::FlannSearch<DescType, flann::L2_Simple<float> >
+		*search(new pcl::search::FlannSearch<DescType, flann::L2_Simple<float> >());
+	    // Flann needs to know the point representation so that it can
+	    // convert it to its internal format
+	    typename pcl::DefaultPointRepresentation<DescType>::ConstPtr
+		descRepr(new pcl::DefaultPointRepresentation<DescType>());
+
+	    // clouds for storing hough data
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr voteCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr topCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+	    // kdtree for doing clustering
+	    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>);
+
+	    // cloud for storing the original nonplanes cloud corresponding to target
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr originalPoints(new pcl::PointCloud<pcl::PointXYZRGB>());
+	
 	    std::vector<QueryInfo> infoVec;
 	    bool append = false; // first run through, write headers to output file
 	    // loop over all clouds in the target cloud vector
@@ -554,17 +576,6 @@ namespace objsearch {
 		    continue;
 		}
 
-		// load the points and computed features for the target cloud
-		pcl::PointCloud<pcl::PointXYZRGB>::Ptr targetPoints(new pcl::PointCloud<pcl::PointXYZRGB>());
-		typename pcl::PointCloud<DescType>::Ptr targetFeatures(new pcl::PointCloud<DescType>());
-
-		// Create a flannsearch object to use to do the NN search
-		typename pcl::search::FlannSearch<DescType, flann::L2_Simple<float> >
-		    *search(new pcl::search::FlannSearch<DescType, flann::L2_Simple<float> >());
-		// Flann needs to know the point representation so that it can
-		// convert it to its internal format
-		typename pcl::DefaultPointRepresentation<DescType>::ConstPtr
-		    descRepr(new pcl::DefaultPointRepresentation<DescType>());
 		search->setPointRepresentation(descRepr);
 
 		ROS_INFO("Reading target clouds");
@@ -605,7 +616,6 @@ namespace objsearch {
 		info.houghTime = (ros::Time::now() - houghStart).toSec();
 		ROS_INFO("Hough voting done");
 
-		pcl::PointCloud<pcl::PointXYZRGB>::Ptr voteCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 		// convert the grid to a point cloud with rgb values
 		// representing the number of votes in each cell
 		std::vector<int> cellIndices = grid.toPointCloud(voteCloud);
@@ -648,7 +658,6 @@ namespace objsearch {
 		ROS_INFO("Max points histogram: %s", info.maxHistogram.c_str());
 		
 		// create a cloud containing only the top n points
-		pcl::PointCloud<pcl::PointXYZRGB>::Ptr topCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 		topCloud->resize(maxPoints.size());
 		// keep track of the index of the maximum valued point so that
 		// we can use it later if there are no clusters
@@ -675,7 +684,7 @@ namespace objsearch {
 		ROS_INFO("Finding clusters");
 		// find clusters in the space of the top n points, with the user
 		// specified tolerances and min and max cluster sizes
-		pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>);
+
 		tree->setInputCloud(topCloud);
 		std::vector<pcl::PointIndices> clusterIndices;
 		pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ec;
@@ -780,11 +789,8 @@ namespace objsearch {
 						   *clusterClouds[clusterDetails[j].index], true);
 		}
 		
-		pcl::PointCloud<pcl::PointXYZRGB>::Ptr originalPoints(new pcl::PointCloud<pcl::PointXYZRGB>());
-
 		ROS_INFO("Reading original target cloud from %s", originalTargetCloudFile_.c_str());
 		reader.read(originalTargetCloudFile_, *originalPoints);
-
 		
 		// cut out a region that is double the size of the bounding box
 		// of the original query object from the original target cloud
@@ -825,6 +831,7 @@ namespace objsearch {
 		info.topCluster = clusterDetails[0];
 		
 		ROS_INFO("Starting post-processing.");
+		ROS_INFO("Cell indices size %d", (int)cellIndices.size());
 		postProcess(grid, voteCloud, cellIndices, maxPoints, info, clusterDetails);
 		ROS_INFO("Post processing finished");
 		writeInfo(dataFile, info, append);
@@ -974,10 +981,10 @@ namespace objsearch {
 	 */
 	
 void ObjectQuery::postProcess(const pclutil::Grid3D& grid,
-				      const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& voteCloud,
-				      const std::vector<int> cellIndices,
-				      const std::vector<std::pair<int, int> >& maxPoints,
-				      QueryInfo& info, std::vector<ClusterInfo> clusterDetails) {
+			      const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& voteCloud,
+			      const std::vector<int>& cellIndices,
+			      const std::vector<std::pair<int, int> >& maxPoints,
+			      QueryInfo& info, std::vector<ClusterInfo> clusterDetails) {
 	    std::string scores;
 	    std::string points;
 	    //and put information about clusters into the info struct
@@ -1018,6 +1025,7 @@ void ObjectQuery::postProcess(const pclutil::Grid3D& grid,
 		
 		return;
 	    }
+	    ROS_INFO("Indices size: %d", (int)indices.size());
 
 	    // check whether cluster centres are in the obb
 	    std::string inOBB;
@@ -1035,9 +1043,24 @@ void ObjectQuery::postProcess(const pclutil::Grid3D& grid,
 	    info.votesMaxInBox = 0;
 	    std::vector<int> boxHistogram(maxPoints[0].second + 1);
 	    std::vector<int> boxMaxHistogram(maxPoints[0].second + 1);
+	    ROS_INFO("Cell indices size %d", (int)cellIndices.size());
+	    for (size_t i = 0; i < cellIndices.size(); i++) {
+		ROS_INFO("Index %d: %d", (int)i, cellIndices[i]);
+	    }
+
 	    for (size_t i = 0; i < indices.size(); i++) {
-		info.votesInBox += grid.at(cellIndices[indices[i]]);
-		boxHistogram[grid.at(cellIndices[indices[i]])]++;
+		ROS_INFO("Checking index %d, value is %d", (int)i, indices[i]);
+		int gridIndex;
+		int gridIndValue;
+		try {
+		    gridIndex = cellIndices[indices[i]];
+		    gridIndValue = grid.at(gridIndex);
+		} catch (sysutil::objsearchexception& e) {
+		    ROS_INFO("%s", e.what());
+		    exit(1);
+		}
+		info.votesInBox += gridIndValue;
+		boxHistogram[gridIndValue]++;
 		// check the max points vector to see if this point is in
 		// there as well, and if it is increment the values for the
 		// max box.
@@ -1046,7 +1069,7 @@ void ObjectQuery::postProcess(const pclutil::Grid3D& grid,
 		    // matches the cell index of the point in the OBB that
 		    // we are looking at, then that max point is also in the
 		    // OBB.
-		    if (maxPoints[j].first == cellIndices[indices[i]]) {
+		    if (maxPoints[j].first == gridIndex) {
 			info.pointsMaxInBox++;
 			info.votesMaxInBox += maxPoints[j].second;
 			boxMaxHistogram[maxPoints[j].second]++;

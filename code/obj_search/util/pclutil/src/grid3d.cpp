@@ -226,6 +226,12 @@ namespace objsearch {
 	 * @return 
 	 */
 	int& Grid3D::at(int index) {
+	    if (index >= (int)values_.size() || index < 0) {
+		std::string error("The index " + std::to_string(index)
+				  + " is out of range. Max index "
+				  + std::to_string((int)values_.size()));
+		throw sysutil::objsearchexception(error);
+	    }
 	    return values_[index];
 	}
 
@@ -261,6 +267,12 @@ namespace objsearch {
 	 * @return 
 	 */
 	int Grid3D::at(int index) const {
+	    if (index >= (int)values_.size() || index < 0) {
+		std::string error("The index " + std::to_string(index)
+				  + " is out of range. Max index "
+				  + std::to_string((int)values_.size()));
+		throw sysutil::objsearchexception(error);
+	    }
 	    return values_[index];
 	}
 
@@ -456,10 +468,14 @@ namespace objsearch {
 	 */
 	std::vector<int> Grid3D::toPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud) const {
 	     std::vector<pcl::PointXYZ> centres = allCentres();
+	     cloud->width = size() - getEmptyTotal();
+	     cloud->height = 1;
+	     cloud->resize(cloud->width * cloud->height);
 	     std::vector<int> inds;
 	     int maxVal = getMax().second;
 	     // centres are generated using the indices of cells in the grid, so
 	     // loop indices correspond to cell indices
+	     int curInd = 0;
 	     for (size_t i = 0; i < centres.size(); i++) {
 		 int value = at(i);
 		 if (value == 0) {
@@ -473,9 +489,11 @@ namespace objsearch {
 		 np.r = colour.r * 255;
 		 np.g = colour.g * 255;
 		 np.b = colour.b * 255;
-		 cloud->push_back(np);
+		 cloud->points[curInd] = np;
 		 inds.push_back(i);
+		 curInd++;
 	     }
+	     
 	     return inds;
 	 }
 

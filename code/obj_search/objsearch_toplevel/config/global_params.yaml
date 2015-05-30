@@ -1,6 +1,6 @@
 obj_search : {
-  raw_data_dir : "/media/michal/Pauli/masterdata/processed/",
-#  raw_data_dir : "/media/michal/Pauli/masterdata/raw/",
+#  raw_data_dir : "/media/michal/Pauli/masterdata/processed/",
+  raw_data_dir : "/media/michal/Pauli/masterdata/raw/",
 #  processed_data_dir : "/media/michal/Pauli/masterdata/processed/",
   processed_data_dir : "/home/michal/Downloads/pcddata/processed/",
   floor_z: 0,

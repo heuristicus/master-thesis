@@ -71,8 +71,8 @@
   <arg name="clusters_to_results" default="true"/>
   <param name="/object_query/clusters_to_results" value="$(arg clusters_to_results)" />
   
-  
+  <arg name="prefix" default=""/>
 
-  <node name="object_query" pkg="object_query" type="query_object"
-	output="screen" required="true" />
+  <node name="$(arg nodename)" pkg="object_query" type="query_object"
+	output="screen" required="true" launch-prefix="$(arg prefix)"/>
 </launch>

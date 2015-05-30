@@ -127,7 +127,7 @@ namespace objsearch {
 		std::string queryLabel="NULL");
 	    void postProcess(const pclutil::Grid3D& grid,
 			     const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& voteCloud,
-			     const std::vector<int> cellIndices,
+			     const std::vector<int>& cellIndices,
 			     const std::vector<std::pair<int, int> >& maxPoints,
 			     QueryInfo& info, std::vector<ClusterInfo> clusterDetails);
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr extractClusterRegionBox(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
