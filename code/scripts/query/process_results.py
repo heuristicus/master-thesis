@@ -83,7 +83,23 @@ def multiple_hist_to_gnuplot(hists, stdevs=[]):
         lines += "\n"
         
     return lines
+
+# read each line of the cluster file into a list, and add it to a list. Sort
+# this aggregate list to get top scoring clusters first.
+def process_cluster_file(fname):
+    f = open(fname, 'r')
+    clusters = []
+    for line in f:
+        if (line[0] == '#'): # skip the first line
+            continue
         
+        spl = line.split()
+        spl[0] = int(spl[0])
+        clusters.append(spl)
+
+    return sorted(clusters, key=lambda line: line[0], reverse=True)
+
+# extract data from the file and put it into a dict
 def get_data(fname):
     f = open(fname, 'r')
     go_to_data(f, False)
@@ -92,6 +108,8 @@ def get_data(fname):
     # information about the object and the interest point and descriptors used
     # to find them
     finfo=fname.split('/')[-3:-1]
+    data['resfile'] = fname
+    data['clusterfile'] = get_corresp_clusters(fname)
     data['objlabel'] = finfo[0]
     # 0 contains interest, 1 contains desc
     idesc=finfo[1].split('-')[0].split('_')
@@ -133,18 +151,22 @@ def get_data(fname):
     data['box_hist'] = list(map(strlist_to_int_list, data['box_hist']))
     data['max_hist'] = list(map(strlist_to_int_list, data['max_hist']))
     data['boxmax_hist'] = list(map(strlist_to_int_list, data['boxmax_hist']))
-
-#    print(columnise_sublists(data['cluster_scores'], True))
     
-    # print(data['hough_hist'])
-    # print(data['boxmax_hist'])
-    # print(data['box_hist'])
+    return data
 
-#    print(get_mean_histogram(data['hough_hist']))
-#    print(get_mean_histogram(data['box_hist']))
+def process_data(data):
     houghmean, houghstd = get_mean_histogram(data['hough_hist'])
-
+    print("Processing " + data['resfile'])
     results = {}
+    results['resfile'] = data['resfile']
+    results['clusterfile'] = data['clusterfile']
+#    results['clusters'] = process_cluster_file(data['clusterfile'])
+    results['nclusters_avg'] = statistics.mean(data['cluster_n'])
+    results['nclusters_std'] = statistics.stdev(data['cluster_n'])
+    results['total_clusters'] = sum(data['cluster_n'])
+    results['interest'] = data['interest']
+    results['feature'] = data['feature']
+    results['objlabel'] = data['objlabel']
     results['hough_hist_mean'] = list(map(float, houghmean))
     results['hough_hist_std'] = list(map(float, houghstd))
     results['query_time_mean'] = statistics.mean(data['t_query'])
@@ -154,27 +176,181 @@ def get_data(fname):
     results['cluster_time_mean'] = statistics.mean(data['t_cluster'])
     results['cluster_time_std'] = statistics.stdev(data['t_cluster'])
 
+    clusterpos = []
+    totalmatches = 0 # total number of clusters in obb
+    totaldistinct = 0 # total number of distinct clouds which have matches
+    topmatches = 0
+    matchingscores = []
+    nonmatchingscores = []
+    topnonmatchingscores = []
+    topmatchingscores = []
+    for ind,obblist in enumerate(data['cluster_inobb']):
+        first = True
+        scores = data['cluster_scores'][ind]
+        for i,pos in enumerate(obblist):
+            if (pos == 1):
+                if (first):
+                    # only consider the highest ranked cluster in the average
+                    # position. divide the value in clusterpos by the total
+                    # number of lists which have a match in them
+                    first = False
+                    clusterpos.append(i+1) # position of the matched cluster
+                    totaldistinct += 1
+                if (i == 0):
+                    topmatchingscores.append(scores[i])
+                    topmatches +=1
+                if (i > 0):
+                    matchingscores.append(scores[i])
+                totalmatches += 1
+            elif (pos == 0):
+                if (i == 0):
+                    topnonmatchingscores.append(scores[i])
+                else:
+                    nonmatchingscores.append(scores[i])
+
+    results['top_matches'] = topmatches
+    results['total_present'] = len(data['cluster_inobb']) - len(list(filter(lambda x: x[0] == -1, data['cluster_inobb'])))
+    if (results['total_present'] > 89):
+        print(results['total_present'])
+        sys.exit(0)
+    if (len(data['cluster_inobb']) < 80):
+        print(len(data['cluster_inobb']))
+        print("========== ERROR ==========")
+
+    results['total_clouds'] = len(data['cluster_inobb'])
+    results['cluster_pos_avg'] = statistics.mean(clusterpos) if len(matchingscores) != 0 else -1
+    results['cluster_pos_std'] = statistics.stdev(clusterpos) if len(matchingscores) > 1 else -1
+    results['matching_score_avg'] = statistics.mean(matchingscores) if len(matchingscores) != 0 else -1
+    results['matching_score_std'] = statistics.stdev(matchingscores) if len(matchingscores) > 1 else -1
+    results['top_matching_score_avg'] = statistics.mean(topmatchingscores) if len(topmatchingscores) != 0 else -1
+    results['top_matching_score_std'] = statistics.stdev(topmatchingscores) if len(topmatchingscores) > 1 else -1
+    results['nonmatching_score_avg'] = statistics.mean(nonmatchingscores) if len(nonmatchingscores) != 0 else -1
+    results['nonmatching_score_std'] = statistics.stdev(nonmatchingscores) if len(nonmatchingscores) > 1 else -1
+    results['top_nonmatching_score_avg'] = statistics.mean(topnonmatchingscores) if len(topnonmatchingscores) != 0 else -1
+    results['top_nonmatching_score_std'] = statistics.stdev(topnonmatchingscores) if len(topnonmatchingscores) > 1 else -1
+    results['total_cluster_matches'] = totalmatches
+    results['total_distinct_matches'] = totaldistinct
+
+    toppoints = []
+    points = []
+    for clist in data['cluster_points']:
+        toppoints.append(clist[0])
+        points += clist[1:]
+        
+    results['cluster_points_avg'] = statistics.mean(points) if len(points) != 0 else -1
+    results['cluster_points_std'] = statistics.stdev(points) if len(points) > 1 else -1
+    results['cluster_points_top_avg'] = statistics.mean(toppoints)
+    results['cluster_points_top_std'] = statistics.stdev(toppoints)
+    results['hough_votes'] = int(statistics.mean(data['hough_votes'])) # should always be the same
+    results['hough_points_avg'] = statistics.mean(data['nonzero_hough'])
+    results['hough_points_std'] = statistics.stdev(data['nonzero_hough'])
+    results['region_points_avg'] = statistics.mean(data['boxpts'])
+    results['region_points_std'] = statistics.stdev(data['boxpts'])
+    results['region_votes_avg'] = statistics.mean(data['boxvotes'])
+    results['region_votes_std'] = statistics.stdev(data['boxvotes'])
+    results['region_max_points_avg'] = statistics.mean(data['maxboxpts'])
+    results['region_max_points_std'] = statistics.stdev(data['maxboxpts'])
+    results['region_max_votes_avg'] = statistics.mean(data['maxboxvotes'])
+    results['region_max_votes_std'] = statistics.stdev(data['maxboxvotes'])
+
     return results
 
+# restype should be time, cluster, votes, matches
+def write_result(openfile, result, restype, prefix='', header=False):
+    lines = ""
+    if (restype == "time"):
+        if (header):
+            lines += ("& " if prefix else "") + "querytime & houghtime & clustertime \\\n"
+
+        lines += "" if (prefix == '') else (prefix + " & ")
+        lines += "%.4f" % result['query_time_mean'] + "\pm" + "%.4f" % result['query_time_std'] + " & "
+        lines += "%.4f" % result['hough_time_mean'] + "\pm" + "%.4f" % result['hough_time_std'] + " & "
+        lines += "%.4f" % result['cluster_time_mean'] + "\pm" + "%.4f" % result['cluster_time_std'] + "\\\\\n"
+    elif (restype == "matches"):
+        if (header):
+            lines += ("& " if prefix else "") + "top matches & total distinct & total matches & total present & total clusters & total clouds & avg rank & top matching score & matching score & top nonmatching score & nonmatching score\\\n"
+
+        lines += "" if (prefix == '') else (prefix + " & ")
+        lines += str(result['top_matches']) + " & "
+        lines += str(result['total_distinct_matches']) + " & "
+        lines += str(result['total_cluster_matches']) + " & "
+        lines += str(result['total_present']) + " & "
+        lines += str(result['total_clusters']) + " & "
+        lines += str(result['total_clouds']) + " & "
+        lines += "%.1f" % result['cluster_pos_avg'] + "\pm" + "%.1f" % result['cluster_pos_std'] + " & "
+        lines += "%.1f" % result['top_matching_score_avg'] + "\pm" + "%.1f" % result['top_matching_score_std'] + " & "
+        lines += "%.1f" % result['matching_score_avg'] + "\pm" + "%.1f" % result['matching_score_std'] + " & "
+        lines += "%.1f" % result['top_nonmatching_score_avg'] + "\pm" + "%.1f" % result['top_nonmatching_score_std'] + " & "
+        lines += "%.1f" % result['nonmatching_score_avg'] + "\pm" + "%.1f" % result['nonmatching_score_std'] + "\\\\\n"
+
+        
+    openfile.write(lines)
+
+# expect features to be a dict containing four interest type keys which have a
+# result set attached
+def write_subset(openfile, features, typetowrite):
+    header = True
+    for interest in features:
+        if (not features[interest]):
+            continue
+        write_result(openfile, features[interest], typetowrite, interest, header)
+        header = False
+    
+def output_processed_data(fdir, processed):
+    objects = set()
+    features = set()
+    interests = set()
+    for p in processed:
+        objects.add(p['objlabel'])
+        features.add(p['feature'])
+        interests.add(p['interest'])
+
+    # group all data associated with a single object
+    objdict = {}
+    for obj in objects:
+        objdict[obj] = {} # each key of the dict contains another dict
+        for feature in features:
+            # the sub-dicts are for files containing data corresponding to a
+            # given feature for the current object. each is also a dict
+            objdict[obj][feature] = {}
+            for interest in interests:
+                matches = [x for x in processed if x['objlabel'] == obj and x['feature'] == feature and x['interest'] == interest]
+                objdict[obj][feature][interest] = matches[0] if len(matches) != 0 else {}
+    
+    for obj in objdict:
+        f = open(fdir + obj + "_results.txt", 'w')
+
+        # current object dict
+        thisobj = objdict[obj]
+        for ft in objdict[obj]:
+            thisfeature = thisobj[ft]
+            f.write(ft + "\n")
+            write_subset(f, thisfeature, "matches")
+                
+    
+def process_multiple(outdir, args):
+    # first, get the data out of the files and into a useful form
+    data = []
+    for fname in args:
+        print(fname)
+        data.append(get_data(fname))
+
+    # process the data, extracting useful information from all of the results
+    # lines
+    processed = []
+    for d in data:
+        processed.append(process_data(d))
+
+    output_processed_data(outdir + "/", processed)
+        
 def main():
     switch = sys.argv[1]
-    args = map(os.path.abspath,sys.argv[2:])
+    args = list(map(os.path.abspath,sys.argv[2:]))
 
     if (switch == "-s"): 
         get_data(args[0])
-    elif (switch == "-m"):
-        results = []
-        for fname in args:
-            results.append(get_data(fname))
-
-
-        houghhist_mu = []
-        houghhist_std = []
-        for res in results:
-            houghhist_mu.append(res['hough_hist_mean'])
-            houghhist_std.append(res['hough_hist_std'])
-
-        print(multiple_hist_to_gnuplot(houghhist_mu, houghhist_std))
+    elif (switch == "-m"): # the first arg in the remaining args is the output location
+        process_multiple(args[0], args[1:])
     else:
         print("Must provide argument to define what action to perform.")
         return

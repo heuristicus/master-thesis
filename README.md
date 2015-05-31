@@ -198,3 +198,9 @@ This command is similar to the above, but instead groups by interest point selec
 Finally, this command can be used to create files which contain only information about the timings for interest point selection.
 
     python scripts/features/featureprocess.py -al . `find . -regex .*.txt | xargs echo`
+
+## Query Data
+For a single directory containing query results, with directories for different
+object types, can use the following to output results to the current directory
+
+    python3 $scr/query/process_results.py -m . `find . -regex .*[0-9].txt`

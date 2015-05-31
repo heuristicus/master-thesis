@@ -2074,6 +2074,30 @@ will be using those to evaluate the final output of the system.
 \newpage
 \section{Object Query}
 \label{queryexp}
+The final set of experiments we have performed examine the effectiveness of the
+retrieval process relative to the parameter settings used for the query and
+preprocessing steps, as well as for different descriptors and interest point
+selection methods. The query objects we have selected were chosen based on the
+number of appearances in the dataset, as well as the size and quality of the
+object clouds. Several of the objects in the set are quite small, and while we
+would have liked to include these, during preliminary tests we decided that the
+quality of the clouds was not good enough to allow a reasonable description of
+the object to be computed. The objects that we have selected are shown in
+Figure~\ref{fig:queryobj}. For each object, we created a downsampled version to
+match the downsampling applied to the room clouds which will be used as the
+target clouds. This is partly to ensure that the clouds have similar point
+distributions so that any descriptors extracted will have approximately the same
+number of points in similar regions, but also to avoid problems with slicing
+(Figure~\ref{fig:slicing}). In addition, the original object clouds have a large
+number of points which results in very computationally expensive descriptor
+calculations due to the relative compactness of the objects and the large number
+of points within small regions of space.
+\begin{figure}
+  \centering
+  
+  \caption{Selected query objects, with applied downsampling of 0.01m.}
+  \label{fig:queryobj}
+\end{figure}
 
 \chapter{Conclusion and Further Work}
 \label{chap:conc}
