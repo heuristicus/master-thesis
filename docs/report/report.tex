@@ -1837,6 +1837,130 @@ objects that we have selected are large enough that this radius should give a
 good description of interesting regions, without losing too much of the fine
 detail.
 
+\newpage
+\section{Analysis}
+\begin{figure}
+  \centering
+  \centerline{
+    \subfloat[Default, $N=18076$]{\includegraphics[width=0.4\textwidth]{images/int/uniform_0_05}}
+    \subfloat[$l=0.08,\, N=7340$]{\includegraphics[width=0.4\textwidth]{images/int/uniform_0_08}}\\
+  }
+  \centerline{
+    \subfloat[$l=0.1,\, N=4765$]{\includegraphics[width=0.4\textwidth]{images/int/uniform_0_1}}
+    \subfloat[$l=0.12,\, N=1360$]{\includegraphics[width=0.4\textwidth]{images/int/uniform_0_12}}
+  }
+  \caption{Interest points extracted using uniform method with various voxel
+    dimensions. $N$ indicates the number of points in the cloud.}
+  \label{fig:intuni}
+\end{figure}
+
+Figure~\ref{fig:intuni} shows the interest points extracted with the uniform
+method, with different settings for the voxel dimension parameter. As is to be
+expected, the whole space is covered uniformly with points in all cases. Note
+how points which are mostly surrounded by empty space remain in the interest
+points even through the higher values of the parameter. While these loner points
+generally appear with other methods, there is usually a way to remove such
+points from contention, in particular using non-maximum suppression or nearest
+neighbour checks. We have decided to set the default value to give quite a large
+number of points, as we believe that the only way the uniform method can be
+viable is if there are a large number of descriptors on the object that can be
+matched.
+
+\begin{figure}
+  \centering
+  \centerline{
+    \subfloat[Default, $N=6956$]{\includegraphics[width=0.45\textwidth]{images/int/iss_def}}
+    \subfloat[$n_{\min}=12,\, N=6310$]{\includegraphics[width=0.45\textwidth]{images/int/iss_def_minn12}}
+    \subfloat[$r_s=12R$, $N=6126$]{\includegraphics[width=0.45\textwidth]{images/int/iss_sal12}}\\
+  }
+  \centerline{
+    \subfloat[$r_s=12R,\, r_n=8R,\, N=1345$]{\includegraphics[width=0.45\textwidth]{images/int/iss_sal12_nm8}}
+    \subfloat[$r_s=12R,\, r_n=8R,\, n_{\min}=10,\, N=1293$]{\includegraphics[width=0.45\textwidth]{images/int/iss_sal12_nm8_minn10}}
+    \subfloat[$r_s=4R,\, n_{\min}=2,\, N=30966$]{\includegraphics[width=0.45\textwidth]{images/int/iss_sal4_nm2} \label{subf:salnm2}}
+  }
+  \caption{Interest points extracted using ISS for various parameter settings.
+    $N$ indicates the number of points in the cloud.}
+  \label{fig:intiss}
+\end{figure}
+
+The ISS extraction results (Figure~\ref{fig:intiss}) look quite similar to those
+of the uniform method, but on closer inspection one can see that more points
+have been removed, due to non-maximum suppression. With $n_{\min}=12$, we can
+see that some of the loner points that appear, for example in the right hand
+side of the cloud, have been removed. Adjusting this parameter upwards will tend
+to reduce the number of points in the cloud, while reducing it will tend to
+increase the number of points, or rather, reduce the number of points that are
+removed due to not being close to enough other points. Increasing $r_s$ also
+slightly reduces the number of points, most likely due to the additional points
+considered in the covariance matrix. The largest reduction in point density can
+be achieved by adjusting $r_n$, since this parameter defines the radius within
+which a point must have the maximal third eigenvalue. If the values are set too
+low, then a very large number of points are extracted. In the case of
+Figure~\ref{subf:salnm2}, the neighbour minimum has been set too low and far too
+many points are retained.
+
+\begin{figure}
+  \centering
+  \centerline{
+    \subfloat[Default, $N=3058$]{\includegraphics[width=0.45\textwidth]{images/int/susan_r0_05}}
+    \subfloat[$\theta_t=0.05,\, N=2487$]{\includegraphics[width=0.45\textwidth]{images/int/susan_r0_05_at0_05}}
+    \subfloat[$\theta_t=0.1,\, N=2106$]{\includegraphics[width=0.45\textwidth]{images/int/susan_r0_05_at0_1}}\\
+  }
+  \centerline{
+%    \subfloat[$\theta_t=1$]{\includegraphics[width=0.45\textwidth]{images/int/susan_r0_05_at1}}
+    \subfloat[$I_t=30,\, N=2032$]{\includegraphics[width=0.45\textwidth]{images/int/susan_r0_05_it30}}
+    \subfloat[$r_m=0.08,\, N=1217$]{\includegraphics[width=0.45\textwidth]{images/int/susan_r0_08}}
+    \subfloat[$r_m=0.1,\, N=791$]{\includegraphics[width=0.45\textwidth]{images/int/susan_r0_1}}\\
+  }
+  \caption{Interest points extracted using SUSAN for various parameter settings.
+  $N$ indicates the number of points in the cloud.}
+  \label{fig:intsusan}
+\end{figure}
+
+SUSAN is more selective than ISS (Figure~\ref{fig:intsusan}). The effect of
+$\theta_t$ is most clearly visible in the bottom right region, where with the
+default setting there is a region with quite a few points on a plane. With an
+increased angular threshold, these points are removed. This is caused by a
+larger number of points ending up in the USAN, causing it to be removed from
+consideration due to failing neighbourhood check. A similar effect is seen with
+an increased intensity threshold. This is the first clear example of the removal
+of uninteresting points from consideration, and in this case quite effectively
+removes some planes which were not removed in preprocessing. As with the other
+methods, increasing the radius used reduces the number of points in the end
+result.
+
+\begin{figure}
+  \centering
+  \centerline{
+    \subfloat[Default $N=820$]{\includegraphics[width=0.45\textwidth]{images/int/sift_ms0_04}}
+    \subfloat[$o=2,\, N=751$]{\includegraphics[width=0.45\textwidth]{images/int/sift_ms0_04_oc2}}
+    \subfloat[$o_s=3,\, N=557$]{\includegraphics[width=0.45\textwidth]{images/int/sift_ms0_04_os3}}\\
+  }
+  \centerline{
+    \subfloat[$S_{\min}=0.01,\, N=11543$]{\includegraphics[width=0.45\textwidth]{images/int/sift_ms0_01}}
+    \subfloat[$S_{\min}=0.02,\, N=3040$]{\includegraphics[width=0.45\textwidth]{images/int/sift_ms0_02}}
+    \subfloat[$S_{\min}=0.03,\, N=1411$]{\includegraphics[width=0.45\textwidth]{images/int/sift_ms0_03}}
+  }
+  \caption{Interest points extracted using SIFT for various parameter settings.
+    $N$ indicates the number of points in the cloud.}
+  \label{fig:intsift}
+\end{figure}
+
+SIFT is the most selective method, but as seen in Figure~\ref{fig:intsift}, its
+selectivity is greatly affected the value of $S_{\min}$. Doubling this value has
+a large effect on the range of scales that are examined by the method. Since
+each octave doubles the scale, with $o=4$, going from $S_{\min}=0.01$ to
+$S_{\min}=0.02$ changes the scale range from $\left[0.01,0.08\right]$ to
+$\left[0.02,0.16\right]$. Points must be descriptive in multiple scales in order
+for them to be included in the final set, and so as the minimum scale increases,
+the number of points that remain is reduced. Changing the number of scales per
+octave also reduces the number of points extracted, as there are fewer scales at
+which a point can be the maximum between the scale above and below it. We have
+opted for a relatively high $S_{\min}$ so as to have a similar value to the
+radii of other methods. Since the method is well known for its effectiveness, we
+should also be able to observe whether we can use small numbers of points that
+are supposedly very discriminative to retrieve objects.
+
 \begin{figure}
   \centering
   \subfloat[0.01m]{\includegraphics[width=0.8\textwidth]{images/interest_points_0,01}}\\
@@ -1848,7 +1972,6 @@ detail.
   \label{fig:interest_points}
 \end{figure}
 
-\section{Analysis}
 Figure~\ref{fig:interest_points} shows the number of points that are extracted
 by the various selection methods relative to the size of the input cloud. As we
 would expect, the uniform selection method uses by far the most points to
@@ -1868,39 +1991,6 @@ uniform method, and depending on the downsampling value, slightly more selective
 than ISS. The fewest points are extracted by SIFT, which does much more pruning
 of points using the difference of Gaussians and the various scales that it
 applies.
-
-\begin{figure}
-  \centering
-  \centerline{
-    \subfloat[Default]{\includegraphics[width=0.45\textwidth]{images/int/iss_def}}
-    \subfloat[$n_{\min}=12$]{\includegraphics[width=0.45\textwidth]{images/int/iss_def_minn12}}
-    \subfloat[$r_s=12R$]{\includegraphics[width=0.45\textwidth]{images/int/iss_sal12}}\\
-  }
-  \centerline{
-    \subfloat[$r_s=12R,\, r_n=8R$]{\includegraphics[width=0.45\textwidth]{images/int/iss_sal12_nm8}}
-    \subfloat[$r_s=12R,\, r_n=8R,\, n_{\min}=10 $]{\includegraphics[width=0.45\textwidth]{images/int/iss_sal12_nm8_minn10}}
-    \subfloat[$r_s=4R,\, n_{\min}=2$]{\includegraphics[width=0.45\textwidth]{images/int/iss_sal4_nm2}}
-  }
-  \caption{Interest points extracted using ISS for various parameter settings.}
-  \label{fig:issparam}
-\end{figure}
-
-\begin{figure}
-  \centering
-  \centerline{
-    \subfloat[Default]{\includegraphics[width=0.45\textwidth]{images/int/sift_ms0_04}}
-    \subfloat[$S_{\min}=0.01$]{\includegraphics[width=0.45\textwidth]{images/int/sift_ms0_01}}
-    \subfloat[$S_{\min}=0.02$]{\includegraphics[width=0.45\textwidth]{images/int/sift_ms0_02}}\\
-  }
-  \centerline{
-    \subfloat[$S_{\min}=0.03$]{\includegraphics[width=0.45\textwidth]{images/int/sift_ms0_03}}
-    \subfloat[$S_{\min}=0.03,\, o=2$]{\includegraphics[width=0.45\textwidth]{images/int/sift_ms0_03_oc2}}
-    \subfloat[$S_{\min}=0.03,\, o_s=3$]{\includegraphics[width=0.45\textwidth]{images/int/sift_ms0_03_os3}}
-  }
-  \caption{Interest points extracted using SIFT for various parameter settings.}
-  \label{fig:intparam}
-\end{figure}
-
 
 Figure~\ref{fig:interest_agg} shows the time taken by the various interest point
 methods to extract interest points, relative to the number of interest points to
@@ -1981,9 +2071,10 @@ methods. We have computed all combinations of features and interest point
 methods for several of the parameter settings in the preprocessing step, and
 will be using those to evaluate the final output of the system.
 
+\newpage
 \section{Object Query}
-
 \label{queryexp}
+
 \chapter{Conclusion and Further Work}
 \label{chap:conc}
 Describe what the project was about, what was achieved, summarise the

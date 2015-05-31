@@ -358,7 +358,6 @@ namespace objsearch {
 		pcl::transformPointCloud(*cloud, *transformed, bboxes[i].transformInverse);
 
 		std::string currentLabel = annotations[i].label;
-		ROS_INFO("Transformed cloud size is %d", (int)transformed->size());
 		for (size_t j = 0; j < transformed->size(); j++) {
 		    if (bboxes[i].contains(transformed->points[j], true)){
 			indices.push_back(j);
@@ -1025,7 +1024,6 @@ void ObjectQuery::postProcess(const pclutil::Grid3D& grid,
 		
 		return;
 	    }
-	    ROS_INFO("Indices size: %d", (int)indices.size());
 
 	    // check whether cluster centres are in the obb
 	    std::string inOBB;
@@ -1043,13 +1041,7 @@ void ObjectQuery::postProcess(const pclutil::Grid3D& grid,
 	    info.votesMaxInBox = 0;
 	    std::vector<int> boxHistogram(maxPoints[0].second + 1);
 	    std::vector<int> boxMaxHistogram(maxPoints[0].second + 1);
-	    ROS_INFO("Cell indices size %d", (int)cellIndices.size());
-	    for (size_t i = 0; i < cellIndices.size(); i++) {
-		ROS_INFO("Index %d: %d", (int)i, cellIndices[i]);
-	    }
-
 	    for (size_t i = 0; i < indices.size(); i++) {
-		ROS_INFO("Checking index %d, value is %d", (int)i, indices[i]);
 		int gridIndex;
 		int gridIndValue;
 		try {
@@ -1057,7 +1049,7 @@ void ObjectQuery::postProcess(const pclutil::Grid3D& grid,
 		    gridIndValue = grid.at(gridIndex);
 		} catch (sysutil::objsearchexception& e) {
 		    ROS_INFO("%s", e.what());
-		    exit(1);
+		    continue;
 		}
 		info.votesInBox += gridIndValue;
 		boxHistogram[gridIndValue]++;

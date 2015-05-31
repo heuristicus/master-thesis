@@ -1,9 +1,9 @@
 #!/bin/bash
 
-querybase="/home/michal/Downloads/pcddata/processed/query/queryobjects/0,01"
-base="/media/michal/Pauli/masterdata/processed/annotated"
+querybase="/home/michal/Downloads/pcddata/processed/query/queryobjects/0,02"
+base="/media/michal/Pauli/masterdata/processed/paramtest"
 outbase="/home/michal/Downloads/pcddata/processed/query/k10_mx400_t0,2"
-dirs="dt0,02_mp8000_pp0,001" #iter50 iter500 nr0_04 ds0_02mp_4500 ds0,015_mp9000
+dirs="ds0_02mp_4500" #iter50 iter500 nr0_04 ds0,015_mp9000 dt0,02_mp8000_pp0,001
 features="shot shotcolor pfh fpfh pfhrgb"
 fselect="uniform iss susan"
 objects="top_couch_jacket2 chair1 trash_bin backpack2 hanger_jacket laptop1 pillow"
@@ -14,7 +14,7 @@ tol=0.2
 var=0
 for dir in $dirs; do
     echo $dir
-    dt=`echo $dir | sed 's/,//'`
+    dt=`echo $dir | sed 's/,//g'`
     for obj in $objects; do
 	for selection in $fselect; do
     	    for ftype in $features; do
