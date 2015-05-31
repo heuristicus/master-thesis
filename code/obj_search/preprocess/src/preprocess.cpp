@@ -562,7 +562,8 @@ namespace objsearch {
 		= pclutil::getRawAnnotatedClouds<pcl::PointXYZRGB>(cloudDir_);
 	    pcl::PointCloud<pcl::Normal>::Ptr normalCloud(new pcl::PointCloud<pcl::Normal>());
 	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformedCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-
+	    pcl::PointCloud<pcl::PointXYZRGB>::Ptr downsampledCloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+	    
 	    pcl::VoxelGrid<pcl::PointXYZRGB> sor;
 	    for (size_t i = 0; i < annotations.size(); i++) {
 		ROS_INFO("%s", annotations[i].fname.c_str());
@@ -571,12 +572,12 @@ namespace objsearch {
 		sor.setInputCloud(annotations[i].cloud);
 		sor.setLeafSize(downsampleLeafSize_, downsampleLeafSize_,
 				downsampleLeafSize_);
-		sor.filter(*(annotations[i].cloud));
+		sor.filter(*downsampledCloud);
 	
 		// annotations start off in the same frame as the complete
 		// cloud, so just apply the same transform as is applied to
 		// everything else
-		pcl_ros::transformPointCloud(*(annotations[i].cloud), *transformedCloud, cloudTransform);
+		pcl_ros::transformPointCloud(*downsampledCloud, *transformedCloud, cloudTransform);
 		// also need to compute the normals so that the annotated
 		// clouds can have features computed from them
 		computeNormals(transformedCloud, normalCloud, cloudTransform, normalRadiusFeature_);
@@ -593,7 +594,7 @@ namespace objsearch {
 		// the cloud input is intermediate or the complete cloud
 		writer.write<pcl::PointXYZRGB>(sysutil::fullDirPath(outPath_) + 
 					       base + "_" + annotations[i].label + ".pcd",
-					       *(transformedCloud), true);
+					       *transformedCloud, true);
 		// also write the clouds of normals for annotations
 		writer.write<pcl::Normal>(sysutil::fullDirPath(outPath_) + 
 					  base + "_" + annotations[i].label + "_normals.pcd",
