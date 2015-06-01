@@ -4,6 +4,8 @@
 \usepackage[backend=bibtex]{biblatex}
 \usepackage{pdflscape}
 \usepackage{rotating}
+\usepackage{float}
+\usepackage{multirow}
 % \usepackage[top=1cm]{geometry}
 \usepackage{subfig}
 \usepackage{amsmath}
@@ -186,8 +188,8 @@ methods in the area, which approach the problem from different starting points.
       \includegraphics[height=0.3\textheight]{images/supervoxel_comb}
     }
   }
-    \caption{Examples of 2D and 3D superpixel segmentations}
-    \label{fig:meanshift}
+  \caption{Examples of 2D and 3D superpixel segmentations}
+  \label{fig:meanshift}
 \end{figure}
 
 Superpixel clustering is the most common technique used for segmenting images.
@@ -272,7 +274,7 @@ The SUSAN detector \cite{smith1997susan} uses sub-regions of circular masks
 placed on an image to define a value for the intensity variation in a region.
 This method is extended to 3D by combining normal direction variation with
 intensity variation and using a spherical mask.
- 
+
 A multi-scale signature defined by the heat diffusion properties of objects 
 called the Heat Kernel Signature (HKS) \cite{sun2009concise} is used in
 \cite{ovsjanikov2009shape} to retrieve shapes. The method is applied to meshes
@@ -489,7 +491,7 @@ of the rays is divided into segments, with a binary value associated with each
 segment depending on whether the segment is inside or outside the protein. To
 compare the descriptor, a rotation is applied to match the rays, and a volume of
 overlap is computed based on matching bits in the rays.
- 
+
 \begin{figure}
   \centering
   \subfloat[]{
@@ -507,7 +509,7 @@ overlap is computed based on matching bits in the rays.
   \caption{Examples of the measures used to construct the Ensemble of Shape
     Functions histograms of \cite{wohlkinger2011ensemble}. a) Distance between
     points. b) Whether the points are on or off the model, or mixed. c) Ratio of
-  line segments on and off the surface of the model. d) Angle between pairs of lines.}
+    line segments on and off the surface of the model. d) Angle between pairs of lines.}
   \label{fig:wohlESF}
 \end{figure}
 
@@ -611,9 +613,9 @@ the descriptor, interest points at different scales can be selected
 %   \centering
 %   \subfloat[Conformal factors. High value indicates high required deformation to
 %   sphere \cite{ben2008characterizing}.]{
-%     \includegraphics[width=0.48\textwidth]{images/conformal.png}
-%     \label{fig:conform}
-%   }
+%   \includegraphics[width=0.48\textwidth]{images/conformal.png}
+%   \label{fig:conform}
+% }
 %   \caption{Model matching approaches}
 %   \label{fig:modelmatch}
 % \end{figure}
@@ -759,9 +761,6 @@ not care about smaller objects, then even with a lower resolution the results
 should still be satisfactory. However, a lower resolution likely means that it
 will be necessary to look at larger regions of space in order to describe
 points. We will investigate the effects of this in chapter~\ref{chap:exp}.
-
-Show some of the objects which are made up of slices due to viewing angle -
-downsampling can reduce this slicing effect.
 
 \begin{figure}
   \centering
@@ -920,13 +919,6 @@ surfaces, so in these regions the normal will have a higher influence on the
 aggregate distance $D_a$, whereas in regions of high curvature the euclidean
 distance will be more important. Inliers are points where $D_a<T$.
 
-\begin{figure}
-  \centering
-  
-  \caption{RANSAC with basic plane model and with plane-normal model.}
-  \label{fig:planenormal}
-\end{figure}
-
 When extracting planes, we use several parameters in addition to the aggregate
 distance threshold $T$ to tweak the behaviour. The main aim of the additional
 parameters is to prevent planes which are too small from being extracted. We
@@ -941,7 +933,28 @@ clouds, a suitable range of values is $\left[0.02,0.05\right]$.
 $N_{\text{trim}}$ is the number of points in the trimmed cloud.
 $N_{\text{fixed}}$ is a fixed value. We choose the maximum of the two values to
 ensure that fluctuations in the cloud size are compensated for.
+\newpage
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.49\textwidth]{images/normals_comb}
+  \caption{Example of the smoothing effect of normal estimation radius. From
+    bottom to top, 0.01, 0.025, 0.5, 0.2, 0.25, 0.5cm radius. Normals are
+    indicated by orange lines. Note the tendency of normals with higher radius
+    to tilt as they approach the corner. Normals on the top section are slightly
+    skewed due to perspective.}
+  \label{fig:normal_corner}
+\end{figure}
 
+
+\begin{figure}[H]
+  \centering
+  \subfloat[Plane model]{\includegraphics[width=0.49\textwidth]{images/plane_nonorm}}
+  \subfloat[Plane-normal model]{\includegraphics[width=0.49\textwidth]{images/plane_withnorm}}
+  \caption{RANSAC with basic plane model and with plane-normal model. Notice the
+    horizontal planes extracted in the basic model, and the extraction of the
+    couch in the bottom left which is not very plane-like.}
+  \label{fig:planenormal}
+\end{figure}
 \section{Normal Estimation}
 In this step, normals are estimated for each point in the cloud. The normal at a
 point is the vector which is perpendicular to the curvature of the surface at
@@ -968,30 +981,21 @@ shows an example of the effect of different neighbourhood sizes on the results.
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.49\textwidth]{images/normals_comb}
-  \caption{Example of the smoothing effect of normal estimation radius. From
-    bottom to top, 0.01, 0.025, 0.5, 0.2, 0.25, 0.5cm radius. Normals are
-    indicated by orange lines. Note the tendency of normals with higher radius
-    to tilt as they approach the corner. Normals on the top section are slightly
-    skewed due to perspective.}
-  \label{fig:normal_corner}
+  \subfloat[0.02]{\includegraphics[width=0.49\textwidth]{images/plane_normal_0,02}}
+  \subfloat[0.04]{\includegraphics[width=0.49\textwidth]{images/plane_normal_0,04}}\\
+  \subfloat[0.06]{\includegraphics[width=0.49\textwidth]{images/plane_normal_0,06}}
+  \subfloat[0.08]{\includegraphics[width=0.49\textwidth]{images/plane_withnorm}}
+  \caption{Planes extracted with different settings for the normal radius.
+    Notice in particular the improved extraction of the back wall as normal
+    radius increases.}
+  \label{fig:plane_normrad}
 \end{figure}
-
-Include figure with annotation objects with different normal radius
 
 During preprocessing we compute two different sets of normals using different
 settings for the radius. One set is for use with plane extraction, which has a
 higher value for the radius, somewhat mitigating the effect of noise on the
 normals, and resulting in less patchy extraction of planes
 (Figure~\ref{fig:plane_normrad}).
-
-\begin{figure}
-  \centering
-  
-  \caption{Planes extracted with different settings for the normal radius}
-  \label{fig:plane_normrad}
-\end{figure}
-
 \chapter{Interest Point Selection}
 \label{chap:interest}
 Once the preprocessing step has been completed, we can move on to computing
@@ -1191,6 +1195,16 @@ of the normals in the neighbourhood. The response at the point is then computed
 by combining the determinant and trace of the matrix. The resulting responses
 for each point are then thinned using non-maximum suppression, and the remaining
 points are the interest points.
+
+\begin{figure}
+  \centering
+  \subfloat[Uniform]{\includegraphics[width=0.49\textwidth]{images/uniform_points}}
+  \subfloat[ISS]{\includegraphics[width=0.49\textwidth]{images/iss_points}}\\
+  \subfloat[SUSAN]{\includegraphics[width=0.49\textwidth]{images/susan_points}}
+  \subfloat[SIFT]{\includegraphics[width=0.49\textwidth]{images/sift_points}}
+  \caption{Examples of results of different plane extraction methods.}
+  \label{fig:planemethod}
+\end{figure}
 \chapter{Descriptor Extraction}
 \label{chap:descriptors}
 In this step, we compute descriptors at each of the locations that was selected
@@ -1239,7 +1253,7 @@ eigenvalue decomposition of a special scatter matrix $M$
 \end{equation}
 where $R$ is the radius used to define the neighbourhood used to compute the
 descriptor, $\mathbf{p}$ is the point at which the feature is to be computed,
-$\mathbf{p}_i$ is another point in the cloud, and $d_i$ is the euclidean
+$\mathbf{p}_i$ is another point in the cloud, and $d_i$ is the eclidean
 distance between $\mathbf{p}_i$ and $\mathbf{p}$.
 
 The addition made by the authors to previous work is to use a weighted linear
@@ -1357,7 +1371,7 @@ computation can be slow.
 \section{FPFH}
 The fast point feature histogram was introduced to tailor the PFH descriptor to
 real time applications while maintaining its discriminative power
-\cite{rusu2009fast}. Instead of computing the values in Equation~\eqref{eq:19}
+\cite{rusu2009fast}. Instead of computing the values in \eqref{eq:19}
 for every pair of points in the neighbourhood of $r$, they are only computed for
 each point and its $k$ neighbours $p_k$ within the same radius --- this is
 called the simplified point feature histogram (SPFH). Because of the use of two
@@ -1379,7 +1393,7 @@ addition, due to the nature of the computation, the values for some points will
 be factored into the descriptor twice.
 
 A further improvement made by the authors is a modification of the way the
-histogram is populated. Instead of using Equation~\eqref{eq:21} to index into
+histogram is populated. Instead of using \eqref{eq:21} to index into
 an array where a single index indicates certain value ranges for all the
 features, they use separate histograms for each feature and concatenate them.
 In the original case, there might be a large number of indices which do not
@@ -1389,7 +1403,7 @@ which do not contain any information.
 \section{PFHRGB}
 An extension of the original PFH descriptor, this version also takes into
 account RGB values of points when computing features. This adds three features
-to the four from Equation~\eqref{eq:20}. The computation is simple, taking the
+to the four from \eqref{eq:20}. The computation is simple, taking the
 ratio of colour values between the two points $p_s$ and $p_t$ and ensuring that
 they are in the interval $\left[-1,1\right]$.
 \begin{align}
@@ -1444,8 +1458,33 @@ the system.
 
 \begin{figure}
   \centering
-  
-  \caption{Slicing effect}
+  \subfloat[Chair]{
+    \begin{tabular}{c}
+      \includegraphics[width=0.2\textwidth]{images/annotations/slices/chair_front}\\
+      \includegraphics[width=0.2\textwidth]{images/annotations/slices/chair_side}
+    \end{tabular}
+  }
+  \subfloat[Backpack]{
+    \begin{tabular}{c}
+      \includegraphics[width=0.2\textwidth]{images/annotations/slices/backpack_front}\\
+      \includegraphics[width=0.2\textwidth]{images/annotations/slices/backpack_side}
+    \end{tabular}
+  }
+  \subfloat[Jacket]{
+    \begin{tabular}{c}
+      \includegraphics[width=0.2\textwidth]{images/annotations/slices/hanger_jacket_front}\\
+      \includegraphics[width=0.2\textwidth]{images/annotations/slices/hanger_jacket_side}
+    \end{tabular}
+  }
+  \subfloat[Trash bin]{
+    \begin{tabular}{c}
+      \includegraphics[width=0.2\textwidth]{images/annotations/slices/trash_bin_front}\\
+      \includegraphics[width=0.2\textwidth]{images/annotations/slices/trash_bin_side}
+    \end{tabular}
+  }
+  \caption{Slicing effect on unprocessed annotation clouds. With a slight
+    rotation, an initially complete-looking cloud shows its
+    flaws.}
   \label{fig:slicing}
 \end{figure}
 
@@ -1495,6 +1534,9 @@ only the $N$ points which have the highest number of votes, and cluster those.
 If, as we would hope, most of the points with high numbers of votes correspond
 to the same object, then they are likely to be in the same spatial region, and
 can therefore be extracted by the clustering.
+
+If no clusters are found, then we use the maximum point in the voting space as a
+cluster of a single point.
 
 \begin{algorithm}
   \DontPrintSemicolon
@@ -1562,7 +1604,7 @@ some non-planar structure, which are most likely to be objects.
 
 Several settings affect the result of preprocessing. The distance threshold $d$
 defines the threshold below which points are considered to be part of the plane
-model. The distance is computed according to Equation~\eqref{eq:6}. Another
+model. The distance is computed according to \eqref{eq:6}. Another
 important parameter that affects RANSAC directly is the number of iterations
 $N$. Because of the random sampling, it is possible to be unlucky with the point
 selections made, so retrying only a few times can result in the planes that are
@@ -1907,13 +1949,13 @@ many points are retained.
     \subfloat[$\theta_t=0.1,\, N=2106$]{\includegraphics[width=0.45\textwidth]{images/int/susan_r0_05_at0_1}}\\
   }
   \centerline{
-%    \subfloat[$\theta_t=1$]{\includegraphics[width=0.45\textwidth]{images/int/susan_r0_05_at1}}
+    % \subfloat[$\theta_t=1$]{\includegraphics[width=0.45\textwidth]{images/int/susan_r0_05_at1}}
     \subfloat[$I_t=30,\, N=2032$]{\includegraphics[width=0.45\textwidth]{images/int/susan_r0_05_it30}}
     \subfloat[$r_m=0.08,\, N=1217$]{\includegraphics[width=0.45\textwidth]{images/int/susan_r0_08}}
     \subfloat[$r_m=0.1,\, N=791$]{\includegraphics[width=0.45\textwidth]{images/int/susan_r0_1}}\\
   }
   \caption{Interest points extracted using SUSAN for various parameter settings.
-  $N$ indicates the number of points in the cloud.}
+    $N$ indicates the number of points in the cloud.}
   \label{fig:intsusan}
 \end{figure}
 
@@ -2092,17 +2134,338 @@ number of points in similar regions, but also to avoid problems with slicing
 number of points which results in very computationally expensive descriptor
 calculations due to the relative compactness of the objects and the large number
 of points within small regions of space.
+
 \begin{figure}
   \centering
-  
-  \caption{Selected query objects, with applied downsampling of 0.01m.}
+  \centerline{
+    \subfloat[Trash bin]{
+      \begin{tabular}{c}
+        \includegraphics[width=0.2\textwidth]{images/query_trash_bin_front}\\
+        \includegraphics[width=0.2\textwidth]{images/query_trash_bin_side}
+      \end{tabular}
+    }
+    \subfloat[Chair 1]{
+      \begin{tabular}{c}
+        \includegraphics[width=0.2\textwidth]{images/query_chair1_front}\\
+        \includegraphics[width=0.2\textwidth]{images/query_chair1_side}
+      \end{tabular}
+    }
+    \subfloat[Pillow]{
+      \begin{tabular}{c}
+        \includegraphics[width=0.2\textwidth]{images/query_pillow_front}\\
+        \includegraphics[width=0.2\textwidth]{images/query_pillow_side}
+      \end{tabular}
+    }
+    \subfloat[Hanger Jacket]{
+      \begin{tabular}{c}
+        \includegraphics[width=0.2\textwidth]{images/query_hanger_jacket_front}\\
+        \includegraphics[width=0.2\textwidth]{images/query_hanger_jacket_side}
+      \end{tabular}
+    }\\
+  }
+  \centerline{
+    \subfloat[Backpack 2]{
+      \begin{tabular}{c}
+        \includegraphics[width=0.2\textwidth]{images/query_backpack2_front}\\
+        \includegraphics[width=0.2\textwidth]{images/query_backpack2_side}
+      \end{tabular}
+    }
+    \subfloat[Laptop 1]{
+      \begin{tabular}{c}
+        \includegraphics[width=0.2\textwidth]{images/query_laptop1_front}\\
+        \includegraphics[width=0.2\textwidth]{images/query_laptop1_side}
+      \end{tabular}
+    }
+    \subfloat[Top Couch Jacket 2]{
+      \begin{tabular}{c}
+        \includegraphics[width=0.2\textwidth]{images/query_top_couch_jacket2_front}\\
+        \includegraphics[width=0.2\textwidth]{images/query_top_couch_jacket2_side}
+      \end{tabular}
+    }
+    }
+    \caption{Selected query objects, original clouds. These clouds were
+      downsampled to 0.01m, 0.015m and 0.02m for feature computations.}
   \label{fig:queryobj}
 \end{figure}
+
+To gather data about the performance of the system, we use annotations that come
+with each cloud for the objects. If an object is present in a cloud, there is a
+corresponding cloud which has the object extracted from the room scene. Using
+the annotation clouds, we compute an oriented bounding box. This is not an ideal
+method of defining the bounds of an object, as if it is not box shaped, then
+there can be a lot of empty space which can lead to erroneous results, but it is
+an effective method for our purposes as most of the objects we are trying to
+find are relatively compact. Once clusters have been extracted by the system, we
+check their centroids to see if they fall within the bounding box --- if they
+do, we consider this a correct match. Any clusters falling outside the box are
+considered to be non-matching clusters. For the most part this is correct, but
+at least one of the objects has multiple instances in the room. Only one
+instance is annotated, so the bounding box used is from that object, which means
+that even if technically the match is correct, we do not consider it to be
+correct if it does not lie in the bounding box that we have extracted.
+
+The objects we have selected can be seen in Figure~\ref{fig:queryobj}. There is
+variation in size and colour, as well as the shape of the objects.
+
+There are several parameters which directly affect the behaviour of the query
+process, in addition to the effects which come from the type of feature chosen,
+and how the target cloud was preprocessed. First, the number of neighbours $K$
+of query points to check affects the total number of votes in the voting grid in
+the later stages, and also increases the computation time due to more
+comparisons having to be performed.
+
+The length $l$ of the cells in the voting space can also be modified, and
+affects the clustering, as with higher values the points in the space will be
+further away from each other. In addition, the number of votes in each cell will
+be increased. Larger cell size results in a lower resolution voting space, which
+can lead to votes for points that are quite far apart from each other
+contributing to the same cell.
+
+For the voting, we use the $N$ points in the voting space which have the highest
+number of votes. The clustering is also affected by this value, as it allows the
+inclusion of more lower ranked points. This can have an effect on the number of
+clusters, due to new points acting as a bridge for the clustering. This can be
+either positive or negative, connecting two disparate clusters which belong to
+the same object, or two clusters which should actually be distinct. It should
+also increase the number of points in each cluster.
+
+The cluster radius $r$ defines the distance below which points are considered to
+be close to another point. This greatly affects the size of the clusters. With a
+low value, clusters will tend to be smaller, and may split an object into
+several clusters. Higher values result in larger clusters, and can result in the
+clusters of two distinct objects being merged.
+
+Two additional parameters affect the size of clusters directly, by applying
+upper and lower bounds to the size of the clusters. $C_{\min}$ is the lower
+bound, and $C_{\max}$ the upper bound. In general, $N$ is relatively small due
+to the number of votes also being small, so in practice only the lower bound
+comes into play. This serves to remove clusters which are too small to take into
+consideration. We would generally expect a region containing an object to
+contain a reasonable proportion of the top $N$ points, so including even very
+small clusters most likely gives no benefit.
+
+The final parameter is the multiplier on the size of the original object cloud
+that defines how large a region is extracted from the target cloud around the
+centroid of each cluster.
+
+\subsection{Parameter Settings}
+We have used three different parameter settings for our experiments; one default
+setting defined based on observations while developing the system, and two
+others to examine the effect of three parameters that we believe have the
+largest effect on the behaviour of the system.
+\begin{description}
+\item[DEF] The default parameter setting has $K=5$, $l=0.05$, $N=200$, $r=0.2$,
+  $C_{\min}=12$ and $C_{\max}=500$.
+\item[K10R2] For this set, we have set $K=10$, $N=400$. Increasing $K$ increases
+  the number of votes, in this case by a factor of 2 from DEF. Having an
+  increased number might allow more votes from descriptors in the object to be
+  counted, if they happen to be relatively low ranked in terms of the nearest
+  neighbours. Increasing $N$ allows us to potentially make use of additional
+  points that have been generated by the added number of votes.
+\item[K10R25] For this set, we have set $K=10$, $N=400$, and $r=0.25$. Here we
+  should be able to observe the effect of increasing the cluster radius. We
+  expect to receive fewer, larger clusters, perhaps with the effect of reducing
+  the number of separate matches when querying, receiving instead only a single
+  match for the object.
+\end{description}
+
+\subsection{Analysis}
+
+
+\begin{landscape}
+  \begin{table}
+    \begin{tabular}{cc|ccccccccccc}
+      & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
+      \multirow{5}{*}{ISS} & PFHRGB & 53 & 63 & 63 & 78 & 231 & 85 & 1.2$\pm$0.6 & 91.1$\pm$27.4 & 39.1$\pm$10.0 & 53.2$\pm$20.4 & 28.3$\pm$10.4\\
+      &SHOT & 2 & 2 & 2 & 82 & 131 & 89 & 1.0$\pm$0.0 & 8.5$\pm$7.8 & n/a & 14.8$\pm$9.5 & 15.8$\pm$4.0\\
+      &PFH & 2 & 7 & 7 & 79 & 131 & 86 & 1.7$\pm$0.5 & 14.5$\pm$7.8 & 17.2$\pm$2.3 & 20.9$\pm$9.5 & 17.4$\pm$3.7\\
+      &SHOTCOLOR & 13 & 62 & 62 & 82 & 434 & 89 & 2.4$\pm$1.1 & 58.1$\pm$10.8 & 40.3$\pm$10.8 & 64.3$\pm$18.3 & 30.7$\pm$11.8\\
+      &FPFH & 2 & 5 & 5 & 79 & 120 & 86 & 1.8$\pm$0.8 & 11.0$\pm$7.1 & 21.7$\pm$4.7 & 26.8$\pm$16.8 & 20.8$\pm$4.6\\
+      \hline\multirow{5}{*}{SIFT} & PFHRGB & 7 & 7 & 7 & 79 & 86 & 86 & 1.0$\pm$0.0 & 2.0$\pm$0.0 & n/a & 2.3$\pm$0.8 & n/a\\
+      &SHOT & 0 & 0 & 0 & 79 & 86 & 86 & n/a & n/a & n/a & 2.3$\pm$0.8 & n/a\\
+      &PFH & 0 & 0 & 0 & 79 & 86 & 86 & n/a & n/a & n/a & 2.2$\pm$0.6 & n/a\\
+      &SHOTCOLOR & 2 & 2 & 2 & 79 & 86 & 86 & 1.0$\pm$0.0 & 2.0$\pm$0.0 & n/a & 3.0$\pm$1.0 & n/a\\
+      &FPFH & 2 & 2 & 2 & 79 & 86 & 86 & 1.0$\pm$0.0 & 2.0$\pm$0.0 & n/a & 2.4$\pm$0.8 & n/a\\
+      \hline\multirow{5}{*}{SUSAN} & PFHRGB & 31 & 31 & 31 & 79 & 86 & 86 & 1.0$\pm$0.0 & 1.9$\pm$0.5 & n/a & 1.7$\pm$0.5 & n/a\\
+      &SHOT & 2 & 2 & 2 & 79 & 86 & 86 & 1.0$\pm$0.0 & 1.0$\pm$0.0 & n/a & 1.1$\pm$0.3 & n/a\\
+      &PFH & 2 & 2 & 2 & 79 & 86 & 86 & 1.0$\pm$0.0 & 1.0$\pm$0.0 & n/a & 1.5$\pm$0.5 & n/a\\
+      &SHOTCOLOR & 16 & 16 & 16 & 79 & 86 & 86 & 1.0$\pm$0.0 & 1.4$\pm$0.5 & n/a & 1.3$\pm$0.5 & n/a\\
+      &FPFH & 1 & 1 & 1 & 79 & 86 & 86 & 1.0 & 1.0 & n/a & 1.5$\pm$0.5 & n/a\\
+      \hline\multirow{5}{*}{UNIFORM} & PFHRGB & 51 & 63 & 63 & 79 & 306 & 86 & 1.3$\pm$0.7 & 148.3$\pm$40.2 & 61.0$\pm$16.8 & 92.8$\pm$34.2 & 44.1$\pm$18.0\\
+      &SHOT & 0 & 0 & 0 & 79 & 265 & 86 & n/a & n/a & n/a & 31.9$\pm$10.9 & 18.6$\pm$4.8\\
+      &PFH & 2 & 2 & 2 & 79 & 198 & 86 & 1.0$\pm$0.0 & 6.5$\pm$2.1 & n/a & 30.8$\pm$9.3 & 21.0$\pm$6.4\\
+      &SHOTCOLOR & 0 & 0 & 0 & 79 & 286 & 86 & n/a & n/a & n/a & 34.4$\pm$12.3 & 20.6$\pm$6.7\\
+      &FPFH & 0 & 0 & 0 & 79 & 192 & 86 & n/a & n/a & n/a & 33.7$\pm$15.3 & 21.4$\pm$6.4\\
+    \end{tabular}
+    \caption{query results backpack2}
+    \label{tab:qbackpack2}
+  \end{table}
+  \begin{table}
+    \begin{tabular}{cc|ccccccccccc}
+      & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
+      \multirow{5}{*}{ISS} & PFHRGB & 44 & 77 & 70 & 85 & 325 & 86 & 1.7$\pm$1.0 & 209.6$\pm$71.3 & 79.4$\pm$31.5 & 157.7$\pm$73.5 & 70.7$\pm$37.5\\
+      &SHOT & 0 & 37 & 37 & 88 & 252 & 89 & 2.9$\pm$0.6 & n/a & 36.3$\pm$8.9 & 114.3$\pm$31.5 & 50.8$\pm$25.6\\
+      &PFH & 0 & 35 & 35 & 85 & 259 & 86 & 2.7$\pm$0.6 & n/a & 44.3$\pm$13.0 & 82.9$\pm$21.3 & 45.3$\pm$15.2\\
+      &SHOTCOLOR & 13 & 71 & 64 & 88 & 404 & 89 & 2.4$\pm$1.3 & 132.1$\pm$49.5 & 76.1$\pm$28.0 & 149.3$\pm$55.5 & 61.4$\pm$24.7\\
+      &FPFH & 14 & 36 & 35 & 85 & 239 & 86 & 2.0$\pm$1.1 & 76.7$\pm$22.9 & 42.9$\pm$16.2 & 80.5$\pm$30.4 & 46.8$\pm$12.8\\
+      \hline\multirow{5}{*}{SIFT} & PFHRGB & 7 & 7 & 7 & 85 & 86 & 86 & 1.0$\pm$0.0 & 5.7$\pm$1.6 & n/a & 4.7$\pm$1.0 & n/a\\
+      &SHOT & 5 & 5 & 5 & 85 & 86 & 86 & 1.0$\pm$0.0 & 2.8$\pm$0.4 & n/a & 3.1$\pm$0.7 & n/a\\
+      &PFH & 8 & 8 & 8 & 85 & 86 & 86 & 1.0$\pm$0.0 & 3.9$\pm$0.6 & n/a & 4.0$\pm$1.2 & n/a\\
+      &SHOTCOLOR & 2 & 2 & 2 & 85 & 86 & 86 & 1.0$\pm$0.0 & 4.0$\pm$0.0 & n/a & 3.5$\pm$0.7 & n/a\\
+      &FPFH & 7 & 7 & 7 & 85 & 86 & 86 & 1.0$\pm$0.0 & 3.1$\pm$0.4 & n/a & 3.7$\pm$1.1 & n/a\\
+      \hline\multirow{5}{*}{SUSAN} & PFHRGB & 12 & 12 & 12 & 85 & 86 & 86 & 1.0$\pm$0.0 & 10.5$\pm$4.7 & n/a & 7.9$\pm$4.0 & n/a\\
+      &SHOT & 5 & 5 & 5 & 85 & 86 & 86 & 1.0$\pm$0.0 & 4.4$\pm$0.9 & n/a & 4.2$\pm$1.1 & n/a\\
+      &PFH & 12 & 12 & 12 & 85 & 86 & 86 & 1.0$\pm$0.0 & 6.8$\pm$2.7 & n/a & 6.9$\pm$2.6 & n/a\\
+      &SHOTCOLOR & 8 & 8 & 8 & 85 & 86 & 86 & 1.0$\pm$0.0 & 8.2$\pm$3.0 & n/a & 6.9$\pm$2.2 & n/a\\
+      &FPFH & 10 & 10 & 10 & 85 & 86 & 86 & 1.0$\pm$0.0 & 6.4$\pm$2.0 & n/a & 6.3$\pm$3.0 & n/a\\
+      \hline\multirow{5}{*}{UNIFORM} & PFHRGB & 47 & 75 & 68 & 85 & 256 & 86 & 1.5$\pm$0.8 & 338.7$\pm$111.4 & 136.9$\pm$49.6 & 271.8$\pm$120.7 & 145.8$\pm$59.0\\
+      &SHOT & 17 & 31 & 31 & 85 & 230 & 86 & 1.5$\pm$0.7 & 74.2$\pm$18.1 & 43.6$\pm$10.5 & 67.8$\pm$23.5 & 40.3$\pm$12.1\\
+      &PFH & 25 & 33 & 32 & 85 & 154 & 86 & 1.3$\pm$0.7 & 75.9$\pm$27.4 & 54.9$\pm$10.5 & 53.3$\pm$26.6 & 48.7$\pm$11.1\\
+      &SHOTCOLOR & 52 & 77 & 64 & 85 & 297 & 86 & 1.4$\pm$0.9 & 198.4$\pm$66.5 & 84.5$\pm$32.0 & 161.1$\pm$80.4 & 75.6$\pm$29.1\\
+      &FPFH & 20 & 27 & 27 & 85 & 146 & 86 & 1.3$\pm$0.6 & 97.5$\pm$39.3 & 50.1$\pm$9.0 & 65.4$\pm$29.6 & 55.3$\pm$12.2\\
+    \end{tabular}
+    \caption{query results chair1}
+    \label{tab:qchair1}
+  \end{table}
+  \begin{table}
+    \begin{tabular}{cc|ccccccccccc}
+      & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
+      \multirow{5}{*}{ISS} & PFHRGB & 14 & 19 & 19 & 38 & 205 & 86 & 1.3$\pm$0.5 & 57.0$\pm$19.7 & 33.8$\pm$5.3 & 42.0$\pm$25.0 & 24.1$\pm$6.7\\
+      &SHOT & 1 & 1 & 1 & 40 & 134 & 89 & 1.0 & 3.0 & n/a & 19.2$\pm$13.1 & 15.3$\pm$2.2\\
+      &PFH & 3 & 5 & 5 & 38 & 163 & 86 & 1.4$\pm$0.5 & 29.0$\pm$21.3 & 24.5$\pm$13.4 & 23.7$\pm$12.4 & 19.0$\pm$4.0\\
+      &SHOTCOLOR & 1 & 5 & 5 & 40 & 304 & 89 & 2.8$\pm$1.1 & 47.0 & 18.8$\pm$4.9 & 73.2$\pm$48.3 & 27.8$\pm$12.1\\
+      &FPFH & 4 & 6 & 6 & 38 & 190 & 86 & 1.7$\pm$1.0 & 22.8$\pm$12.4 & 22.0$\pm$1.4 & 29.6$\pm$12.7 & 21.5$\pm$5.0\\
+      \hline\multirow{5}{*}{SIFT} & PFHRGB & 0 & 0 & 0 & 38 & 86 & 86 & n/a & n/a & n/a & 2.7$\pm$0.9 & n/a\\
+      &SHOT & 0 & 0 & 0 & 38 & 86 & 86 & n/a & n/a & n/a & 2.7$\pm$0.7 & n/a\\
+      &PFH & 0 & 0 & 0 & 38 & 86 & 86 & n/a & n/a & n/a & 2.3$\pm$0.7 & n/a\\
+      &SHOTCOLOR & 1 & 1 & 1 & 38 & 86 & 86 & 1.0 & 3.0 & n/a & 2.9$\pm$1.0 & n/a\\
+      &FPFH & 0 & 0 & 0 & 38 & 86 & 86 & n/a & n/a & n/a & 3.3$\pm$0.7 & n/a\\
+      \hline\multirow{5}{*}{SUSAN} & PFHRGB & 1 & 1 & 1 & 38 & 90 & 86 & 1.0 & 8.0 & n/a & 13.9$\pm$10.0 & n/a\\
+      &SHOT & 0 & 0 & 0 & 38 & 87 & 86 & n/a & n/a & n/a & 5.6$\pm$4.7 & n/a\\
+      &PFH & 0 & 0 & 0 & 38 & 86 & 86 & n/a & n/a & n/a & 9.0$\pm$8.0 & n/a\\
+      &SHOTCOLOR & 0 & 0 & 0 & 38 & 131 & 86 & n/a & n/a & n/a & 30.9$\pm$15.3 & 24.6$\pm$9.7\\
+      &FPFH & 0 & 0 & 0 & 38 & 88 & 86 & n/a & n/a & n/a & 8.7$\pm$7.9 & 16.0\\
+      \hline\multirow{5}{*}{UNIFORM} & PFHRGB & 21 & 21 & 21 & 38 & 192 & 86 & 1.0$\pm$0.0 & 86.6$\pm$38.0 & n/a & 46.4$\pm$19.8 & 34.3$\pm$11.1\\
+      &SHOT & 0 & 0 & 0 & 38 & 220 & 86 & n/a & n/a & n/a & 26.1$\pm$10.2 & 16.9$\pm$4.8\\
+      &PFH & 0 & 0 & 0 & 38 & 153 & 86 & n/a & n/a & n/a & 27.5$\pm$11.6 & 21.2$\pm$4.8\\
+      &SHOTCOLOR & 0 & 0 & 0 & 38 & 217 & 86 & n/a & n/a & n/a & 34.8$\pm$16.7 & 20.0$\pm$7.2\\
+      &FPFH & 0 & 0 & 0 & 38 & 151 & 86 & n/a & n/a & n/a & 23.6$\pm$8.9 & 21.1$\pm$4.4\\
+    \end{tabular}
+    \caption{query results hanger_jacket}
+    \label{tab:qhanger_jacket}
+  \end{table}
+  \begin{table}
+    \begin{tabular}{cc|ccccccccccc}
+      & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
+      \multirow{5}{*}{ISS} & PFHRGB & 17 & 26 & 26 & 45 & 198 & 86 & 1.5$\pm$0.9 & 86.1$\pm$29.2 & 40.2$\pm$13.4 & 62.3$\pm$27.6 & 34.6$\pm$9.9\\
+      &SHOT & 1 & 5 & 5 & 46 & 178 & 89 & 2.4$\pm$1.1 & 16.0 & 13.2$\pm$1.3 & 23.6$\pm$7.2 & 17.1$\pm$4.4\\
+      &PFH & 7 & 15 & 15 & 45 & 190 & 86 & 1.9$\pm$1.0 & 27.9$\pm$6.3 & 21.8$\pm$3.8 & 33.3$\pm$14.9 & 21.4$\pm$4.9\\
+      &SHOTCOLOR & 0 & 6 & 6 & 46 & 346 & 89 & 3.7$\pm$0.8 & n/a & 19.0$\pm$5.1 & 52.5$\pm$15.2 & 25.4$\pm$8.7\\
+      &FPFH & 2 & 8 & 8 & 45 & 154 & 86 & 2.0$\pm$0.8 & 34.0$\pm$38.2 & 21.0$\pm$4.7 & 34.3$\pm$17.1 & 27.0$\pm$8.7\\
+      \hline\multirow{5}{*}{SIFT} & PFHRGB & 5 & 5 & 5 & 45 & 86 & 86 & 1.0$\pm$0.0 & 2.0$\pm$0.0 & n/a & 2.1$\pm$0.4 & n/a\\
+      &SHOT & 0 & 0 & 0 & 45 & 86 & 86 & n/a & n/a & n/a & 2.0$\pm$0.3 & n/a\\
+      &PFH & 3 & 3 & 3 & 45 & 86 & 86 & 1.0$\pm$0.0 & 1.3$\pm$0.6 & n/a & 1.6$\pm$0.5 & n/a\\
+      &SHOTCOLOR & 0 & 0 & 0 & 45 & 86 & 86 & n/a & n/a & n/a & 2.0$\pm$0.3 & n/a\\
+      &FPFH & 2 & 2 & 2 & 45 & 86 & 86 & 1.0$\pm$0.0 & 1.5$\pm$0.7 & n/a & 1.9$\pm$0.4 & n/a\\
+      \hline\multirow{5}{*}{SUSAN} & PFHRGB & 4 & 4 & 4 & 45 & 86 & 86 & 1.0$\pm$0.0 & 5.0$\pm$2.4 & n/a & 5.5$\pm$1.9 & n/a\\
+      &SHOT & 2 & 2 & 2 & 45 & 86 & 86 & 1.0$\pm$0.0 & 1.5$\pm$0.7 & n/a & 1.7$\pm$0.6 & n/a\\
+      &PFH & 0 & 0 & 0 & 45 & 86 & 86 & n/a & n/a & n/a & 3.7$\pm$1.1 & n/a\\
+      &SHOTCOLOR & 2 & 2 & 2 & 45 & 86 & 86 & 1.0$\pm$0.0 & 2.0$\pm$0.0 & n/a & 2.0$\pm$0.5 & n/a\\
+      &FPFH & 1 & 1 & 1 & 45 & 86 & 86 & 1.0 & 4.0 & n/a & 3.1$\pm$1.0 & n/a\\
+      \hline\multirow{5}{*}{UNIFORM} & PFHRGB & 18 & 32 & 32 & 45 & 306 & 86 & 1.7$\pm$0.9 & 134.6$\pm$54.5 & 50.6$\pm$20.4 & 92.7$\pm$22.5 & 47.2$\pm$17.9\\
+      &SHOT & 0 & 0 & 0 & 45 & 231 & 86 & n/a & n/a & n/a & 25.7$\pm$10.7 & 17.6$\pm$3.9\\
+      &PFH & 3 & 4 & 4 & 45 & 203 & 86 & 1.2$\pm$0.5 & 49.7$\pm$18.9 & 38.0 & 30.7$\pm$8.6 & 22.2$\pm$5.6\\
+      &SHOTCOLOR & 1 & 1 & 1 & 45 & 260 & 86 & 1.0 & 30.0 & n/a & 34.7$\pm$11.1 & 20.3$\pm$5.2\\
+      &FPFH & 1 & 1 & 1 & 45 & 175 & 86 & 1.0 & 36.0 & n/a & 33.5$\pm$18.4 & 22.3$\pm$5.2\\
+    \end{tabular}
+    \caption{query results laptop1}
+    \label{tab:qlaptop1}
+  \end{table}
+  \begin{table}
+    \begin{tabular}{cc|ccccccccccc}
+      & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
+      \multirow{5}{*}{ISS} & PFHRGB & 1 & 4 & 4 & 26 & 151 & 86 & 2.0$\pm$0.8 & 127.0 & 42.0$\pm$1.0 & 87.4$\pm$33.1 & 46.2$\pm$26.9\\
+      &SHOT & 0 & 0 & 0 & 26 & 303 & 89 & n/a & n/a & n/a & 31.3$\pm$8.7 & 18.7$\pm$4.9\\
+      &PFH & 0 & 6 & 6 & 26 & 255 & 86 & 2.3$\pm$0.5 & n/a & 27.2$\pm$8.4 & 45.5$\pm$13.6 & 26.1$\pm$9.5\\
+      &SHOTCOLOR & 0 & 3 & 3 & 26 & 265 & 89 & 2.3$\pm$0.6 & n/a & 72.7$\pm$31.1 & 155.2$\pm$65.0 & 45.2$\pm$25.2\\
+      &FPFH & 2 & 9 & 9 & 26 & 251 & 86 & 1.9$\pm$0.6 & 48.0$\pm$12.7 & 29.1$\pm$5.2 & 53.2$\pm$18.2 & 29.0$\pm$10.3\\
+      \hline\multirow{5}{*}{SIFT} & PFHRGB & 1 & 1 & 1 & 26 & 86 & 86 & 1.0 & 3.0 & n/a & 4.3$\pm$1.1 & n/a\\
+      &SHOT & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 2.5$\pm$0.8 & n/a\\
+      &PFH & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 3.7$\pm$0.9 & n/a\\
+      &SHOTCOLOR & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 2.7$\pm$0.8 & n/a\\
+      &FPFH & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 2.9$\pm$0.9 & n/a\\
+      \hline\multirow{5}{*}{SUSAN} & PFHRGB & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 1.3$\pm$0.5 & n/a\\
+      &SHOT & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 1.0$\pm$0.2 & n/a\\
+      &PFH & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 1.3$\pm$0.6 & n/a\\
+      &SHOTCOLOR & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 1.2$\pm$0.4 & n/a\\
+      &FPFH & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 1.4$\pm$0.6 & n/a\\
+      \hline\multirow{5}{*}{UNIFORM} & PFHRGB & 4 & 5 & 5 & 26 & 262 & 86 & 1.2$\pm$0.4 & 126.5$\pm$49.0 & 104.0 & 129.0$\pm$57.5 & 50.1$\pm$23.7\\
+      &SHOT & 4 & 8 & 8 & 26 & 276 & 86 & 1.9$\pm$1.0 & 38.2$\pm$12.5 & 20.2$\pm$5.3 & 40.5$\pm$15.4 & 21.8$\pm$7.1\\
+      &PFH & 3 & 8 & 7 & 26 & 219 & 86 & 1.7$\pm$0.8 & 45.7$\pm$11.1 & 39.0$\pm$12.7 & 63.3$\pm$19.9 & 33.8$\pm$13.0\\
+      &SHOTCOLOR & 1 & 11 & 11 & 26 & 328 & 86 & 3.0$\pm$1.1 & 61.0 & 35.0$\pm$12.1 & 60.7$\pm$20.6 & 29.8$\pm$10.9\\
+      &FPFH & 3 & 6 & 5 & 26 & 223 & 86 & 1.4$\pm$0.5 & 43.0$\pm$2.0 & 35.7$\pm$5.1 & 70.4$\pm$25.0 & 36.8$\pm$17.7\\
+    \end{tabular}
+    \caption{query results pillow}
+    \label{tab:qpillow}
+  \end{table}
+  \begin{table}
+    \begin{tabular}{cc|ccccccccccc}
+      & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
+      \multirow{5}{*}{ISS} & PFHRGB & 6 & 7 & 7 & 20 & 157 & 86 & 1.1$\pm$0.4 & 40.0$\pm$8.0 & 43.0 & 38.8$\pm$20.2 & 26.1$\pm$5.5\\
+      &SHOT & 2 & 3 & 3 & 20 & 108 & 89 & 1.3$\pm$0.6 & 11.5$\pm$12.0 & 16.0 & 9.3$\pm$9.2 & 17.5$\pm$3.5\\
+      &PFH & 1 & 3 & 3 & 20 & 119 & 86 & 1.7$\pm$0.6 & 14.0 & 16.5$\pm$3.5 & 17.0$\pm$7.6 & 14.6$\pm$3.2\\
+      &SHOTCOLOR & 1 & 8 & 8 & 20 & 367 & 89 & 3.1$\pm$1.7 & 49.0 & 32.3$\pm$13.6 & 59.1$\pm$18.5 & 31.3$\pm$10.2\\
+      &FPFH & 3 & 5 & 5 & 20 & 147 & 86 & 2.0$\pm$1.4 & 22.3$\pm$4.9 & 17.5$\pm$2.1 & 20.8$\pm$8.8 & 18.6$\pm$2.7\\
+      \hline\multirow{5}{*}{SIFT} & PFHRGB & 0 & 0 & 0 & 20 & 86 & 86 & n/a & n/a & n/a & 2.0$\pm$0.6 & n/a\\
+      &SHOT & 0 & 0 & 0 & 20 & 86 & 86 & n/a & n/a & n/a & 1.5$\pm$0.6 & n/a\\
+      &PFH & 0 & 0 & 0 & 20 & 86 & 86 & n/a & n/a & n/a & 1.9$\pm$0.7 & n/a\\
+      &SHOTCOLOR & 2 & 2 & 2 & 20 & 86 & 86 & 1.0$\pm$0.0 & 1.5$\pm$0.7 & n/a & 1.8$\pm$0.8 & n/a\\
+      &FPFH & 1 & 1 & 1 & 20 & 86 & 86 & 1.0 & 2.0 & n/a & 1.8$\pm$0.4 & n/a\\
+      \hline\multirow{5}{*}{SUSAN} & PFHRGB & 7 & 7 & 7 & 20 & 86 & 86 & 1.0$\pm$0.0 & 30.7$\pm$21.1 & n/a & 13.8$\pm$9.5 & n/a\\
+      &SHOT & 1 & 1 & 1 & 20 & 86 & 86 & 1.0 & 3.0 & n/a & 2.7$\pm$0.9 & n/a\\
+      &PFH & 2 & 2 & 2 & 20 & 86 & 86 & 1.0$\pm$0.0 & 5.5$\pm$2.1 & n/a & 5.3$\pm$1.7 & n/a\\
+      &SHOTCOLOR & 2 & 3 & 3 & 20 & 94 & 86 & 1.3$\pm$0.6 & 23.5$\pm$2.1 & 20.0 & 16.6$\pm$9.9 & 16.0\\
+      &FPFH & 3 & 3 & 3 & 20 & 86 & 86 & 1.0$\pm$0.0 & 6.0$\pm$1.0 & n/a & 6.5$\pm$2.3 & n/a\\
+      \hline\multirow{5}{*}{UNIFORM} & PFHRGB & 6 & 9 & 9 & 20 & 270 & 86 & 1.8$\pm$1.2 & 73.5$\pm$14.9 & 40.3$\pm$6.7 & 71.6$\pm$19.7 & 39.0$\pm$15.5\\
+      &SHOT & 0 & 0 & 0 & 20 & 210 & 86 & n/a & n/a & n/a & 22.4$\pm$8.5 & 14.8$\pm$2.2\\
+      &PFH & 3 & 3 & 3 & 20 & 160 & 86 & 1.0$\pm$0.0 & 29.3$\pm$10.2 & n/a & 22.7$\pm$9.5 & 18.7$\pm$3.9\\
+      &SHOTCOLOR & 1 & 1 & 1 & 20 & 278 & 86 & 1.0 & 46.0 & n/a & 34.7$\pm$8.6 & 22.2$\pm$7.3\\
+      &FPFH & 1 & 2 & 2 & 20 & 191 & 86 & 1.5$\pm$0.7 & 24.0 & 16.0 & 30.5$\pm$6.8 & 20.1$\pm$3.3\\
+    \end{tabular}
+    \caption{query results top_couch_jacket2}
+    \label{tab:qtop_couch_jacket2}
+  \end{table}
+  \begin{table}
+    \begin{tabular}{cc|ccccccccccc}
+      & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
+      \multirow{5}{*}{ISS} & PFHRGB & 0 & 0 & 0 & 59 & 98 & 86 & n/a & n/a & n/a & 16.4$\pm$12.6 & 16.0$\pm$3.0\\
+      &SHOT & 0 & 0 & 0 & 59 & 90 & 89 & n/a & n/a & n/a & 4.5$\pm$5.4 & 13.0\\
+      &PFH & 1 & 1 & 1 & 59 & 90 & 86 & 1.0 & 3.0 & n/a & 7.9$\pm$7.8 & 14.7$\pm$2.5\\
+      &SHOTCOLOR & 0 & 0 & 0 & 59 & 138 & 89 & n/a & n/a & n/a & 20.4$\pm$10.8 & 16.5$\pm$4.9\\
+      &FPFH & 0 & 0 & 0 & 59 & 89 & 86 & n/a & n/a & n/a & 9.5$\pm$7.1 & 15.0\\
+      \hline\hline\multirow{5}{*}{SUSAN} & PFHRGB & 0 & 0 & 0 & 59 & 86 & 86 & n/a & n/a & n/a & 4.3$\pm$2.8 & n/a\\
+      &SHOT & 0 & 0 & 0 & 59 & 86 & 86 & n/a & n/a & n/a & 2.2$\pm$0.6 & n/a\\
+      &PFH & 0 & 0 & 0 & 59 & 86 & 86 & n/a & n/a & n/a & 3.4$\pm$1.9 & n/a\\
+      &SHOTCOLOR & 0 & 0 & 0 & 59 & 86 & 86 & n/a & n/a & n/a & 2.9$\pm$2.5 & n/a\\
+      &FPFH & 1 & 1 & 1 & 59 & 86 & 86 & 1.0 & 3.0 & n/a & 3.1$\pm$0.8 & n/a\\
+      \hline\multirow{5}{*}{UNIFORM} & PFHRGB & 0 & 0 & 0 & 59 & 170 & 86 & n/a & n/a & n/a & 50.0$\pm$32.8 & 26.1$\pm$10.9\\
+      &SHOT & 0 & 0 & 0 & 59 & 197 & 86 & n/a & n/a & n/a & 24.6$\pm$9.8 & 17.0$\pm$3.6\\
+      &PFH & 0 & 0 & 0 & 59 & 152 & 86 & n/a & n/a & n/a & 24.6$\pm$10.0 & 19.3$\pm$5.3\\
+      &SHOTCOLOR & 0 & 0 & 0 & 59 & 260 & 86 & n/a & n/a & n/a & 32.2$\pm$12.8 & 19.1$\pm$6.1\\
+      &FPFH & 0 & 0 & 0 & 59 & 182 & 86 & n/a & n/a & n/a & 28.7$\pm$11.0 & 19.8$\pm$5.2\\
+    \end{tabular}
+    \caption{query results trash_bin}
+    \label{tab:qtrash_bin}
+  \end{table}
+
+\end{landscape}
 
 \chapter{Conclusion and Further Work}
 \label{chap:conc}
 Describe what the project was about, what was achieved, summarise the
 experiments, describe what can be improved.
+
+
 
 \printbibliography
 \end{document}

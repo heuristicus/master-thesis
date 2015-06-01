@@ -823,7 +823,11 @@ namespace objsearch {
 				       + "_" + interestType_ + "_" + std::to_string(j) + ".pcd");
 		    ROS_INFO("Outputting region cloud to %s", outLoc.c_str());
 		    clusterDetails[j].regionCloud = outLoc;
-		    writer.write<pcl::PointXYZRGB>(outLoc, *filtered, true);
+		    try {
+			writer.write<pcl::PointXYZRGB>(outLoc, *filtered, true);
+		    } catch (pcl::IOException& e) {
+			ROS_ERROR("Region pointcloud was empty!");
+		    }
 		}
 		// put the cluster with the top score into the information
 		// vector, after we fill it with information about the files it uses
