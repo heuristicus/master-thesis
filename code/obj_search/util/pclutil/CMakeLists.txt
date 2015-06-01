@@ -50,6 +50,9 @@ add_dependencies(cloud_bounds ${catkin_EXPORTED_TARGETS} src/cloudBounds.cpp)
 add_executable(trim_clouds src/trimCloud.cpp)
 target_link_libraries(trim_clouds ${catkin_LIBRARIES} ${PCL_LIBRARIES} sysutil)
 
+add_executable(downsample src/downsampleCloud.cpp)
+target_link_libraries(downsample ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
 add_executable(pfhtest src/pfhtest.cpp)
 target_link_libraries(pfhtest ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 

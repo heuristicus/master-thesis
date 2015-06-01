@@ -2144,7 +2144,7 @@ of points within small regions of space.
         \includegraphics[width=0.2\textwidth]{images/query_trash_bin_side}
       \end{tabular}
     }
-    \subfloat[Chair 1]{
+    \subfloat[Chair]{
       \begin{tabular}{c}
         \includegraphics[width=0.2\textwidth]{images/query_chair1_front}\\
         \includegraphics[width=0.2\textwidth]{images/query_chair1_side}
@@ -2164,19 +2164,19 @@ of points within small regions of space.
     }\\
   }
   \centerline{
-    \subfloat[Backpack 2]{
+    \subfloat[Backpack]{
       \begin{tabular}{c}
         \includegraphics[width=0.2\textwidth]{images/query_backpack2_front}\\
         \includegraphics[width=0.2\textwidth]{images/query_backpack2_side}
       \end{tabular}
     }
-    \subfloat[Laptop 1]{
+    \subfloat[Laptop]{
       \begin{tabular}{c}
         \includegraphics[width=0.2\textwidth]{images/query_laptop1_front}\\
         \includegraphics[width=0.2\textwidth]{images/query_laptop1_side}
       \end{tabular}
     }
-    \subfloat[Top Couch Jacket 2]{
+    \subfloat[Couch Jacket]{
       \begin{tabular}{c}
         \includegraphics[width=0.2\textwidth]{images/query_top_couch_jacket2_front}\\
         \includegraphics[width=0.2\textwidth]{images/query_top_couch_jacket2_side}
@@ -2270,6 +2270,101 @@ largest effect on the behaviour of the system.
 \end{description}
 
 \subsection{Analysis}
+Table~\ref{tab:aggregate_query} shows aggregated results that ignore the
+different interest types and descriptor types used to compute matches. This
+gives an overview of the results for the three different settings. As mentioned
+above, we consider based on the position of cluster centroids. If the cluster
+centroid is in the oriented bounding box of the object, it is considered to be a
+match. Since there can be multiple clusters in a single target cloud, we rank
+the clusters according to the number of votes they contain. The base values used
+to compute this table come from the total number of clouds in which a match was
+found, for any cluster. This means that if the cluster was the second highest
+ranked, we count that as a match --- this means that the results here are
+somewhat exaggerated if one wishes to consider only matches which are the top
+cluster as valid matches. We will look at more precise results later in this
+section.
+
+The first thing one notices is the relatively poor performance of the system in
+retrieving most of the objects. At best, slightly over 50\% of objects were
+matched, when the chair is used as the query object. For most other objects,
+matches are found for between 10 and 25\% of the actual objects present. In the
+case of the trash bin, we receive almost no matches at all. Upon inspection, we
+believe that this is the result of a significant part of the trash bin being
+removed from clouds by the preprocessing. For the other cases, we believe that
+the matching performance is affected by the shape of the objects. In particular,
+the pillow, couch jacket and hanger jacket have somewhat distorted shapes, which
+might lead to descriptors matching other locations. The laptop has similarities
+to planes, and because it is lying on a desk, the keyboard part is quite likely
+to be removed by preprocessing as well.
+
+\begin{table}
+  \centering
+  \centerline{
+    \begin{tabular}{cc|ccccccc}
+      Query & Pre & backpack & chair & hanger jacket & laptop1 & pillow & couch jacket & trash bin\\\hline
+      \multirow{6}{*}{DEF}&DEF&14.2$\pm$22.7 & 29.2$\pm$24.4 & 2.6$\pm$6.1 & 7.3$\pm$10.1 & 4.2$\pm$4.7 & 2.6$\pm$3.3 & 0.2$\pm$0.6\\
+      &DT&18.0$\pm$25.6 & 33.0$\pm$24.4 & 2.8$\pm$6.2 & 8.9$\pm$12.3 & 3.1$\pm$3.5 & 3.3$\pm$3.9 & 0.3$\pm$0.8\\
+      &RI100&13.3$\pm$22.5 & 26.9$\pm$23.4 & 3.0$\pm$6.1 & 5.8$\pm$8.7 & 3.0$\pm$3.6 & 3.0$\pm$2.8 & 0.1$\pm$0.4\\
+      &DS2M&6.8$\pm$14.8 & 22.1$\pm$20.6 & 2.4$\pm$5.7 & 4.6$\pm$7.7 & 2.8$\pm$3.1 & 1.9$\pm$2.5 & 0.2$\pm$0.6\\
+      &DS15&10.3$\pm$18.3 & 27.6$\pm$22.4 & 2.0$\pm$5.6 & 5.8$\pm$9.4 & 3.4$\pm$4.0 & 2.4$\pm$2.8 & 0.1$\pm$0.4\\\hline
+      \multirow{5}{*}{K10R2}&DEF&18.1$\pm$22.2 & 40.4$\pm$33.1 & 6.5$\pm$8.3 & 12.0$\pm$12.8 & 3.6$\pm$4.5 & 4.7$\pm$4.1 & 0.1$\pm$0.2\\
+      &DT&21.7$\pm$24.6 & 49.9$\pm$29.1 & 6.0$\pm$9.1 & 16.4$\pm$14.7 & 5.7$\pm$4.3 & 0.1$\pm$0.4\\
+      &RI100&17.7$\pm$23.4 & 39.8$\pm$32.2 & 5.4$\pm$7.5 & 10.3$\pm$11.1 & 3.1$\pm$3.7 & 4.2$\pm$3.8 & 0.3$\pm$0.6\\
+      &DS2M&10.3$\pm$17.1 & 44.1$\pm$28.1 & 3.9$\pm$7.2 & 8.4$\pm$10.2 & 2.6$\pm$3.5 & 3.7$\pm$4.0 & 0.2$\pm$0.4\\\hline
+      \multicolumn{2}{r}{Actual counts}&79&85&38&45&26&20&59\\
+    \end{tabular}
+  }
+  \caption{Aggregated results over all three experiment sets. The values shown
+    are the total number of distinct matches for the object, and show the mean
+    of the results from all different types of descriptor and interest point
+    settings for that particular set of data from preprocessing. The pre column
+    indicates the experiment set from preprocessing used, the query column shows
+    the set from this section. The variance is high due to aggregation of data.
+    ($\mu\pm\sigma$)}
+  \label{tab:aggregate_query}
+\end{table}
+\begin{table}
+  \centerline{
+  \begin{tabular}{cc|cccccc}
+    object & type & top & total & uniq & actual & clusters & clouds \\
+    \multirow{5}{*}{backpack2} & fpfh & 2.5$\pm$2.5 & 4.0$\pm$5.4 & 4.0$\pm$5.4 & 80.2$\pm$0.5 & 123.5$\pm$48.2 & 86.2$\pm$0.5\\
+           & pfh & 2.2$\pm$3.9 & 3.2$\pm$5.9 & 3.2$\pm$5.9 & 80.0$\pm$0.0 & 137.0$\pm$66.2 & 86.0$\pm$0.0\\
+           & pfhrgb & 36.0$\pm$23.1 & 42.0$\pm$29.3 & 42.0$\pm$29.3 & 80.0$\pm$0.0 & 178.2$\pm$110.8 & 86.0$\pm$0.0\\
+           & shot & 0.5$\pm$1.0 & 1.5$\pm$3.0 & 1.5$\pm$3.0 & 80.0$\pm$0.0 & 160.0$\pm$96.2 & 86.0$\pm$0.0\\
+           & shotcolor & 8.5$\pm$7.2 & 20.2$\pm$27.1 & 20.2$\pm$27.1 & 80.0$\pm$0.0 & 222.8$\pm$167.0 & 86.0$\pm$0.0\\\hline
+    \multirow{5}{*}{chair1} & fpfh & 11.8$\pm$5.7 & 20.5$\pm$14.0 & 20.2$\pm$13.6 & 85.2$\pm$0.5 & 145.5$\pm$81.6 & 86.2$\pm$0.5\\
+           & pfh & 11.0$\pm$8.1 & 22.0$\pm$16.8 & 21.5$\pm$16.2 & 85.0$\pm$0.0 & 150.2$\pm$85.7 & 86.0$\pm$0.0\\
+           & pfhrgb & 27.0$\pm$20.3 & 45.5$\pm$41.7 & 40.5$\pm$35.8 & 85.0$\pm$0.0 & 196.5$\pm$130.6 & 86.0$\pm$0.0\\
+           & shot & 7.2$\pm$6.9 & 24.8$\pm$22.8 & 24.5$\pm$22.6 & 85.0$\pm$0.0 & 171.0$\pm$98.3 & 86.0$\pm$0.0\\
+           & shotcolor & 21.8$\pm$17.0 & 44.8$\pm$38.0 & 39.2$\pm$31.5 & 85.0$\pm$0.0 & 213.8$\pm$152.3 & 86.0$\pm$0.0\\\hline
+    \multirow{5}{*}{hanger jacket} & fpfh & 0.8$\pm$1.5 & 1.0$\pm$2.0 & 1.0$\pm$2.0 & 37.0$\pm$0.0 & 139.2$\pm$63.2 & 86.2$\pm$0.5\\
+           & pfh & 0.8$\pm$1.0 & 0.8$\pm$1.0 & 0.8$\pm$1.0 & 37.0$\pm$0.0 & 124.0$\pm$43.6 & 86.0$\pm$0.0\\
+           & pfhrgb & 8.8$\pm$9.8 & 10.2$\pm$11.3 & 10.2$\pm$11.3 & 37.0$\pm$0.0 & 145.5$\pm$65.7 & 86.0$\pm$0.0\\
+           & shot & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 37.0$\pm$0.0 & 138.0$\pm$67.7 & 86.0$\pm$0.0\\
+           & shotcolor & 0.2$\pm$0.5 & 1.2$\pm$1.9 & 1.2$\pm$1.9 & 37.0$\pm$0.0 & 193.5$\pm$102.2 & 86.0$\pm$0.0\\\hline
+    \multirow{5}{*}{laptop1} & fpfh & 1.0$\pm$0.8 & 4.2$\pm$5.4 & 4.2$\pm$5.4 & 45.0$\pm$0.0 & 140.5$\pm$63.1 & 86.2$\pm$0.5\\
+           & pfh & 5.2$\pm$6.1 & 7.8$\pm$10.4 & 7.8$\pm$10.4 & 45.0$\pm$0.0 & 151.2$\pm$75.6 & 86.0$\pm$0.0\\
+           & pfhrgb & 14.0$\pm$10.5 & 18.2$\pm$15.3 & 18.2$\pm$15.3 & 45.0$\pm$0.0 & 164.2$\pm$99.3 & 86.0$\pm$0.0\\
+           & shot & 0.5$\pm$1.0 & 3.0$\pm$4.8 & 3.0$\pm$4.8 & 40.2$\pm$9.5 & 145.8$\pm$79.6 & 77.8$\pm$16.5\\
+           & shotcolor & 0.2$\pm$0.5 & 3.2$\pm$5.9 & 3.2$\pm$5.9 & 45.0$\pm$0.0 & 197.8$\pm$135.7 & 86.0$\pm$0.0\\\hline
+    \multirow{5}{*}{pillow} & fpfh & 2.2$\pm$2.6 & 4.5$\pm$4.2 & 4.5$\pm$4.2 & 26.0$\pm$0.0 & 168.2$\pm$96.0 & 86.2$\pm$0.5\\
+           & pfh & 2.8$\pm$2.8 & 6.0$\pm$6.4 & 6.0$\pm$6.4 & 26.0$\pm$0.0 & 179.5$\pm$111.3 & 86.0$\pm$0.0\\
+           & pfhrgb & 1.0$\pm$1.4 & 3.0$\pm$3.8 & 3.0$\pm$3.8 & 26.0$\pm$0.0 & 157.2$\pm$94.3 & 86.0$\pm$0.0\\
+           & shot & 1.0$\pm$2.0 & 3.2$\pm$4.7 & 3.2$\pm$4.7 & 26.0$\pm$0.0 & 209.5$\pm$143.9 & 86.0$\pm$0.0\\
+           & shotcolor & 1.0$\pm$1.4 & 4.0$\pm$6.2 & 4.0$\pm$6.2 & 26.0$\pm$0.0 & 186.8$\pm$120.7 & 86.0$\pm$0.0\\\hline
+    \multirow{5}{*}{top couch jacket2} & fpfh & 0.0$\pm$0.0 & 1.2$\pm$2.5 & 1.2$\pm$2.5 & 20.0$\pm$0.0 & 133.8$\pm$55.6 & 86.2$\pm$0.5\\
+           & pfh & 1.2$\pm$1.0 & 2.2$\pm$2.1 & 2.2$\pm$2.1 & 20.0$\pm$0.0 & 116.0$\pm$36.0 & 86.0$\pm$0.0\\
+           & pfhrgb & 3.2$\pm$2.4 & 5.2$\pm$4.5 & 5.2$\pm$4.5 & 20.0$\pm$0.0 & 147.2$\pm$82.7 & 86.0$\pm$0.0\\
+           & shot & 0.8$\pm$1.0 & 1.0$\pm$1.4 & 1.0$\pm$1.4 & 20.0$\pm$0.0 & 122.8$\pm$49.2 & 85.8$\pm$0.5\\
+           & shotcolor & 1.5$\pm$1.9 & 3.2$\pm$4.3 & 3.2$\pm$4.3 & 20.0$\pm$0.0 & 204.2$\pm$135.1 & 86.0$\pm$0.0\\\hline
+    \multirow{5}{*}{trash bin} & fpfh & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 58.2$\pm$0.5 & 109.2$\pm$41.3 & 86.2$\pm$0.5\\
+           & pfh & 0.8$\pm$0.5 & 0.8$\pm$0.5 & 0.8$\pm$0.5 & 58.0$\pm$0.0 & 109.8$\pm$44.9 & 86.0$\pm$0.0\\
+           & pfhrgb & 0.5$\pm$1.0 & 0.5$\pm$1.0 & 0.5$\pm$1.0 & 58.0$\pm$0.0 & 117.0$\pm$47.4 & 86.0$\pm$0.0\\
+           & shot & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 58.0$\pm$0.0 & 120.8$\pm$67.5 & 86.0$\pm$0.0\\
+           & shotcolor & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 58.0$\pm$0.0 & 147.8$\pm$84.5 & 86.0$\pm$0.0\\\hline
+  \end{tabular}
+  }
+\end{table}
 
 
 \begin{landscape}

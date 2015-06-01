@@ -49,8 +49,10 @@ def get_mean_histogram(lst):
     means=[]
     stdevs=[]
     for col in columnised:
-        means.append("%.2f" % statistics.mean(col))
-        stdevs.append("%.2f" % statistics.stdev(col))
+        mu = statistics.mean(col)
+        std = statistics.stdev(col) if len(col) > 1 else -1
+        means.append("%.2f" % mu)
+        stdevs.append("%.2f" % std)
         
     return means,stdevs
 
@@ -218,8 +220,8 @@ def process_data(data):
         print("========== ERROR ==========")
 
     results['total_clouds'] = len(data['cluster_inobb'])
-    results['cluster_pos_avg'] = statistics.mean(clusterpos) if len(matchingscores) != 0 else -1
-    results['cluster_pos_std'] = statistics.stdev(clusterpos) if len(matchingscores) > 1 else -1
+    results['cluster_pos_avg'] = statistics.mean(clusterpos) if len(clusterpos) != 0 else -1
+    results['cluster_pos_std'] = statistics.stdev(clusterpos) if len(clusterpos) > 1 else -1
     results['matching_score_avg'] = statistics.mean(matchingscores) if len(matchingscores) != 0 else -1
     results['matching_score_std'] = statistics.stdev(matchingscores) if len(matchingscores) > 1 else -1
     results['top_matching_score_avg'] = statistics.mean(topmatchingscores) if len(topmatchingscores) != 0 else -1
@@ -255,51 +257,121 @@ def process_data(data):
 
     return results
 
+# check the key in this result and see if it has a value. If it does, add it to
+# a string as usual, otherwise replace the value with something indicative
+def check(result, key, end=False):
+    if (result[key + "_avg"] != -1):
+        
+        return "%.1f" % result[key + "_avg"] +("$\pm$" + "%.1f" % result[key + "_std"] if result[key + "_std"] != -1 else "") + (" & " if not end else "")
+
+    return "n/a" + (" & " if not end else "")
+    
 # restype should be time, cluster, votes, matches
-def write_result(openfile, result, restype, prefix='', header=False):
+def write_result(openfile, result, restype, multirowprefix='', prefix='', header=False, multirow=False):
     lines = ""
     if (restype == "time"):
         if (header):
-            lines += ("& " if prefix else "") + "querytime & houghtime & clustertime \\\n"
+            lines += ("& " if prefix else "") + "querytime & houghtime & clustertime \\\\\n"
 
         lines += "" if (prefix == '') else (prefix + " & ")
-        lines += "%.4f" % result['query_time_mean'] + "\pm" + "%.4f" % result['query_time_std'] + " & "
-        lines += "%.4f" % result['hough_time_mean'] + "\pm" + "%.4f" % result['hough_time_std'] + " & "
-        lines += "%.4f" % result['cluster_time_mean'] + "\pm" + "%.4f" % result['cluster_time_std'] + "\\\\\n"
+        lines += "%.4f" % result['query_time_mean'] + "$\pm$" + "%.4f" % result['query_time_std'] + " & "
+        lines += "%.4f" % result['hough_time_mean'] + "$\pm$" + "%.4f" % result['hough_time_std'] + " & "
+        lines += "%.4f" % result['cluster_time_mean'] + "$\pm$" + "%.4f" % result['cluster_time_std'] + "\\\\\n"
     elif (restype == "matches"):
         if (header):
-            lines += ("& " if prefix else "") + "top matches & total distinct & total matches & total present & total clusters & total clouds & avg rank & top matching score & matching score & top nonmatching score & nonmatching score\\\n"
+            lines += (" & desc & " if prefix else "") + "top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\\\hline\n"
+        if (multirowprefix):
+            lines += ("\\multirow{5}{*}{" + multirowprefix + "} & " if multirowprefix else "")
 
+        if (multirow):
+            lines += "&"
         lines += "" if (prefix == '') else (prefix + " & ")
         lines += str(result['top_matches']) + " & "
-        lines += str(result['total_distinct_matches']) + " & "
         lines += str(result['total_cluster_matches']) + " & "
+        lines += str(result['total_distinct_matches']) + " & "
         lines += str(result['total_present']) + " & "
         lines += str(result['total_clusters']) + " & "
         lines += str(result['total_clouds']) + " & "
-        lines += "%.1f" % result['cluster_pos_avg'] + "\pm" + "%.1f" % result['cluster_pos_std'] + " & "
-        lines += "%.1f" % result['top_matching_score_avg'] + "\pm" + "%.1f" % result['top_matching_score_std'] + " & "
-        lines += "%.1f" % result['matching_score_avg'] + "\pm" + "%.1f" % result['matching_score_std'] + " & "
-        lines += "%.1f" % result['top_nonmatching_score_avg'] + "\pm" + "%.1f" % result['top_nonmatching_score_std'] + " & "
-        lines += "%.1f" % result['nonmatching_score_avg'] + "\pm" + "%.1f" % result['nonmatching_score_std'] + "\\\\\n"
+        lines += check(result, 'cluster_pos')
+        lines += check(result, 'top_matching_score')
+        lines += check(result, 'matching_score')
+        lines += check(result, 'top_nonmatching_score')
+        lines += check(result, 'nonmatching_score', True) + "\\\\\n"
+
+        # lines += "%.1f" % result['cluster_pos_avg'] + "$\pm$" + "%.1f" % result['cluster_pos_std'] + " & "
+        # lines += "%.1f" % result['top_matching_score_avg'] + "$\pm$" + "%.1f" % result['top_matching_score_std'] + " & "
+        # lines += "%.1f" % result['matching_score_avg'] + "$\pm$" + "%.1f" % result['matching_score_std'] + " & "
+        # lines += "%.1f" % result['top_nonmatching_score_avg'] + "$\pm$" + "%.1f" % result['top_nonmatching_score_std'] + " & "
+        # lines += "%.1f" % result['nonmatching_score_avg'] + "$\pm$" + "%.1f" % result['nonmatching_score_std'] + "\\\\\n"
 
         
     openfile.write(lines)
 
 # expect features to be a dict containing four interest type keys which have a
 # result set attached
-def write_subset(openfile, features, typetowrite):
-    header = True
+def write_subset(openfile, features, subsetname, typetowrite, header=True):
+    multirowpref = subsetname.upper()
+    multirow = False
     for interest in features:
         if (not features[interest]):
             continue
-        write_result(openfile, features[interest], typetowrite, interest, header)
+        write_result(openfile, features[interest], typetowrite, multirowpref, interest.upper(), header, multirow)
+
         header = False
+        multirow = True
+        multirowpref = ''
+
+def write_aggregate_data(fname, data):
+    # loop over objects
+    objects = set()
+    groupings = set()
+    processed = {}
+    for obj in sorted(data): # first level of keys is objects
+        processed[obj] = {}
+        objects.add(obj)
+        for group in sorted(data[obj]): # second level is interest points or descriptors
+            processed[obj][group] = {}
+            groupings.add(group)
+            for dkey in data[obj][group]: # third level is the data references
+                # compute means and deviations for each data array and put into new dict
+                processed[obj][group][dkey + "_mean"] = statistics.mean(data[obj][group][dkey])
+                processed[obj][group][dkey + "_stdd"] = statistics.stdev(data[obj][group][dkey])
+
+    lines = "\\begin{table}\n"
+    lines += "\\begin{tabular}{cc|cccccc}\n"
+    lines += "object & type & top & total & uniq & actual & clusters & clouds \\\\\n"
+    for obj in sorted(processed):
+        lines += "\\multirow{" + str(len(processed[obj])) + "}{*}{" + obj.replace('_', ' ') + "} & "
+        for i,group in enumerate(sorted(processed[obj])):
+            if (i != 0):
+                lines += " & "
+            lines += group + " & "
+            plusminus = True # separate with plusminus or amp
+            for j, item in enumerate(sorted(processed[obj][group])): # hacky sorting based on keys we hacked earlier
+                lines += "%.1f" % processed[obj][group][item]
+                if (plusminus):
+                    lines += "$\pm$"
+                    plusminus = not plusminus
+                else:
+                    if (j + 1 == len(processed[obj][group]) and i + 1 != len(processed[obj])):
+                        lines += "\\\\\n"
+                    elif (j + 1 != len(processed[obj][group])):
+                        lines += " & "
+                    plusminus = not plusminus
+
+        lines += "\\\\\\hline\n"
+        
+    lines += "\\end{tabular}\n"
+    lines += "\\end{table}\n"
+    print(lines)
+    f = open(fname,'w')
+    f.write(lines)
     
-def output_processed_data(fdir, processed):
+def output_processed_data(fdir, processed, interestset):
     objects = set()
     features = set()
     interests = set()
+    groupinterest = interestset
     for p in processed:
         objects.add(p['objlabel'])
         features.add(p['feature'])
@@ -309,26 +381,80 @@ def output_processed_data(fdir, processed):
     objdict = {}
     for obj in objects:
         objdict[obj] = {} # each key of the dict contains another dict
-        for feature in features:
-            # the sub-dicts are for files containing data corresponding to a
-            # given feature for the current object. each is also a dict
-            objdict[obj][feature] = {}
+        if (not groupinterest):
+            for feature in features:
+                # the sub-dicts are for files containing data corresponding to a
+                # given feature for the current object. each is also a dict
+                objdict[obj][feature] = {}
+                for interest in interests:
+                    matches = [x for x in processed if x['objlabel'] == obj and x['feature'] == feature and x['interest'] == interest]
+                    objdict[obj][feature][interest] = matches[0] if len(matches) != 0 else {}
+        else:
             for interest in interests:
-                matches = [x for x in processed if x['objlabel'] == obj and x['feature'] == feature and x['interest'] == interest]
-                objdict[obj][feature][interest] = matches[0] if len(matches) != 0 else {}
-    
-    for obj in objdict:
-        f = open(fdir + obj + "_results.txt", 'w')
+                # the sub-dicts are for files containing data corresponding to a
+                # given feature for the current object. each is also a dict
+                objdict[obj][interest] = {}
+                for feature in features:
+                    matches = [x for x in processed if x['objlabel'] == obj and x['feature'] == feature and x['interest'] == interest]
+                    objdict[obj][interest][feature] = matches[0] if len(matches) != 0 else {}
 
-        # current object dict
-        thisobj = objdict[obj]
-        for ft in objdict[obj]:
-            thisfeature = thisobj[ft]
-            f.write(ft + "\n")
-            write_subset(f, thisfeature, "matches")
-                
+    # super aggregated data
     
-def process_multiple(outdir, args):
+    f = open(fdir + "results_short" + ("_interest" if groupinterest else "_feature") + ".txt", 'w')
+    f.write(" & ".join(sorted(objdict)) + "\\\\\n")
+    aggregate = {} # aggregate all the data
+    for i,obj in enumerate(sorted(objdict)):
+        aggregate[obj] = {}
+        matches = []
+        count = 0
+        thisobj = objdict[obj] # data for this object
+        for it in sorted(thisobj):
+            aggregate[obj][it] = {}
+            # hack to keep ordering in dict when sorted
+            aggregate[obj][it]['1top'] = []
+            aggregate[obj][it]['2total'] = []
+            aggregate[obj][it]['3distinct'] = []
+            aggregate[obj][it]['4actual'] = []
+            aggregate[obj][it]['5clusters'] = []
+            aggregate[obj][it]['6clouds'] = []
+            sub = thisobj[it] # data for specific feature/interest type
+            for ft in sub: # data for each feature/interest
+                data = sub[ft]
+                aggregate[obj][it]['1top'].append(data['top_matches'])
+                aggregate[obj][it]['2total'].append(data['total_cluster_matches'])
+                aggregate[obj][it]['3distinct'].append(data['total_distinct_matches'])
+                aggregate[obj][it]['4actual'].append(data['total_present'])
+                aggregate[obj][it]['5clusters'] .append(data['total_clusters'])
+                aggregate[obj][it]['6clouds'].append(data['total_clouds'])
+
+
+                if (data): # sometimes dict is empty
+                    matches.append(data['total_distinct_matches'])
+
+        f.write("%.1f" % statistics.mean(matches) + "$\pm$" + "%.1f" % statistics.stdev(matches) + (" & " if i + 1 < len(objdict) else "\\\\\n"))
+
+    write_aggregate_data(fdir + "results_aggregate" + ("_interest" if groupinterest else "_feature") + ".txt", aggregate)
+        
+    for obj in objdict:
+        f = open(fdir + obj + "_results" + ("_interest" if groupinterest else "_feature") + ".txt", 'w')
+
+        # current object dict - full data output
+        thisobj = objdict[obj]
+        header = True
+        f.write("\\begin{table}\n\\begin{tabular}{cc|ccccccccccc}\n")
+        for i,ft in enumerate(sorted(objdict[obj])):
+            thisfeature = thisobj[ft]
+            write_subset(f, thisfeature, ft,"matches", header)
+            if (i + 1 == len(objdict[obj])):
+                break
+            f.write("\hline")
+            header = False
+        f.write("\\end{tabular}\n")
+        f.write("\\caption{query results " + obj + "}\n")
+        f.write("\\label{tab:q" + obj + "}\n")
+        f.write("\\end{table}\n")                
+    
+def process_multiple(outdir, args, interest):
     # first, get the data out of the files and into a useful form
     data = []
     for fname in args:
@@ -341,7 +467,7 @@ def process_multiple(outdir, args):
     for d in data:
         processed.append(process_data(d))
 
-    output_processed_data(outdir + "/", processed)
+    output_processed_data(outdir + "/", processed, interest)
         
 def main():
     switch = sys.argv[1]
@@ -350,7 +476,10 @@ def main():
     if (switch == "-s"): 
         get_data(args[0])
     elif (switch == "-m"): # the first arg in the remaining args is the output location
-        process_multiple(args[0], args[1:])
+        interest = False
+        if ("i" in switch): # add i to the switch to aggregate data in terms of interest for the short data
+            interest = True
+        process_multiple(args[0], args[1:], interest)
     else:
         print("Must provide argument to define what action to perform.")
         return

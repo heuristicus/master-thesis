@@ -1,15 +1,16 @@
 #!/bin/bash
 
 querybase="/home/michal/Downloads/pcddata/processed/query/queryobjects/0,01"
-base="/media/michal/Pauli/masterdata/processed/paramtest/"
-outbase="/home/michal/Downloads/pcddata/processed/query/k5_mx200_t0,2"
-dirs="iter100" #iter100 nr0_04 ds0,015_mp9000 dt0,02_mp8000_pp0,001 ds0_02mp_4500
-features="shot shotcolor pfh fpfh pfhrgb" #shot shotcolor pfh fpfh pfhrgb
-fselect="iss susan uniform"
-objects="trash_bin" #trash_bin top_couch_jacket2 backpack2 hanger_jacket laptop1 pillow
-nmax=200
-k=5
-tol=0.2
+#base="/home/michal/Downloads/pcddata/processed/paramtest"
+base="/media/michal/Pauli/masterdata/processed/paramtest"
+outbase="/home/michal/Downloads/pcddata/processed/query/k10_mx400_t0,25"
+dirs="dt0,02_mp8000_pp0,001" #iter100 nr0_04 ds0,015_mp9000 dt0,02_mp8000_pp0,001 ds0_02mp_4500
+features="shot shotcolor pfh pfhrgb fpfh " #shot shotcolor pfh fpfh pfhrgb
+fselect="uniform iss susan" #uniform iss susan sift
+objects="top_couch_jacket2 backpack2 hanger_jacket laptop1 pillow chair1" #trash_bin top_couch_jacket2 backpack2 hanger_jacket laptop1 pillow chair1
+nmax=400
+k=10
+tol=0.25
 
 var=0
 for dir in $dirs; do
