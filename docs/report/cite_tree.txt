@@ -1,0 +1,15 @@
+muja2014scalable: {bentley1975multidimensional, arya1998optimal, friedman1977algorithm, beis1997shape, silpa2008optimised, muja2009fast}
+
+aldoma2011cad: {steder2011point}
+
+steder2011point: {bo2011depth, blum2012learned, behley2012performance,
+kim20113d, kim2013accurate, nascimento2012brand, steder2009robust,
+johnson1999using, frome2004recognizing, matei2006rapid}
+ 
+bo2011depth: {bo2010kernel}
+
+kim20113d: {drost2010model}
+
+alexandre20123d: {sipiran2011harris}
+
+sipiran2011harris: {gelfand2005robust, liu2006shape}

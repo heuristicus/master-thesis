@@ -1,0 +1,76 @@
+\message{ !name(report.tex)}\documentclass[11pt,a4paper]{kth-mag}
+
+% \usepackage{fontspec}
+\usepackage[backend=bibtex]{biblatex}
+\usepackage{pdflscape}
+\usepackage{rotating}
+\usepackage{float}
+\usepackage{multirow}
+% \usepackage[top=1cm]{geometry}
+\usepackage{subfig}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{graphicx}
+\usepackage{moreverb}
+\usepackage{longtable}
+\usepackage{xhfill}
+\renewcommand{\textquotedbl}{\texttt{"}}
+\newcommand{\ditto}[1][.4pt]{\xrfill{#1}~\textquotedbl~\xrfill{#1}}
+%\usepackage[toc,page]{appendix}
+\setcounter{tocdepth}{3}
+\setcounter{secnumdepth}{3}
+% \defaultfontfeatures{Mapping=tex-text}
+% \setromanfont[Ligatures={Common},Numbers={Lining}]{Linux Libertine}
+
+\bibliography{report.bib}
+
+\author{Michal Staniaszek \\  \vskip 3cm Supervisor: John Folkesson \\ Examiner: Danica Kragic}
+\title{A System for Object Query in Point Clouds Using Feature-Feature Matching}
+
+\begin{document}
+
+\message{ !name(report.tex) !offset(2293) }
+\begin{table}
+\begin{tabular}{cc|cccccc}
+object & type & top & total & uniq & actual & clusters & clouds \\
+\multirow{5}{*}{backpack2} & fpfh & 2.5$\pm$2.5 & 4.0$\pm$5.4 & 4.0$\pm$5.4 & 80.2$\pm$0.5 & 123.5$\pm$48.2 & 86.2$\pm$0.5\\
+ & pfh & 2.2$\pm$3.9 & 3.2$\pm$5.9 & 3.2$\pm$5.9 & 80.0$\pm$0.0 & 137.0$\pm$66.2 & 86.0$\pm$0.0\\
+ & pfhrgb & 36.0$\pm$23.1 & 42.0$\pm$29.3 & 42.0$\pm$29.3 & 80.0$\pm$0.0 & 178.2$\pm$110.8 & 86.0$\pm$0.0\\
+ & shot & 0.5$\pm$1.0 & 1.5$\pm$3.0 & 1.5$\pm$3.0 & 80.0$\pm$0.0 & 160.0$\pm$96.2 & 86.0$\pm$0.0\\
+ & shotcolor & 8.5$\pm$7.2 & 20.2$\pm$27.1 & 20.2$\pm$27.1 & 80.0$\pm$0.0 & 222.8$\pm$167.0 & 86.0$\pm$0.0\\\hline
+\multirow{5}{*}{chair1} & fpfh & 11.8$\pm$5.7 & 20.5$\pm$14.0 & 20.2$\pm$13.6 & 85.2$\pm$0.5 & 145.5$\pm$81.6 & 86.2$\pm$0.5\\
+ & pfh & 11.0$\pm$8.1 & 22.0$\pm$16.8 & 21.5$\pm$16.2 & 85.0$\pm$0.0 & 150.2$\pm$85.7 & 86.0$\pm$0.0\\
+ & pfhrgb & 27.0$\pm$20.3 & 45.5$\pm$41.7 & 40.5$\pm$35.8 & 85.0$\pm$0.0 & 196.5$\pm$130.6 & 86.0$\pm$0.0\\
+ & shot & 7.2$\pm$6.9 & 24.8$\pm$22.8 & 24.5$\pm$22.6 & 85.0$\pm$0.0 & 171.0$\pm$98.3 & 86.0$\pm$0.0\\
+ & shotcolor & 21.8$\pm$17.0 & 44.8$\pm$38.0 & 39.2$\pm$31.5 & 85.0$\pm$0.0 & 213.8$\pm$152.3 & 86.0$\pm$0.0\\\hline
+\multirow{5}{*}{hanger jacket} & fpfh & 0.8$\pm$1.5 & 1.0$\pm$2.0 & 1.0$\pm$2.0 & 37.0$\pm$0.0 & 139.2$\pm$63.2 & 86.2$\pm$0.5\\
+ & pfh & 0.8$\pm$1.0 & 0.8$\pm$1.0 & 0.8$\pm$1.0 & 37.0$\pm$0.0 & 124.0$\pm$43.6 & 86.0$\pm$0.0\\
+ & pfhrgb & 8.8$\pm$9.8 & 10.2$\pm$11.3 & 10.2$\pm$11.3 & 37.0$\pm$0.0 & 145.5$\pm$65.7 & 86.0$\pm$0.0\\
+ & shot & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 37.0$\pm$0.0 & 138.0$\pm$67.7 & 86.0$\pm$0.0\\
+ & shotcolor & 0.2$\pm$0.5 & 1.2$\pm$1.9 & 1.2$\pm$1.9 & 37.0$\pm$0.0 & 193.5$\pm$102.2 & 86.0$\pm$0.0\\\hline
+\multirow{5}{*}{laptop1} & fpfh & 1.0$\pm$0.8 & 4.2$\pm$5.4 & 4.2$\pm$5.4 & 45.0$\pm$0.0 & 140.5$\pm$63.1 & 86.2$\pm$0.5\\
+ & pfh & 5.2$\pm$6.1 & 7.8$\pm$10.4 & 7.8$\pm$10.4 & 45.0$\pm$0.0 & 151.2$\pm$75.6 & 86.0$\pm$0.0\\
+ & pfhrgb & 14.0$\pm$10.5 & 18.2$\pm$15.3 & 18.2$\pm$15.3 & 45.0$\pm$0.0 & 164.2$\pm$99.3 & 86.0$\pm$0.0\\
+ & shot & 0.5$\pm$1.0 & 3.0$\pm$4.8 & 3.0$\pm$4.8 & 40.2$\pm$9.5 & 145.8$\pm$79.6 & 77.8$\pm$16.5\\
+ & shotcolor & 0.2$\pm$0.5 & 3.2$\pm$5.9 & 3.2$\pm$5.9 & 45.0$\pm$0.0 & 197.8$\pm$135.7 & 86.0$\pm$0.0\\\hline
+\multirow{5}{*}{pillow} & fpfh & 2.2$\pm$2.6 & 4.5$\pm$4.2 & 4.5$\pm$4.2 & 26.0$\pm$0.0 & 168.2$\pm$96.0 & 86.2$\pm$0.5\\
+ & pfh & 2.8$\pm$2.8 & 6.0$\pm$6.4 & 6.0$\pm$6.4 & 26.0$\pm$0.0 & 179.5$\pm$111.3 & 86.0$\pm$0.0\\
+ & pfhrgb & 1.0$\pm$1.4 & 3.0$\pm$3.8 & 3.0$\pm$3.8 & 26.0$\pm$0.0 & 157.2$\pm$94.3 & 86.0$\pm$0.0\\
+ & shot & 1.0$\pm$2.0 & 3.2$\pm$4.7 & 3.2$\pm$4.7 & 26.0$\pm$0.0 & 209.5$\pm$143.9 & 86.0$\pm$0.0\\
+ & shotcolor & 1.0$\pm$1.4 & 4.0$\pm$6.2 & 4.0$\pm$6.2 & 26.0$\pm$0.0 & 186.8$\pm$120.7 & 86.0$\pm$0.0\\\hline
+\multirow{5}{*}{top couch jacket2} & fpfh & 0.0$\pm$0.0 & 1.2$\pm$2.5 & 1.2$\pm$2.5 & 20.0$\pm$0.0 & 133.8$\pm$55.6 & 86.2$\pm$0.5\\
+ & pfh & 1.2$\pm$1.0 & 2.2$\pm$2.1 & 2.2$\pm$2.1 & 20.0$\pm$0.0 & 116.0$\pm$36.0 & 86.0$\pm$0.0\\
+ & pfhrgb & 3.2$\pm$2.4 & 5.2$\pm$4.5 & 5.2$\pm$4.5 & 20.0$\pm$0.0 & 147.2$\pm$82.7 & 86.0$\pm$0.0\\
+ & shot & 0.8$\pm$1.0 & 1.0$\pm$1.4 & 1.0$\pm$1.4 & 20.0$\pm$0.0 & 122.8$\pm$49.2 & 85.8$\pm$0.5\\
+ & shotcolor & 1.5$\pm$1.9 & 3.2$\pm$4.3 & 3.2$\pm$4.3 & 20.0$\pm$0.0 & 204.2$\pm$135.1 & 86.0$\pm$0.0\\\hline
+\multirow{5}{*}{trash bin} & fpfh & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 58.2$\pm$0.5 & 109.2$\pm$41.3 & 86.2$\pm$0.5\\
+ & pfh & 0.8$\pm$0.5 & 0.8$\pm$0.5 & 0.8$\pm$0.5 & 58.0$\pm$0.0 & 109.8$\pm$44.9 & 86.0$\pm$0.0\\
+ & pfhrgb & 0.5$\pm$1.0 & 0.5$\pm$1.0 & 0.5$\pm$1.0 & 58.0$\pm$0.0 & 117.0$\pm$47.4 & 86.0$\pm$0.0\\
+ & shot & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 58.0$\pm$0.0 & 120.8$\pm$67.5 & 86.0$\pm$0.0\\
+ & shotcolor & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 58.0$\pm$0.0 & 147.8$\pm$84.5 & 86.0$\pm$0.0\\\hline
+\end{table}
+\end{tabular}
+\message{ !name(report.tex) !offset(2489) }
+
+\end{document}
