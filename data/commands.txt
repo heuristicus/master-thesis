@@ -56,3 +56,9 @@ bad=`grep -L BEGIN_DATA $fls`
 for f in $bad; do
     dirname $f
 done
+
+# figures for hough voting in experiments
+pcl_viewer /media/michal/Pauli/masterdata/processed/paramtest/dt0,02_mp8000_pp0,001/annotated/rares/20140909/patrol_run_53/room_3/nonPlanes.pcd 20140909/patrol_run_53/room_3/clusters/houghVotes_chair1_pfhrgb_iss_top.pcd -ps 1 -ps 10 -bc 1,1,1 -cam $DATA_DIR/camera_params/cluster_exp_close.cam
+
+# corresponding clusters
+pcl_viewer /media/michal/Pauli/masterdata/processed/paramtest/dt0,02_mp8000_pp0,001/annotated/rares/20140909/patrol_run_53/room_3/nonPlanes.pcd 20140909/patrol_run_53/room_3/clusters/chair1_cluster_pfhrgb_iss_* -ps 1 -ps 10 -ps 10 -ps 10 -ps 10 -ps 10 -ps 10 -bc 1,1,1 -fc 0,0,0 -fc 255,0,0 -fc 0,255,0 -fc 0,0,255 -fc 255,255,0 -fc 0,255,255 -cam $DATA_DIR/camera_params/cluster_exp_close.cam

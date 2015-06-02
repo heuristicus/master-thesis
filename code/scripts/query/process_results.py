@@ -334,18 +334,18 @@ def write_aggregate_data(fname, data):
             groupings.add(group)
             for dkey in data[obj][group]: # third level is the data references
                 # compute means and deviations for each data array and put into new dict
-                processed[obj][group][dkey + "_mean"] = statistics.mean(data[obj][group][dkey])
-                processed[obj][group][dkey + "_stdd"] = statistics.stdev(data[obj][group][dkey])
+                processed[obj][group][dkey + "_mean"] = statistics.mean(data[obj][group][dkey]) if len(data[obj][group][dkey]) != 0 else -1
+                processed[obj][group][dkey + "_stdd"] = statistics.stdev(data[obj][group][dkey]) if len(data[obj][group][dkey]) > 1 else -1
 
     lines = "\\begin{table}\n"
-    lines += "\\begin{tabular}{cc|cccccc}\n"
-    lines += "object & type & top & total & uniq & actual & clusters & clouds \\\\\n"
+    lines += "\\begin{tabular}{cc|cccc}\n"
+    lines += "Object & Type & Top & Total & Unique & Actual \\\\\\hline\n" # Clusters & Clouds
     for obj in sorted(processed):
         lines += "\\multirow{" + str(len(processed[obj])) + "}{*}{" + obj.replace('_', ' ') + "} & "
         for i,group in enumerate(sorted(processed[obj])):
             if (i != 0):
                 lines += " & "
-            lines += group + " & "
+            lines += group.upper() + " & "
             plusminus = True # separate with plusminus or amp
             for j, item in enumerate(sorted(processed[obj][group])): # hacky sorting based on keys we hacked earlier
                 lines += "%.1f" % processed[obj][group][item]
@@ -367,7 +367,7 @@ def write_aggregate_data(fname, data):
     f = open(fname,'w')
     f.write(lines)
     
-def output_processed_data(fdir, processed, interestset):
+def output_processed_data(fdir, processed, interestset, skip):
     objects = set()
     features = set()
     interests = set()
@@ -399,44 +399,54 @@ def output_processed_data(fdir, processed, interestset):
                     objdict[obj][interest][feature] = matches[0] if len(matches) != 0 else {}
 
     # super aggregated data
-    
-    f = open(fdir + "results_short" + ("_interest" if groupinterest else "_feature") + ".txt", 'w')
+    skippable = ["shot", "pfh", "fpfh", "sift", "susan"]
+    f = open(fdir + "results_short" + ("_interest" if groupinterest else "_feature") + ("_skipped" if skip else "") + ".txt", 'w')
     f.write(" & ".join(sorted(objdict)) + "\\\\\n")
     aggregate = {} # aggregate all the data
     for i,obj in enumerate(sorted(objdict)):
         aggregate[obj] = {}
         matches = []
+        houghtimes = []
+        clustertimes = []
+        querytimes = []
         count = 0
         thisobj = objdict[obj] # data for this object
         for it in sorted(thisobj):
+            if (skip and it in skippable):
+                continue
             aggregate[obj][it] = {}
             # hack to keep ordering in dict when sorted
             aggregate[obj][it]['1top'] = []
             aggregate[obj][it]['2total'] = []
             aggregate[obj][it]['3distinct'] = []
             aggregate[obj][it]['4actual'] = []
-            aggregate[obj][it]['5clusters'] = []
-            aggregate[obj][it]['6clouds'] = []
+            #aggregate[obj][it]['5clusters'] = []
+            #aggregate[obj][it]['6clouds'] = []
             sub = thisobj[it] # data for specific feature/interest type
             for ft in sub: # data for each feature/interest
                 data = sub[ft]
+                if (not data):
+                    continue
                 aggregate[obj][it]['1top'].append(data['top_matches'])
                 aggregate[obj][it]['2total'].append(data['total_cluster_matches'])
                 aggregate[obj][it]['3distinct'].append(data['total_distinct_matches'])
                 aggregate[obj][it]['4actual'].append(data['total_present'])
-                aggregate[obj][it]['5clusters'] .append(data['total_clusters'])
-                aggregate[obj][it]['6clouds'].append(data['total_clouds'])
+                #aggregate[obj][it]['5clusters'] .append(data['total_clusters'])
+                #aggregate[obj][it]['6clouds'].append(data['total_clouds'])
 
-
-                if (data): # sometimes dict is empty
-                    matches.append(data['total_distinct_matches'])
-
+                matches.append(data['total_distinct_matches'])
+                querytimes.append(data['query_time_mean'])
+                houghtimes.append(data['cluster_time_mean'])
+                clustertimes.append(data['cluster_time_mean'])
+                    
+        
         f.write("%.1f" % statistics.mean(matches) + "$\pm$" + "%.1f" % statistics.stdev(matches) + (" & " if i + 1 < len(objdict) else "\\\\\n"))
 
-    write_aggregate_data(fdir + "results_aggregate" + ("_interest" if groupinterest else "_feature") + ".txt", aggregate)
-        
+    write_aggregate_data(fdir + "results_aggregate" + ("_interest" if groupinterest else "_feature") + ("_skipped" if skip else "") + ".txt", aggregate)
+
+    typ = "matches" # or time
     for obj in objdict:
-        f = open(fdir + obj + "_results" + ("_interest" if groupinterest else "_feature") + ".txt", 'w')
+        f = open(fdir + obj + "_results" + ("_interest" if groupinterest else "_feature") + ("_time" if typ == "time" else "") + ".txt", 'w')
 
         # current object dict - full data output
         thisobj = objdict[obj]
@@ -444,7 +454,7 @@ def output_processed_data(fdir, processed, interestset):
         f.write("\\begin{table}\n\\begin{tabular}{cc|ccccccccccc}\n")
         for i,ft in enumerate(sorted(objdict[obj])):
             thisfeature = thisobj[ft]
-            write_subset(f, thisfeature, ft,"matches", header)
+            write_subset(f, thisfeature, ft, typ, header)
             if (i + 1 == len(objdict[obj])):
                 break
             f.write("\hline")
@@ -454,7 +464,7 @@ def output_processed_data(fdir, processed, interestset):
         f.write("\\label{tab:q" + obj + "}\n")
         f.write("\\end{table}\n")                
     
-def process_multiple(outdir, args, interest):
+def process_multiple(outdir, args, interest, skip):
     # first, get the data out of the files and into a useful form
     data = []
     for fname in args:
@@ -467,19 +477,22 @@ def process_multiple(outdir, args, interest):
     for d in data:
         processed.append(process_data(d))
 
-    output_processed_data(outdir + "/", processed, interest)
+    output_processed_data(outdir + "/", processed, interest, skip)
         
 def main():
     switch = sys.argv[1]
     args = list(map(os.path.abspath,sys.argv[2:]))
 
-    if (switch == "-s"): 
+    if ("-s" in switch): 
         get_data(args[0])
-    elif (switch == "-m"): # the first arg in the remaining args is the output location
+    elif ("-m" in switch): # the first arg in the remaining args is the output location
         interest = False
+        skip = False
         if ("i" in switch): # add i to the switch to aggregate data in terms of interest for the short data
             interest = True
-        process_multiple(args[0], args[1:], interest)
+        if ("k" in switch): # skip sift and susan, as well as shot, fpfh and pfh
+            skip = True
+        process_multiple(args[0], args[1:], interest, skip)
     else:
         print("Must provide argument to define what action to perform.")
         return

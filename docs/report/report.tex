@@ -47,8 +47,13 @@
   case, corresponds to the object that was passed to the system.
 
   We perform an experimental evaluation of the system using various parameter
-  settings in order to investigate computation time and other factors affecting
-  the usability of the system.
+  settings in order to investigate factors affecting the usability of the
+  system, and the ability of the system to retrieve the correct objects. In the
+  best case, we retrieve approximately 50\% of the matching objects in the
+  dataset that we are examining for a given query object. We find that the best
+  approach is to use a uniform sampling over the room clouds, and to use a
+  descriptor which uses colour in addition to shape information to describe
+  points.
 \end{abstract}
 \tableofcontents
 \chapter{Introduction}
@@ -1502,6 +1507,12 @@ differences between each dimension, which speeds up computation. The nearest
 neighbour search uses optimised functions implemented in the FLANN library
 \cite{muja2009fast, muja2014scalable}.
 
+\begin{figure}
+  \centering
+  
+  \caption{Example of a voting cloud}
+  \label{fig:voting}
+\end{figure}
 In the next step, we use of the computed nearest neighbours of each point to
 place votes into a 3D grid overlaid onto the target cloud. We construct the grid
 with a width, depth and height based on the minimum and maximum values of the
@@ -1521,22 +1532,6 @@ highest concentration of votes. We would expect this to be the case, as while
 some of the descriptors will match other positions in the cloud, the majority
 are likely to be found in regions where the actual object is.
 
-Once the voting grid is populated, we perform clustering in this space to
-extract regions which contain potential matches. The clustering performed is
-simple Euclidean clustering, shown in Algorithm~\ref{alg:euc}. Essentially, at
-each point we grow a cluster by adding points to a queue until there are no more
-points that can be added that fall within a sphere of radius $r$ of any point in
-the queue. Once no more points can be found, the queue is converted to a cluster
-and the process begins again with another point from the cloud. We do not
-directly take into account the number of votes that points have when clustering
-them. Instead, rather than using all of the points in the voting grid, we take
-only the $N$ points which have the highest number of votes, and cluster those.
-If, as we would hope, most of the points with high numbers of votes correspond
-to the same object, then they are likely to be in the same spatial region, and
-can therefore be extracted by the clustering.
-
-If no clusters are found, then we use the maximum point in the voting space as a
-cluster of a single point.
 
 \begin{algorithm}
   \DontPrintSemicolon
@@ -1560,6 +1555,35 @@ cluster of a single point.
   \label{alg:euc}
 \end{algorithm}
 
+Once the voting grid is populated, we perform clustering in this space to
+extract regions which contain potential matches. The clustering performed is
+simple Euclidean clustering, shown in Algorithm~\ref{alg:euc}. Essentially, at
+each point we grow a cluster by adding points to a queue until there are no more
+points that can be added that fall within a sphere of radius $r$ of any point in
+the queue. Once no more points can be found, the queue is converted to a cluster
+and the process begins again with another point from the cloud. We do not
+directly take into account the number of votes that points have when clustering
+them. Instead, rather than using all of the points in the voting grid, we take
+only the $N$ points which have the highest number of votes, and cluster those.
+If, as we would hope, most of the points with high numbers of votes correspond
+to the same object, then they are likely to be in the same spatial region, and
+can therefore be extracted by the clustering.
+
+If no clusters are found, then we use the maximum point in the voting space as a
+cluster of a single point.
+\begin{figure}
+  \centering
+  \subfloat[Voting]{\includegraphics[width=0.8\textwidth]{images/votes_shotc}}\\
+  \subfloat[Clustering]{\includegraphics[width=0.8\textwidth]{images/clusters_shotc}}
+  \caption{Examples of voting and clustering using the SHOTCOLOR feature and
+    uniform sampling with a radius of 0.2 and 5 neighbours. The query object is
+    an example of the chair on the right. Large points in the voting show points
+    belonging to the top $N$ points. Points are coloured according to the number
+    of votes they have. The clusters are coloured by rank from red to green,
+    blue and yellow.}
+  \label{fig:clusters_ex}
+\end{figure}
+
 Once points have been clustered, the total score of each cluster is computed by
 summing the votes of all the points it contains. Once this is done, we rank the
 clusters by their scores. In this action, we make the assumption that the larger
@@ -1570,6 +1594,9 @@ a sphere with a radius of $\alpha r$ centred on this point from the target
 cloud. $\alpha$ is a small multiplier greater than 1, used to ensure that a
 large part of the object is captured even if the centroid is offset from the
 object. This extracted region should contain the object.
+Figure~\ref{fig:clusters_ex} shows an example of the votes and clusters
+extracted using the proceduce.
+
 
 
 
@@ -2114,28 +2141,7 @@ methods for several of the parameter settings in the preprocessing step, and
 will be using those to evaluate the final output of the system.
 
 \newpage
-\section{Object Query}
-\label{queryexp}
-The final set of experiments we have performed examine the effectiveness of the
-retrieval process relative to the parameter settings used for the query and
-preprocessing steps, as well as for different descriptors and interest point
-selection methods. The query objects we have selected were chosen based on the
-number of appearances in the dataset, as well as the size and quality of the
-object clouds. Several of the objects in the set are quite small, and while we
-would have liked to include these, during preliminary tests we decided that the
-quality of the clouds was not good enough to allow a reasonable description of
-the object to be computed. The objects that we have selected are shown in
-Figure~\ref{fig:queryobj}. For each object, we created a downsampled version to
-match the downsampling applied to the room clouds which will be used as the
-target clouds. This is partly to ensure that the clouds have similar point
-distributions so that any descriptors extracted will have approximately the same
-number of points in similar regions, but also to avoid problems with slicing
-(Figure~\ref{fig:slicing}). In addition, the original object clouds have a large
-number of points which results in very computationally expensive descriptor
-calculations due to the relative compactness of the objects and the large number
-of points within small regions of space.
-
-\begin{figure}
+\begin{figure}[H]
   \centering
   \centerline{
     \subfloat[Trash bin]{
@@ -2187,6 +2193,27 @@ of points within small regions of space.
       downsampled to 0.01m, 0.015m and 0.02m for feature computations.}
   \label{fig:queryobj}
 \end{figure}
+\section{Object Query}
+\label{queryexp}
+The final set of experiments we have performed examine the effectiveness of the
+retrieval process relative to the parameter settings used for the query and
+preprocessing steps, as well as for different descriptors and interest point
+selection methods. The query objects we have selected were chosen based on the
+number of appearances in the dataset, as well as the size and quality of the
+object clouds. Several of the objects in the set are quite small, and while we
+would have liked to include these, during preliminary tests we decided that the
+quality of the clouds was not good enough to allow a reasonable description of
+the object to be computed. The objects that we have selected are shown in
+Figure~\ref{fig:queryobj}. For each object, we created a downsampled version to
+match the downsampling applied to the room clouds which will be used as the
+target clouds. This is partly to ensure that the clouds have similar point
+distributions so that any descriptors extracted will have approximately the same
+number of points in similar regions, but also to avoid problems with slicing
+(Figure~\ref{fig:slicing}). In addition, the original object clouds have a large
+number of points which results in very computationally expensive descriptor
+calculations due to the relative compactness of the objects and the large number
+of points within small regions of space.
+
 
 To gather data about the performance of the system, we use annotations that come
 with each cloud for the objects. If an object is present in a cloud, there is a
@@ -2203,9 +2230,6 @@ at least one of the objects has multiple instances in the room. Only one
 instance is annotated, so the bounding box used is from that object, which means
 that even if technically the match is correct, we do not consider it to be
 correct if it does not lie in the bounding box that we have extracted.
-
-The objects we have selected can be seen in Figure~\ref{fig:queryobj}. There is
-variation in size and colour, as well as the shape of the objects.
 
 There are several parameters which directly affect the behaviour of the query
 process, in addition to the effects which come from the type of feature chosen,
@@ -2269,8 +2293,65 @@ largest effect on the behaviour of the system.
   match for the object.
 \end{description}
 
+
+\begin{table}
+  \centering
+  \centerline{
+    \begin{tabular}{cc|ccccccc}
+      Query & Pre & Backpack & Chair & Hanger jacket & Laptop & Pillow & Couch jacket & Trash bin\\\hline
+      \multirow{5}{*}{DEF}&DEF&14.2$\pm$22.7 & 29.2$\pm$24.4 & 2.6$\pm$6.1 & 7.3$\pm$10.1 & 4.2$\pm$4.7 & 2.6$\pm$3.3 & 0.2$\pm$0.6\\
+            &DT&18.0$\pm$25.6 & 33.0$\pm$24.4 & 2.8$\pm$6.2 & 8.9$\pm$12.3 & 3.1$\pm$3.5 & 3.3$\pm$3.9 & 0.3$\pm$0.8\\
+            &RI100&13.3$\pm$22.5 & 26.9$\pm$23.4 & 3.0$\pm$6.1 & 5.8$\pm$8.7 & 3.0$\pm$3.6 & 3.0$\pm$2.8 & 0.1$\pm$0.4\\
+            &DS2M&6.8$\pm$14.8 & 22.1$\pm$20.6 & 2.4$\pm$5.7 & 4.6$\pm$7.7 & 2.8$\pm$3.1 & 1.9$\pm$2.5 & 0.2$\pm$0.6\\
+            &DS15&10.3$\pm$18.3 & 27.6$\pm$22.4 & 2.0$\pm$5.6 & 5.8$\pm$9.4 & 3.4$\pm$4.0 & 2.4$\pm$2.8 & 0.1$\pm$0.4\\\hline
+      \multirow{4}{*}{K10R2}&DEF&18.1$\pm$22.2 & 40.4$\pm$33.1 & 6.5$\pm$8.3 & 12.0$\pm$12.8 & 3.6$\pm$4.5 & 4.7$\pm$4.1 & 0.1$\pm$0.2\\
+            &DT&21.7$\pm$24.6 & 49.9$\pm$29.1 & 6.0$\pm$9.1 & 16.4$\pm$14.7 & 5.7$\pm$4.3 & 0.1$\pm$0.4\\
+            &RI100&17.7$\pm$23.4 & 39.8$\pm$32.2 & 5.4$\pm$7.5 & 10.3$\pm$11.1 & 3.1$\pm$3.7 & 4.2$\pm$3.8 & 0.3$\pm$0.6\\
+            &DS2M&10.3$\pm$17.1 & 44.1$\pm$28.1 & 3.9$\pm$7.2 & 8.4$\pm$10.2 & 2.6$\pm$3.5 & 3.7$\pm$4.0 & 0.2$\pm$0.4\\\hline
+      \multirow{2}{*}{K10R25}&DEF&12.2$\pm$16.6 & 40.2$\pm$33.4 & 4.5$\pm$6.1 & 10.7$\pm$11.1 & 3.0$\pm$3.5 & 3.4$\pm$3.1 & 0.1$\pm$0.2\\
+            &DS2M&9.8$\pm$16.5 & 47.8$\pm$29.6 & 3.7$\pm$4.2 & 7.3$\pm$7.4 & 1.7$\pm$2.5 & 2.8$\pm$2.1\\
+      \multicolumn{2}{r}{Actual counts}&79&85&38&45&26&20&59\\
+    \end{tabular}
+  }
+  \caption{Aggregated results over all three experiment sets. The values shown
+    are the total number of distinct matches for the object, and show the mean
+    of the results from all different types of descriptor and interest point
+    settings for that particular set of data from preprocessing. The pre column
+    indicates the experiment set from preprocessing used, the query column shows
+    the set from this section. The variance is high due to aggregation of data.
+    ($\mu\pm\sigma$)}
+  \label{tbl:aggregate_query}
+\end{table}
+
+\begin{table}
+  \centering
+  \centerline{
+    \begin{tabular}{cc|ccccccc}
+      Query & Pre & Backpack & Chair & Hanger jacket & Laptop & Pillow & Couch jacket & Trash bin\\\hline
+      \multirow{5}{*}{DEF}&DEF&31.1$\pm$28.6 & 39.9$\pm$31.2 & 5.8$\pm$8.9 & 10.8$\pm$13.4 & 3.5$\pm$4.8 & 4.2$\pm$4.2 & 0.2$\pm$0.7\\
+            &DT&40.5$\pm$28.3 & 50.8$\pm$29.2 & 6.0$\pm$9.3 & 15.3$\pm$16.6 & 4.2$\pm$4.6 & 6.7$\pm$4.0 & 0.5$\pm$1.2\\
+            &RS100&30.5$\pm$28.3 & 36.9$\pm$31.8 & 5.9$\pm$8.9 & 9.5$\pm$12.3 & 3.0$\pm$3.8 & 4.6$\pm$3.5 & 0.0$\pm$0.0\\
+            &DS2M&15.1$\pm$21.4 & 29.4$\pm$27.6 & 5.0$\pm$8.6 & 7.9$\pm$11.4 & 3.2$\pm$3.4 & 3.1$\pm$3.5 & 0.2$\pm$0.7\\
+            &DS15&23.6$\pm$23.9 & 36.4$\pm$28.8 & 4.4$\pm$8.5 & 8.8$\pm$13.6 & 2.8$\pm$3.7 & 4.0$\pm$3.7 & 0.1$\pm$0.4\\\hline
+      \multirow{4}{*}{K10R2}&DEF&30.5$\pm$28.0 & 43.4$\pm$34.8 & 8.5$\pm$10.9 & 13.8$\pm$14.2 & 2.5$\pm$3.6 & 6.2$\pm$5.0 & 0.1$\pm$0.4\\
+            &DT&39.7$\pm$28.5 & 56.3$\pm$31.5 & 9.3$\pm$13.1 & 18.5$\pm$16.8 & 9.8$\pm$2.8 & 0.3$\pm$0.5\\
+            &RI100&32.0$\pm$29.2 & 41.8$\pm$37.9 & 7.5$\pm$10.5 & 12.4$\pm$12.9 & 4.1$\pm$4.3 & 6.6$\pm$3.9 & 0.2$\pm$0.5\\
+            &DS2M&21.7$\pm$23.5 & 49.2$\pm$30.3 & 6.8$\pm$11.0 & 11.5$\pm$13.2 & 3.5$\pm$4.9 & 4.5$\pm$4.8 & 0.2$\pm$0.4\\\hline
+      \multirow{2}{*}{K10R25}&DEF&20.6$\pm$22.1 & 44.5$\pm$34.9 & 4.3$\pm$7.3 & 12.0$\pm$12.0 & 3.6$\pm$4.0 & 5.0$\pm$4.0 & 0.0$\pm$0.0\\
+            &DS2M&21.2$\pm$22.2 & 49.2$\pm$31.5 & 5.3$\pm$5.9 & 8.8$\pm$9.8 & 2.7$\pm$3.9 & 3.3$\pm$2.3\\
+      \multicolumn{2}{r}{Actual counts}&79&85&38&45&26&20&59\\
+    \end{tabular}
+  }
+  \caption{Aggregated results over all three experiment sets. The SIFT
+    and SUSAN interest point selection methods and SHOT, PFH and FPFH
+    descriptors have been excluded from the data.
+    ($\mu\pm\sigma$)}
+  \label{tbl:aggregate_query_skipped}
+\end{table}
+\newpage
 \subsection{Analysis}
-Table~\ref{tab:aggregate_query} shows aggregated results that ignore the
+\subsubsection{Overview}
+Table~\ref{tbl:aggregate_query} shows aggregated results that ignore the
 different interest types and descriptor types used to compute matches. This
 gives an overview of the results for the three different settings. As mentioned
 above, we consider based on the position of cluster centroids. If the cluster
@@ -2295,272 +2376,495 @@ the matching performance is affected by the shape of the objects. In particular,
 the pillow, couch jacket and hanger jacket have somewhat distorted shapes, which
 might lead to descriptors matching other locations. The laptop has similarities
 to planes, and because it is lying on a desk, the keyboard part is quite likely
-to be removed by preprocessing as well.
+to be removed by preprocessing as well. We have removed the pillow, couch jacket
+and trash bin results from subsequent figures for compactness, as their results
+are poor across the board.
+
+We can see an improvement in the performance when using the K10R2 set, where the
+nearest neighbours and number of points in the voting space is increased. As we
+discussed in the beginning of this section, this could be for a number of
+reasons, but is most likely because the increased neighbour comparisons mean
+that more of the descriptors on the object in the target cloud are counted in
+the voting and therefore increase the likelihood of a cluster being found in the
+region of the object. Moving from K10R2 to K10R25, we see that there is not much
+of a difference, perhaps indicating that our hypothesis about cluster merging or
+larger clusters does not have as large an effect as we might have expected.
 
 \begin{table}
   \centering
   \centerline{
-    \begin{tabular}{cc|ccccccc}
-      Query & Pre & backpack & chair & hanger jacket & laptop1 & pillow & couch jacket & trash bin\\\hline
-      \multirow{6}{*}{DEF}&DEF&14.2$\pm$22.7 & 29.2$\pm$24.4 & 2.6$\pm$6.1 & 7.3$\pm$10.1 & 4.2$\pm$4.7 & 2.6$\pm$3.3 & 0.2$\pm$0.6\\
-      &DT&18.0$\pm$25.6 & 33.0$\pm$24.4 & 2.8$\pm$6.2 & 8.9$\pm$12.3 & 3.1$\pm$3.5 & 3.3$\pm$3.9 & 0.3$\pm$0.8\\
-      &RI100&13.3$\pm$22.5 & 26.9$\pm$23.4 & 3.0$\pm$6.1 & 5.8$\pm$8.7 & 3.0$\pm$3.6 & 3.0$\pm$2.8 & 0.1$\pm$0.4\\
-      &DS2M&6.8$\pm$14.8 & 22.1$\pm$20.6 & 2.4$\pm$5.7 & 4.6$\pm$7.7 & 2.8$\pm$3.1 & 1.9$\pm$2.5 & 0.2$\pm$0.6\\
-      &DS15&10.3$\pm$18.3 & 27.6$\pm$22.4 & 2.0$\pm$5.6 & 5.8$\pm$9.4 & 3.4$\pm$4.0 & 2.4$\pm$2.8 & 0.1$\pm$0.4\\\hline
-      \multirow{5}{*}{K10R2}&DEF&18.1$\pm$22.2 & 40.4$\pm$33.1 & 6.5$\pm$8.3 & 12.0$\pm$12.8 & 3.6$\pm$4.5 & 4.7$\pm$4.1 & 0.1$\pm$0.2\\
-      &DT&21.7$\pm$24.6 & 49.9$\pm$29.1 & 6.0$\pm$9.1 & 16.4$\pm$14.7 & 5.7$\pm$4.3 & 0.1$\pm$0.4\\
-      &RI100&17.7$\pm$23.4 & 39.8$\pm$32.2 & 5.4$\pm$7.5 & 10.3$\pm$11.1 & 3.1$\pm$3.7 & 4.2$\pm$3.8 & 0.3$\pm$0.6\\
-      &DS2M&10.3$\pm$17.1 & 44.1$\pm$28.1 & 3.9$\pm$7.2 & 8.4$\pm$10.2 & 2.6$\pm$3.5 & 3.7$\pm$4.0 & 0.2$\pm$0.4\\\hline
-      \multicolumn{2}{r}{Actual counts}&79&85&38&45&26&20&59\\
+    \begin{tabular}{cc|ccccc}
+      Object & Descriptor & Top & Total & Unique & Actual \\\hline
+      \multirow{5}{*}{Backpack} & FPFH & 2.7$\pm$1.5 & 3.3$\pm$2.5 & 3.3$\pm$2.5 & 80\\
+             & PFH & 1.0$\pm$1.0 & 2.3$\pm$3.2 & 2.3$\pm$3.2 & \ditto\\
+             & PFHRGB & 49.3$\pm$7.2 & 56.0$\pm$13.2 & 56.0$\pm$13.2 & \ditto\\
+             & SHOT & 2.7$\pm$3.8 & 3.3$\pm$4.9 & 3.3$\pm$4.9 & \ditto\\
+             & SHOTCOLOR & 9.3$\pm$8.6 & 25.0$\pm$33.3 & 25.0$\pm$33.3 & \ditto\\\hline
+      \multirow{5}{*}{Chair} & FPFH & 15.0$\pm$6.2 & 21.7$\pm$10.1 & 21.7$\pm$10.1 & 85\\
+             & PFH & 10.0$\pm$9.3 & 17.8$\pm$12.3 & 17.2$\pm$11.6 & \ditto\\
+             & PFHRGB & 36.7$\pm$18.9 & 60.7$\pm$39.6 & 54.0$\pm$33.8 & \ditto\\
+             & SHOT & 8.3$\pm$9.1 & 29.7$\pm$19.7 & 29.7$\pm$19.7 & \ditto\\
+             & SHOTCOLOR & 25.7$\pm$21.1 & 55.0$\pm$37.3 & 47.7$\pm$30.9 & \ditto\\\hline
+      \multirow{5}{*}{Hanger jacket} & FPFH & 0.3$\pm$0.6 & 1.0$\pm$1.7 & 1.0$\pm$1.7 & 37\\
+             & PFH & 0.3$\pm$0.6 & 0.7$\pm$1.2 & 0.7$\pm$1.2 & \ditto\\
+             & PFHRGB & 12.0$\pm$10.4 & 12.0$\pm$10.4 & 12.0$\pm$10.4 & \ditto\\
+             & SHOT & 0.3$\pm$0.6 & 0.3$\pm$0.6 & 0.3$\pm$0.6 & \ditto \\
+             & SHOTCOLOR & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 0.0$\pm$0.0 & \ditto \\\hline
+      \multirow{5}{*}{Laptop} & FPFH & 1.3$\pm$1.5 & 3.7$\pm$4.0 & 3.7$\pm$4.0 & 45\\
+             & PFH & 2.7$\pm$2.9 & 7.0$\pm$10.4 & 7.0$\pm$10.4 & \ditto\\
+             & PFHRGB & 21.0$\pm$14.7 & 25.0$\pm$18.2 & 25.0$\pm$18.2 & \ditto\\
+             & SHOT & 1.0$\pm$1.0 & 3.0$\pm$4.4 & 3.0$\pm$4.4 & \ditto\\
+             & SHOTCOLOR & 0.7$\pm$0.6 & 5.7$\pm$9.0 & 5.7$\pm$9.0 & \ditto\\\hline
     \end{tabular}
   }
-  \caption{Aggregated results over all three experiment sets. The values shown
-    are the total number of distinct matches for the object, and show the mean
-    of the results from all different types of descriptor and interest point
-    settings for that particular set of data from preprocessing. The pre column
-    indicates the experiment set from preprocessing used, the query column shows
-    the set from this section. The variance is high due to aggregation of data.
-    ($\mu\pm\sigma$)}
-  \label{tab:aggregate_query}
+  \caption{Matching results for the DEF setting for query using data generated
+    using DT setting from preprocessing aggregated according to the descriptor
+    type that was used. Average over the results of the different interest point
+    selection methods. Top indicates the number of matches which were the top
+    cluster, total the total number of matches, and unique the number of target
+    clouds in whichmatches were found.}
+  \label{tbl:featuregroup}
 \end{table}
+\subsubsection{Interest Point and Feature Effectiveness}
+Table~\ref{tbl:featuregroup} shows more in depth results for a single run, where
+we have aggregated results over the descriptors. We can see that the performance
+of the PFHRGB feature is generally much better than that of other features, with
+an average of 49 top clusters matching for the backpack, which has a total of 80
+instances, and 36 top clusters for the chair with 85 instances. It also matches
+a large number of clusters to the laptop object, which none of the other
+descriptors do. The next best results usually come from SHOTCOLOR, but for
+comparison it only averages 9 matches for the backpack, and 25 for the chair.
+The performance of the other descriptors is generally quite poor, apart from on
+instances of the chair object. The chair seems to be matched particularly well
+by all descriptors. This is most likely due to the fact that it contains some
+quite unique structures in the armrests and head rest, which mean that the
+matches in the chair region overwhelm those of other regions. In the case of
+other objects, there are a number of regions in the room which might match them,
+which reduces the likelihood of extracting a cluster from the object due to more
+sparse votes in the actual object region. In addition, the chair has quite a
+large region of uniform colour which might make it more distinctive.
+
+It is interesting to note that the two features with the best matching results
+both incorporate colour information. This result is not surprising, as the
+objects that we are looking for are reasonably distinctive in terms of colour.
+If we are examining two descriptors which have a similar surface description,
+and comparing them to a point on the object, the colour information comes into
+play and the one closer to the object colour will have a lower distance to the
+object descriptor.
+
 \begin{table}
   \centerline{
-  \begin{tabular}{cc|cccccc}
-    object & type & top & total & uniq & actual & clusters & clouds \\
-    \multirow{5}{*}{backpack2} & fpfh & 2.5$\pm$2.5 & 4.0$\pm$5.4 & 4.0$\pm$5.4 & 80.2$\pm$0.5 & 123.5$\pm$48.2 & 86.2$\pm$0.5\\
-           & pfh & 2.2$\pm$3.9 & 3.2$\pm$5.9 & 3.2$\pm$5.9 & 80.0$\pm$0.0 & 137.0$\pm$66.2 & 86.0$\pm$0.0\\
-           & pfhrgb & 36.0$\pm$23.1 & 42.0$\pm$29.3 & 42.0$\pm$29.3 & 80.0$\pm$0.0 & 178.2$\pm$110.8 & 86.0$\pm$0.0\\
-           & shot & 0.5$\pm$1.0 & 1.5$\pm$3.0 & 1.5$\pm$3.0 & 80.0$\pm$0.0 & 160.0$\pm$96.2 & 86.0$\pm$0.0\\
-           & shotcolor & 8.5$\pm$7.2 & 20.2$\pm$27.1 & 20.2$\pm$27.1 & 80.0$\pm$0.0 & 222.8$\pm$167.0 & 86.0$\pm$0.0\\\hline
-    \multirow{5}{*}{chair1} & fpfh & 11.8$\pm$5.7 & 20.5$\pm$14.0 & 20.2$\pm$13.6 & 85.2$\pm$0.5 & 145.5$\pm$81.6 & 86.2$\pm$0.5\\
-           & pfh & 11.0$\pm$8.1 & 22.0$\pm$16.8 & 21.5$\pm$16.2 & 85.0$\pm$0.0 & 150.2$\pm$85.7 & 86.0$\pm$0.0\\
-           & pfhrgb & 27.0$\pm$20.3 & 45.5$\pm$41.7 & 40.5$\pm$35.8 & 85.0$\pm$0.0 & 196.5$\pm$130.6 & 86.0$\pm$0.0\\
-           & shot & 7.2$\pm$6.9 & 24.8$\pm$22.8 & 24.5$\pm$22.6 & 85.0$\pm$0.0 & 171.0$\pm$98.3 & 86.0$\pm$0.0\\
-           & shotcolor & 21.8$\pm$17.0 & 44.8$\pm$38.0 & 39.2$\pm$31.5 & 85.0$\pm$0.0 & 213.8$\pm$152.3 & 86.0$\pm$0.0\\\hline
-    \multirow{5}{*}{hanger jacket} & fpfh & 0.8$\pm$1.5 & 1.0$\pm$2.0 & 1.0$\pm$2.0 & 37.0$\pm$0.0 & 139.2$\pm$63.2 & 86.2$\pm$0.5\\
-           & pfh & 0.8$\pm$1.0 & 0.8$\pm$1.0 & 0.8$\pm$1.0 & 37.0$\pm$0.0 & 124.0$\pm$43.6 & 86.0$\pm$0.0\\
-           & pfhrgb & 8.8$\pm$9.8 & 10.2$\pm$11.3 & 10.2$\pm$11.3 & 37.0$\pm$0.0 & 145.5$\pm$65.7 & 86.0$\pm$0.0\\
-           & shot & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 37.0$\pm$0.0 & 138.0$\pm$67.7 & 86.0$\pm$0.0\\
-           & shotcolor & 0.2$\pm$0.5 & 1.2$\pm$1.9 & 1.2$\pm$1.9 & 37.0$\pm$0.0 & 193.5$\pm$102.2 & 86.0$\pm$0.0\\\hline
-    \multirow{5}{*}{laptop1} & fpfh & 1.0$\pm$0.8 & 4.2$\pm$5.4 & 4.2$\pm$5.4 & 45.0$\pm$0.0 & 140.5$\pm$63.1 & 86.2$\pm$0.5\\
-           & pfh & 5.2$\pm$6.1 & 7.8$\pm$10.4 & 7.8$\pm$10.4 & 45.0$\pm$0.0 & 151.2$\pm$75.6 & 86.0$\pm$0.0\\
-           & pfhrgb & 14.0$\pm$10.5 & 18.2$\pm$15.3 & 18.2$\pm$15.3 & 45.0$\pm$0.0 & 164.2$\pm$99.3 & 86.0$\pm$0.0\\
-           & shot & 0.5$\pm$1.0 & 3.0$\pm$4.8 & 3.0$\pm$4.8 & 40.2$\pm$9.5 & 145.8$\pm$79.6 & 77.8$\pm$16.5\\
-           & shotcolor & 0.2$\pm$0.5 & 3.2$\pm$5.9 & 3.2$\pm$5.9 & 45.0$\pm$0.0 & 197.8$\pm$135.7 & 86.0$\pm$0.0\\\hline
-    \multirow{5}{*}{pillow} & fpfh & 2.2$\pm$2.6 & 4.5$\pm$4.2 & 4.5$\pm$4.2 & 26.0$\pm$0.0 & 168.2$\pm$96.0 & 86.2$\pm$0.5\\
-           & pfh & 2.8$\pm$2.8 & 6.0$\pm$6.4 & 6.0$\pm$6.4 & 26.0$\pm$0.0 & 179.5$\pm$111.3 & 86.0$\pm$0.0\\
-           & pfhrgb & 1.0$\pm$1.4 & 3.0$\pm$3.8 & 3.0$\pm$3.8 & 26.0$\pm$0.0 & 157.2$\pm$94.3 & 86.0$\pm$0.0\\
-           & shot & 1.0$\pm$2.0 & 3.2$\pm$4.7 & 3.2$\pm$4.7 & 26.0$\pm$0.0 & 209.5$\pm$143.9 & 86.0$\pm$0.0\\
-           & shotcolor & 1.0$\pm$1.4 & 4.0$\pm$6.2 & 4.0$\pm$6.2 & 26.0$\pm$0.0 & 186.8$\pm$120.7 & 86.0$\pm$0.0\\\hline
-    \multirow{5}{*}{top couch jacket2} & fpfh & 0.0$\pm$0.0 & 1.2$\pm$2.5 & 1.2$\pm$2.5 & 20.0$\pm$0.0 & 133.8$\pm$55.6 & 86.2$\pm$0.5\\
-           & pfh & 1.2$\pm$1.0 & 2.2$\pm$2.1 & 2.2$\pm$2.1 & 20.0$\pm$0.0 & 116.0$\pm$36.0 & 86.0$\pm$0.0\\
-           & pfhrgb & 3.2$\pm$2.4 & 5.2$\pm$4.5 & 5.2$\pm$4.5 & 20.0$\pm$0.0 & 147.2$\pm$82.7 & 86.0$\pm$0.0\\
-           & shot & 0.8$\pm$1.0 & 1.0$\pm$1.4 & 1.0$\pm$1.4 & 20.0$\pm$0.0 & 122.8$\pm$49.2 & 85.8$\pm$0.5\\
-           & shotcolor & 1.5$\pm$1.9 & 3.2$\pm$4.3 & 3.2$\pm$4.3 & 20.0$\pm$0.0 & 204.2$\pm$135.1 & 86.0$\pm$0.0\\\hline
-    \multirow{5}{*}{trash bin} & fpfh & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 58.2$\pm$0.5 & 109.2$\pm$41.3 & 86.2$\pm$0.5\\
-           & pfh & 0.8$\pm$0.5 & 0.8$\pm$0.5 & 0.8$\pm$0.5 & 58.0$\pm$0.0 & 109.8$\pm$44.9 & 86.0$\pm$0.0\\
-           & pfhrgb & 0.5$\pm$1.0 & 0.5$\pm$1.0 & 0.5$\pm$1.0 & 58.0$\pm$0.0 & 117.0$\pm$47.4 & 86.0$\pm$0.0\\
-           & shot & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 58.0$\pm$0.0 & 120.8$\pm$67.5 & 86.0$\pm$0.0\\
-           & shotcolor & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 58.0$\pm$0.0 & 147.8$\pm$84.5 & 86.0$\pm$0.0\\\hline
-  \end{tabular}
-  }
+    \begin{tabular}{cc|ccccc}
+      Object & Type & Top & Total & Unique & Actual \\\hline
+      \multirow{4}{*}{Backpack} & ISS & 16.8$\pm$21.6 & 30.0$\pm$31.5 & 30.0$\pm$31.5 & 80\\
+             & SIFT & 1 & 1 & 1 & \ditto\\
+             & SUSAN & 10.8$\pm$17.5 & 10.8$\pm$17.5 & 10.8$\pm$17.5 & \ditto\\
+             & UNIFORM & 14.0$\pm$26.0 & 16.2$\pm$29.9 & 16.2$\pm$29.9 & \ditto\\\hline
+      \multirow{4}{*}{Chair} & ISS & 15.0$\pm$18.0 & 50.0$\pm$27.6 & 46.2$\pm$22.6 &85\\
+             & SIFT & 5 & 5 & 5 & \ditto\\
+             & SUSAN & 10.8$\pm$2.9 & 10.8$\pm$2.9 & 10.8$\pm$2.9 & \ditto\\
+             & UNIFORM & 32.6$\pm$16.0 & 52.6$\pm$26.1 & 47.6$\pm$20.6 & \ditto\\\hline
+      \multirow{4}{*}{Hanger jacket} & ISS & 4.0$\pm$7.3 & 4.6$\pm$7.0 & 4.6$\pm$7.0 & 37\\
+             & SIFT & 0 & 0 & 0 & \ditto\\
+             & SUSAN & 0 & 0 & 0 & \ditto\\
+             & UNIFORM & 4.8$\pm$9.5 & 4.8$\pm$9.5 & 4.8$\pm$9.5 & \ditto\\\hline
+      \multirow{4}{*}{Laptop} & ISS & 8.2$\pm$11.8 & 17.2$\pm$11.1 & 17.2$\pm$11.1 & 45\\
+             & SIFT & 1 & 1 & 1 & \ditto\\
+             & SUSAN & 1.4$\pm$1.5 & 1.4$\pm$1.5 & 1.4$\pm$1.5 & \ditto\\
+             & UNIFORM & 7.8$\pm$14.8 & 9.8$\pm$17.6 & 9.8$\pm$17.6 & \ditto\\\hline
+    \end{tabular}
+}
+\caption{Results for the DEF setting for query using data generated using DT
+  setting from preprocessing aggregated according to the interest type that was
+  used. Average over results of the different descriptors. Top indicates the
+  number of matches which were the top cluster, total the total number of
+  matches, and unique the number of target clouds in which matches were found.}
+\label{tbl:interestgroup}
 \end{table}
 
+Table~\ref{tbl:interestgroup} shows the same data as above, but aggregated
+according to the interest point selection method used. We see that SIFT performs
+poorly on almost all instances, followed by SUSAN, which produces similar
+results to the other two methods for the backpack, but lags behind on the chair.
+Both of the methods which have good results are ones which use a larger number
+of points more evenly spread across the whole room. This is an interesting
+result, which suggests that the use of the voting favours larger point counts as
+opposed to distinctiveness of descriptors. While the uniform method outperforms
+ISS on the chair instance in terms of top matches, the results for total matches
+are quite similar, indicating that ISS also finds these objects, but results in
+them being ranked less highly, which reduces the number of top matches.
 
-\begin{landscape}
-  \begin{table}
-    \begin{tabular}{cc|ccccccccccc}
-      & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
-      \multirow{5}{*}{ISS} & PFHRGB & 53 & 63 & 63 & 78 & 231 & 85 & 1.2$\pm$0.6 & 91.1$\pm$27.4 & 39.1$\pm$10.0 & 53.2$\pm$20.4 & 28.3$\pm$10.4\\
-      &SHOT & 2 & 2 & 2 & 82 & 131 & 89 & 1.0$\pm$0.0 & 8.5$\pm$7.8 & n/a & 14.8$\pm$9.5 & 15.8$\pm$4.0\\
-      &PFH & 2 & 7 & 7 & 79 & 131 & 86 & 1.7$\pm$0.5 & 14.5$\pm$7.8 & 17.2$\pm$2.3 & 20.9$\pm$9.5 & 17.4$\pm$3.7\\
-      &SHOTCOLOR & 13 & 62 & 62 & 82 & 434 & 89 & 2.4$\pm$1.1 & 58.1$\pm$10.8 & 40.3$\pm$10.8 & 64.3$\pm$18.3 & 30.7$\pm$11.8\\
-      &FPFH & 2 & 5 & 5 & 79 & 120 & 86 & 1.8$\pm$0.8 & 11.0$\pm$7.1 & 21.7$\pm$4.7 & 26.8$\pm$16.8 & 20.8$\pm$4.6\\
-      \hline\multirow{5}{*}{SIFT} & PFHRGB & 7 & 7 & 7 & 79 & 86 & 86 & 1.0$\pm$0.0 & 2.0$\pm$0.0 & n/a & 2.3$\pm$0.8 & n/a\\
-      &SHOT & 0 & 0 & 0 & 79 & 86 & 86 & n/a & n/a & n/a & 2.3$\pm$0.8 & n/a\\
-      &PFH & 0 & 0 & 0 & 79 & 86 & 86 & n/a & n/a & n/a & 2.2$\pm$0.6 & n/a\\
-      &SHOTCOLOR & 2 & 2 & 2 & 79 & 86 & 86 & 1.0$\pm$0.0 & 2.0$\pm$0.0 & n/a & 3.0$\pm$1.0 & n/a\\
-      &FPFH & 2 & 2 & 2 & 79 & 86 & 86 & 1.0$\pm$0.0 & 2.0$\pm$0.0 & n/a & 2.4$\pm$0.8 & n/a\\
-      \hline\multirow{5}{*}{SUSAN} & PFHRGB & 31 & 31 & 31 & 79 & 86 & 86 & 1.0$\pm$0.0 & 1.9$\pm$0.5 & n/a & 1.7$\pm$0.5 & n/a\\
-      &SHOT & 2 & 2 & 2 & 79 & 86 & 86 & 1.0$\pm$0.0 & 1.0$\pm$0.0 & n/a & 1.1$\pm$0.3 & n/a\\
-      &PFH & 2 & 2 & 2 & 79 & 86 & 86 & 1.0$\pm$0.0 & 1.0$\pm$0.0 & n/a & 1.5$\pm$0.5 & n/a\\
-      &SHOTCOLOR & 16 & 16 & 16 & 79 & 86 & 86 & 1.0$\pm$0.0 & 1.4$\pm$0.5 & n/a & 1.3$\pm$0.5 & n/a\\
-      &FPFH & 1 & 1 & 1 & 79 & 86 & 86 & 1.0 & 1.0 & n/a & 1.5$\pm$0.5 & n/a\\
-      \hline\multirow{5}{*}{UNIFORM} & PFHRGB & 51 & 63 & 63 & 79 & 306 & 86 & 1.3$\pm$0.7 & 148.3$\pm$40.2 & 61.0$\pm$16.8 & 92.8$\pm$34.2 & 44.1$\pm$18.0\\
-      &SHOT & 0 & 0 & 0 & 79 & 265 & 86 & n/a & n/a & n/a & 31.9$\pm$10.9 & 18.6$\pm$4.8\\
-      &PFH & 2 & 2 & 2 & 79 & 198 & 86 & 1.0$\pm$0.0 & 6.5$\pm$2.1 & n/a & 30.8$\pm$9.3 & 21.0$\pm$6.4\\
-      &SHOTCOLOR & 0 & 0 & 0 & 79 & 286 & 86 & n/a & n/a & n/a & 34.4$\pm$12.3 & 20.6$\pm$6.7\\
-      &FPFH & 0 & 0 & 0 & 79 & 192 & 86 & n/a & n/a & n/a & 33.7$\pm$15.3 & 21.4$\pm$6.4\\
-    \end{tabular}
-    \caption{query results backpack2}
-    \label{tab:qbackpack2}
-  \end{table}
-  \begin{table}
-    \begin{tabular}{cc|ccccccccccc}
-      & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
-      \multirow{5}{*}{ISS} & PFHRGB & 44 & 77 & 70 & 85 & 325 & 86 & 1.7$\pm$1.0 & 209.6$\pm$71.3 & 79.4$\pm$31.5 & 157.7$\pm$73.5 & 70.7$\pm$37.5\\
-      &SHOT & 0 & 37 & 37 & 88 & 252 & 89 & 2.9$\pm$0.6 & n/a & 36.3$\pm$8.9 & 114.3$\pm$31.5 & 50.8$\pm$25.6\\
-      &PFH & 0 & 35 & 35 & 85 & 259 & 86 & 2.7$\pm$0.6 & n/a & 44.3$\pm$13.0 & 82.9$\pm$21.3 & 45.3$\pm$15.2\\
-      &SHOTCOLOR & 13 & 71 & 64 & 88 & 404 & 89 & 2.4$\pm$1.3 & 132.1$\pm$49.5 & 76.1$\pm$28.0 & 149.3$\pm$55.5 & 61.4$\pm$24.7\\
-      &FPFH & 14 & 36 & 35 & 85 & 239 & 86 & 2.0$\pm$1.1 & 76.7$\pm$22.9 & 42.9$\pm$16.2 & 80.5$\pm$30.4 & 46.8$\pm$12.8\\
-      \hline\multirow{5}{*}{SIFT} & PFHRGB & 7 & 7 & 7 & 85 & 86 & 86 & 1.0$\pm$0.0 & 5.7$\pm$1.6 & n/a & 4.7$\pm$1.0 & n/a\\
-      &SHOT & 5 & 5 & 5 & 85 & 86 & 86 & 1.0$\pm$0.0 & 2.8$\pm$0.4 & n/a & 3.1$\pm$0.7 & n/a\\
-      &PFH & 8 & 8 & 8 & 85 & 86 & 86 & 1.0$\pm$0.0 & 3.9$\pm$0.6 & n/a & 4.0$\pm$1.2 & n/a\\
-      &SHOTCOLOR & 2 & 2 & 2 & 85 & 86 & 86 & 1.0$\pm$0.0 & 4.0$\pm$0.0 & n/a & 3.5$\pm$0.7 & n/a\\
-      &FPFH & 7 & 7 & 7 & 85 & 86 & 86 & 1.0$\pm$0.0 & 3.1$\pm$0.4 & n/a & 3.7$\pm$1.1 & n/a\\
-      \hline\multirow{5}{*}{SUSAN} & PFHRGB & 12 & 12 & 12 & 85 & 86 & 86 & 1.0$\pm$0.0 & 10.5$\pm$4.7 & n/a & 7.9$\pm$4.0 & n/a\\
-      &SHOT & 5 & 5 & 5 & 85 & 86 & 86 & 1.0$\pm$0.0 & 4.4$\pm$0.9 & n/a & 4.2$\pm$1.1 & n/a\\
-      &PFH & 12 & 12 & 12 & 85 & 86 & 86 & 1.0$\pm$0.0 & 6.8$\pm$2.7 & n/a & 6.9$\pm$2.6 & n/a\\
-      &SHOTCOLOR & 8 & 8 & 8 & 85 & 86 & 86 & 1.0$\pm$0.0 & 8.2$\pm$3.0 & n/a & 6.9$\pm$2.2 & n/a\\
-      &FPFH & 10 & 10 & 10 & 85 & 86 & 86 & 1.0$\pm$0.0 & 6.4$\pm$2.0 & n/a & 6.3$\pm$3.0 & n/a\\
-      \hline\multirow{5}{*}{UNIFORM} & PFHRGB & 47 & 75 & 68 & 85 & 256 & 86 & 1.5$\pm$0.8 & 338.7$\pm$111.4 & 136.9$\pm$49.6 & 271.8$\pm$120.7 & 145.8$\pm$59.0\\
-      &SHOT & 17 & 31 & 31 & 85 & 230 & 86 & 1.5$\pm$0.7 & 74.2$\pm$18.1 & 43.6$\pm$10.5 & 67.8$\pm$23.5 & 40.3$\pm$12.1\\
-      &PFH & 25 & 33 & 32 & 85 & 154 & 86 & 1.3$\pm$0.7 & 75.9$\pm$27.4 & 54.9$\pm$10.5 & 53.3$\pm$26.6 & 48.7$\pm$11.1\\
-      &SHOTCOLOR & 52 & 77 & 64 & 85 & 297 & 86 & 1.4$\pm$0.9 & 198.4$\pm$66.5 & 84.5$\pm$32.0 & 161.1$\pm$80.4 & 75.6$\pm$29.1\\
-      &FPFH & 20 & 27 & 27 & 85 & 146 & 86 & 1.3$\pm$0.6 & 97.5$\pm$39.3 & 50.1$\pm$9.0 & 65.4$\pm$29.6 & 55.3$\pm$12.2\\
-    \end{tabular}
-    \caption{query results chair1}
-    \label{tab:qchair1}
-  \end{table}
-  \begin{table}
-    \begin{tabular}{cc|ccccccccccc}
-      & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
-      \multirow{5}{*}{ISS} & PFHRGB & 14 & 19 & 19 & 38 & 205 & 86 & 1.3$\pm$0.5 & 57.0$\pm$19.7 & 33.8$\pm$5.3 & 42.0$\pm$25.0 & 24.1$\pm$6.7\\
-      &SHOT & 1 & 1 & 1 & 40 & 134 & 89 & 1.0 & 3.0 & n/a & 19.2$\pm$13.1 & 15.3$\pm$2.2\\
-      &PFH & 3 & 5 & 5 & 38 & 163 & 86 & 1.4$\pm$0.5 & 29.0$\pm$21.3 & 24.5$\pm$13.4 & 23.7$\pm$12.4 & 19.0$\pm$4.0\\
-      &SHOTCOLOR & 1 & 5 & 5 & 40 & 304 & 89 & 2.8$\pm$1.1 & 47.0 & 18.8$\pm$4.9 & 73.2$\pm$48.3 & 27.8$\pm$12.1\\
-      &FPFH & 4 & 6 & 6 & 38 & 190 & 86 & 1.7$\pm$1.0 & 22.8$\pm$12.4 & 22.0$\pm$1.4 & 29.6$\pm$12.7 & 21.5$\pm$5.0\\
-      \hline\multirow{5}{*}{SIFT} & PFHRGB & 0 & 0 & 0 & 38 & 86 & 86 & n/a & n/a & n/a & 2.7$\pm$0.9 & n/a\\
-      &SHOT & 0 & 0 & 0 & 38 & 86 & 86 & n/a & n/a & n/a & 2.7$\pm$0.7 & n/a\\
-      &PFH & 0 & 0 & 0 & 38 & 86 & 86 & n/a & n/a & n/a & 2.3$\pm$0.7 & n/a\\
-      &SHOTCOLOR & 1 & 1 & 1 & 38 & 86 & 86 & 1.0 & 3.0 & n/a & 2.9$\pm$1.0 & n/a\\
-      &FPFH & 0 & 0 & 0 & 38 & 86 & 86 & n/a & n/a & n/a & 3.3$\pm$0.7 & n/a\\
-      \hline\multirow{5}{*}{SUSAN} & PFHRGB & 1 & 1 & 1 & 38 & 90 & 86 & 1.0 & 8.0 & n/a & 13.9$\pm$10.0 & n/a\\
-      &SHOT & 0 & 0 & 0 & 38 & 87 & 86 & n/a & n/a & n/a & 5.6$\pm$4.7 & n/a\\
-      &PFH & 0 & 0 & 0 & 38 & 86 & 86 & n/a & n/a & n/a & 9.0$\pm$8.0 & n/a\\
-      &SHOTCOLOR & 0 & 0 & 0 & 38 & 131 & 86 & n/a & n/a & n/a & 30.9$\pm$15.3 & 24.6$\pm$9.7\\
-      &FPFH & 0 & 0 & 0 & 38 & 88 & 86 & n/a & n/a & n/a & 8.7$\pm$7.9 & 16.0\\
-      \hline\multirow{5}{*}{UNIFORM} & PFHRGB & 21 & 21 & 21 & 38 & 192 & 86 & 1.0$\pm$0.0 & 86.6$\pm$38.0 & n/a & 46.4$\pm$19.8 & 34.3$\pm$11.1\\
-      &SHOT & 0 & 0 & 0 & 38 & 220 & 86 & n/a & n/a & n/a & 26.1$\pm$10.2 & 16.9$\pm$4.8\\
-      &PFH & 0 & 0 & 0 & 38 & 153 & 86 & n/a & n/a & n/a & 27.5$\pm$11.6 & 21.2$\pm$4.8\\
-      &SHOTCOLOR & 0 & 0 & 0 & 38 & 217 & 86 & n/a & n/a & n/a & 34.8$\pm$16.7 & 20.0$\pm$7.2\\
-      &FPFH & 0 & 0 & 0 & 38 & 151 & 86 & n/a & n/a & n/a & 23.6$\pm$8.9 & 21.1$\pm$4.4\\
-    \end{tabular}
-    \caption{query results hanger_jacket}
-    \label{tab:qhanger_jacket}
-  \end{table}
-  \begin{table}
-    \begin{tabular}{cc|ccccccccccc}
-      & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
-      \multirow{5}{*}{ISS} & PFHRGB & 17 & 26 & 26 & 45 & 198 & 86 & 1.5$\pm$0.9 & 86.1$\pm$29.2 & 40.2$\pm$13.4 & 62.3$\pm$27.6 & 34.6$\pm$9.9\\
-      &SHOT & 1 & 5 & 5 & 46 & 178 & 89 & 2.4$\pm$1.1 & 16.0 & 13.2$\pm$1.3 & 23.6$\pm$7.2 & 17.1$\pm$4.4\\
-      &PFH & 7 & 15 & 15 & 45 & 190 & 86 & 1.9$\pm$1.0 & 27.9$\pm$6.3 & 21.8$\pm$3.8 & 33.3$\pm$14.9 & 21.4$\pm$4.9\\
-      &SHOTCOLOR & 0 & 6 & 6 & 46 & 346 & 89 & 3.7$\pm$0.8 & n/a & 19.0$\pm$5.1 & 52.5$\pm$15.2 & 25.4$\pm$8.7\\
-      &FPFH & 2 & 8 & 8 & 45 & 154 & 86 & 2.0$\pm$0.8 & 34.0$\pm$38.2 & 21.0$\pm$4.7 & 34.3$\pm$17.1 & 27.0$\pm$8.7\\
-      \hline\multirow{5}{*}{SIFT} & PFHRGB & 5 & 5 & 5 & 45 & 86 & 86 & 1.0$\pm$0.0 & 2.0$\pm$0.0 & n/a & 2.1$\pm$0.4 & n/a\\
-      &SHOT & 0 & 0 & 0 & 45 & 86 & 86 & n/a & n/a & n/a & 2.0$\pm$0.3 & n/a\\
-      &PFH & 3 & 3 & 3 & 45 & 86 & 86 & 1.0$\pm$0.0 & 1.3$\pm$0.6 & n/a & 1.6$\pm$0.5 & n/a\\
-      &SHOTCOLOR & 0 & 0 & 0 & 45 & 86 & 86 & n/a & n/a & n/a & 2.0$\pm$0.3 & n/a\\
-      &FPFH & 2 & 2 & 2 & 45 & 86 & 86 & 1.0$\pm$0.0 & 1.5$\pm$0.7 & n/a & 1.9$\pm$0.4 & n/a\\
-      \hline\multirow{5}{*}{SUSAN} & PFHRGB & 4 & 4 & 4 & 45 & 86 & 86 & 1.0$\pm$0.0 & 5.0$\pm$2.4 & n/a & 5.5$\pm$1.9 & n/a\\
-      &SHOT & 2 & 2 & 2 & 45 & 86 & 86 & 1.0$\pm$0.0 & 1.5$\pm$0.7 & n/a & 1.7$\pm$0.6 & n/a\\
-      &PFH & 0 & 0 & 0 & 45 & 86 & 86 & n/a & n/a & n/a & 3.7$\pm$1.1 & n/a\\
-      &SHOTCOLOR & 2 & 2 & 2 & 45 & 86 & 86 & 1.0$\pm$0.0 & 2.0$\pm$0.0 & n/a & 2.0$\pm$0.5 & n/a\\
-      &FPFH & 1 & 1 & 1 & 45 & 86 & 86 & 1.0 & 4.0 & n/a & 3.1$\pm$1.0 & n/a\\
-      \hline\multirow{5}{*}{UNIFORM} & PFHRGB & 18 & 32 & 32 & 45 & 306 & 86 & 1.7$\pm$0.9 & 134.6$\pm$54.5 & 50.6$\pm$20.4 & 92.7$\pm$22.5 & 47.2$\pm$17.9\\
-      &SHOT & 0 & 0 & 0 & 45 & 231 & 86 & n/a & n/a & n/a & 25.7$\pm$10.7 & 17.6$\pm$3.9\\
-      &PFH & 3 & 4 & 4 & 45 & 203 & 86 & 1.2$\pm$0.5 & 49.7$\pm$18.9 & 38.0 & 30.7$\pm$8.6 & 22.2$\pm$5.6\\
-      &SHOTCOLOR & 1 & 1 & 1 & 45 & 260 & 86 & 1.0 & 30.0 & n/a & 34.7$\pm$11.1 & 20.3$\pm$5.2\\
-      &FPFH & 1 & 1 & 1 & 45 & 175 & 86 & 1.0 & 36.0 & n/a & 33.5$\pm$18.4 & 22.3$\pm$5.2\\
-    \end{tabular}
-    \caption{query results laptop1}
-    \label{tab:qlaptop1}
-  \end{table}
-  \begin{table}
-    \begin{tabular}{cc|ccccccccccc}
-      & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
-      \multirow{5}{*}{ISS} & PFHRGB & 1 & 4 & 4 & 26 & 151 & 86 & 2.0$\pm$0.8 & 127.0 & 42.0$\pm$1.0 & 87.4$\pm$33.1 & 46.2$\pm$26.9\\
-      &SHOT & 0 & 0 & 0 & 26 & 303 & 89 & n/a & n/a & n/a & 31.3$\pm$8.7 & 18.7$\pm$4.9\\
-      &PFH & 0 & 6 & 6 & 26 & 255 & 86 & 2.3$\pm$0.5 & n/a & 27.2$\pm$8.4 & 45.5$\pm$13.6 & 26.1$\pm$9.5\\
-      &SHOTCOLOR & 0 & 3 & 3 & 26 & 265 & 89 & 2.3$\pm$0.6 & n/a & 72.7$\pm$31.1 & 155.2$\pm$65.0 & 45.2$\pm$25.2\\
-      &FPFH & 2 & 9 & 9 & 26 & 251 & 86 & 1.9$\pm$0.6 & 48.0$\pm$12.7 & 29.1$\pm$5.2 & 53.2$\pm$18.2 & 29.0$\pm$10.3\\
-      \hline\multirow{5}{*}{SIFT} & PFHRGB & 1 & 1 & 1 & 26 & 86 & 86 & 1.0 & 3.0 & n/a & 4.3$\pm$1.1 & n/a\\
-      &SHOT & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 2.5$\pm$0.8 & n/a\\
-      &PFH & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 3.7$\pm$0.9 & n/a\\
-      &SHOTCOLOR & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 2.7$\pm$0.8 & n/a\\
-      &FPFH & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 2.9$\pm$0.9 & n/a\\
-      \hline\multirow{5}{*}{SUSAN} & PFHRGB & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 1.3$\pm$0.5 & n/a\\
-      &SHOT & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 1.0$\pm$0.2 & n/a\\
-      &PFH & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 1.3$\pm$0.6 & n/a\\
-      &SHOTCOLOR & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 1.2$\pm$0.4 & n/a\\
-      &FPFH & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 1.4$\pm$0.6 & n/a\\
-      \hline\multirow{5}{*}{UNIFORM} & PFHRGB & 4 & 5 & 5 & 26 & 262 & 86 & 1.2$\pm$0.4 & 126.5$\pm$49.0 & 104.0 & 129.0$\pm$57.5 & 50.1$\pm$23.7\\
-      &SHOT & 4 & 8 & 8 & 26 & 276 & 86 & 1.9$\pm$1.0 & 38.2$\pm$12.5 & 20.2$\pm$5.3 & 40.5$\pm$15.4 & 21.8$\pm$7.1\\
-      &PFH & 3 & 8 & 7 & 26 & 219 & 86 & 1.7$\pm$0.8 & 45.7$\pm$11.1 & 39.0$\pm$12.7 & 63.3$\pm$19.9 & 33.8$\pm$13.0\\
-      &SHOTCOLOR & 1 & 11 & 11 & 26 & 328 & 86 & 3.0$\pm$1.1 & 61.0 & 35.0$\pm$12.1 & 60.7$\pm$20.6 & 29.8$\pm$10.9\\
-      &FPFH & 3 & 6 & 5 & 26 & 223 & 86 & 1.4$\pm$0.5 & 43.0$\pm$2.0 & 35.7$\pm$5.1 & 70.4$\pm$25.0 & 36.8$\pm$17.7\\
-    \end{tabular}
-    \caption{query results pillow}
-    \label{tab:qpillow}
-  \end{table}
-  \begin{table}
-    \begin{tabular}{cc|ccccccccccc}
-      & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
-      \multirow{5}{*}{ISS} & PFHRGB & 6 & 7 & 7 & 20 & 157 & 86 & 1.1$\pm$0.4 & 40.0$\pm$8.0 & 43.0 & 38.8$\pm$20.2 & 26.1$\pm$5.5\\
-      &SHOT & 2 & 3 & 3 & 20 & 108 & 89 & 1.3$\pm$0.6 & 11.5$\pm$12.0 & 16.0 & 9.3$\pm$9.2 & 17.5$\pm$3.5\\
-      &PFH & 1 & 3 & 3 & 20 & 119 & 86 & 1.7$\pm$0.6 & 14.0 & 16.5$\pm$3.5 & 17.0$\pm$7.6 & 14.6$\pm$3.2\\
-      &SHOTCOLOR & 1 & 8 & 8 & 20 & 367 & 89 & 3.1$\pm$1.7 & 49.0 & 32.3$\pm$13.6 & 59.1$\pm$18.5 & 31.3$\pm$10.2\\
-      &FPFH & 3 & 5 & 5 & 20 & 147 & 86 & 2.0$\pm$1.4 & 22.3$\pm$4.9 & 17.5$\pm$2.1 & 20.8$\pm$8.8 & 18.6$\pm$2.7\\
-      \hline\multirow{5}{*}{SIFT} & PFHRGB & 0 & 0 & 0 & 20 & 86 & 86 & n/a & n/a & n/a & 2.0$\pm$0.6 & n/a\\
-      &SHOT & 0 & 0 & 0 & 20 & 86 & 86 & n/a & n/a & n/a & 1.5$\pm$0.6 & n/a\\
-      &PFH & 0 & 0 & 0 & 20 & 86 & 86 & n/a & n/a & n/a & 1.9$\pm$0.7 & n/a\\
-      &SHOTCOLOR & 2 & 2 & 2 & 20 & 86 & 86 & 1.0$\pm$0.0 & 1.5$\pm$0.7 & n/a & 1.8$\pm$0.8 & n/a\\
-      &FPFH & 1 & 1 & 1 & 20 & 86 & 86 & 1.0 & 2.0 & n/a & 1.8$\pm$0.4 & n/a\\
-      \hline\multirow{5}{*}{SUSAN} & PFHRGB & 7 & 7 & 7 & 20 & 86 & 86 & 1.0$\pm$0.0 & 30.7$\pm$21.1 & n/a & 13.8$\pm$9.5 & n/a\\
-      &SHOT & 1 & 1 & 1 & 20 & 86 & 86 & 1.0 & 3.0 & n/a & 2.7$\pm$0.9 & n/a\\
-      &PFH & 2 & 2 & 2 & 20 & 86 & 86 & 1.0$\pm$0.0 & 5.5$\pm$2.1 & n/a & 5.3$\pm$1.7 & n/a\\
-      &SHOTCOLOR & 2 & 3 & 3 & 20 & 94 & 86 & 1.3$\pm$0.6 & 23.5$\pm$2.1 & 20.0 & 16.6$\pm$9.9 & 16.0\\
-      &FPFH & 3 & 3 & 3 & 20 & 86 & 86 & 1.0$\pm$0.0 & 6.0$\pm$1.0 & n/a & 6.5$\pm$2.3 & n/a\\
-      \hline\multirow{5}{*}{UNIFORM} & PFHRGB & 6 & 9 & 9 & 20 & 270 & 86 & 1.8$\pm$1.2 & 73.5$\pm$14.9 & 40.3$\pm$6.7 & 71.6$\pm$19.7 & 39.0$\pm$15.5\\
-      &SHOT & 0 & 0 & 0 & 20 & 210 & 86 & n/a & n/a & n/a & 22.4$\pm$8.5 & 14.8$\pm$2.2\\
-      &PFH & 3 & 3 & 3 & 20 & 160 & 86 & 1.0$\pm$0.0 & 29.3$\pm$10.2 & n/a & 22.7$\pm$9.5 & 18.7$\pm$3.9\\
-      &SHOTCOLOR & 1 & 1 & 1 & 20 & 278 & 86 & 1.0 & 46.0 & n/a & 34.7$\pm$8.6 & 22.2$\pm$7.3\\
-      &FPFH & 1 & 2 & 2 & 20 & 191 & 86 & 1.5$\pm$0.7 & 24.0 & 16.0 & 30.5$\pm$6.8 & 20.1$\pm$3.3\\
-    \end{tabular}
-    \caption{query results top_couch_jacket2}
-    \label{tab:qtop_couch_jacket2}
-  \end{table}
-  \begin{table}
-    \begin{tabular}{cc|ccccccccccc}
-      & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
-      \multirow{5}{*}{ISS} & PFHRGB & 0 & 0 & 0 & 59 & 98 & 86 & n/a & n/a & n/a & 16.4$\pm$12.6 & 16.0$\pm$3.0\\
-      &SHOT & 0 & 0 & 0 & 59 & 90 & 89 & n/a & n/a & n/a & 4.5$\pm$5.4 & 13.0\\
-      &PFH & 1 & 1 & 1 & 59 & 90 & 86 & 1.0 & 3.0 & n/a & 7.9$\pm$7.8 & 14.7$\pm$2.5\\
-      &SHOTCOLOR & 0 & 0 & 0 & 59 & 138 & 89 & n/a & n/a & n/a & 20.4$\pm$10.8 & 16.5$\pm$4.9\\
-      &FPFH & 0 & 0 & 0 & 59 & 89 & 86 & n/a & n/a & n/a & 9.5$\pm$7.1 & 15.0\\
-      \hline\hline\multirow{5}{*}{SUSAN} & PFHRGB & 0 & 0 & 0 & 59 & 86 & 86 & n/a & n/a & n/a & 4.3$\pm$2.8 & n/a\\
-      &SHOT & 0 & 0 & 0 & 59 & 86 & 86 & n/a & n/a & n/a & 2.2$\pm$0.6 & n/a\\
-      &PFH & 0 & 0 & 0 & 59 & 86 & 86 & n/a & n/a & n/a & 3.4$\pm$1.9 & n/a\\
-      &SHOTCOLOR & 0 & 0 & 0 & 59 & 86 & 86 & n/a & n/a & n/a & 2.9$\pm$2.5 & n/a\\
-      &FPFH & 1 & 1 & 1 & 59 & 86 & 86 & 1.0 & 3.0 & n/a & 3.1$\pm$0.8 & n/a\\
-      \hline\multirow{5}{*}{UNIFORM} & PFHRGB & 0 & 0 & 0 & 59 & 170 & 86 & n/a & n/a & n/a & 50.0$\pm$32.8 & 26.1$\pm$10.9\\
-      &SHOT & 0 & 0 & 0 & 59 & 197 & 86 & n/a & n/a & n/a & 24.6$\pm$9.8 & 17.0$\pm$3.6\\
-      &PFH & 0 & 0 & 0 & 59 & 152 & 86 & n/a & n/a & n/a & 24.6$\pm$10.0 & 19.3$\pm$5.3\\
-      &SHOTCOLOR & 0 & 0 & 0 & 59 & 260 & 86 & n/a & n/a & n/a & 32.2$\pm$12.8 & 19.1$\pm$6.1\\
-      &FPFH & 0 & 0 & 0 & 59 & 182 & 86 & n/a & n/a & n/a & 28.7$\pm$11.0 & 19.8$\pm$5.2\\
-    \end{tabular}
-    \caption{query results trash_bin}
-    \label{tab:qtrash_bin}
-  \end{table}
+Tables~\ref{tbl:qchair1} and \ref{tbl:qchair_k10} show the full results for the
+query sets DEF and K10R2, specific to the chair object. We can see how the
+number of matches which are ranked in the top cluster remains mostly the same,
+but for FPFH and PFH the total number of matches found within the clusters
+almost doubles. A slight increase can also be seen with the PFHRGB and SHOTCOLOR
+descriptors.
 
-\end{landscape}
+\begin{table}
+  \centerline{
+    \begin{tabular}{cc|ccccccccccc}
+      Descriptor& Interest & Top & Total & Uniq & Actual & Clusters & Clouds & Avg rank & Top score\\\hline
+      \multirow{3}{*}{FPFH} & UNIFORM & 22 & 28 & 28 & 85 & 129 & 86 & 1.2$\pm$0.5 & 83.8$\pm$34.5\\
+      &ISS & 13 & 27 & 27 & 85 & 192 & 86 & 1.8$\pm$0.9 & 65.2$\pm$16.4 \\
+      &SUSAN & 10 & 10 & 10 & 85 & 86 & 86 & 1.0$\pm$0.0 & 6.4$\pm$1.8 \\
+      \hline\multirow{3}{*}{PFH}&UNIFORM & 23 & 31 & 29 & 85 & 134 & 86 & 1.3$\pm$0.7 & 68.4$\pm$24.2 \\
+      &ISS & 2 & 25 & 25 & 85 & 209 & 86 & 2.4$\pm$0.6 & 47.0$\pm$1.4 \\
+      &SUSAN & 10 & 10 & 10 & 85 & 86 & 86 & 1.0$\pm$0.0 & 5.8$\pm$1.1 \\
+      \hline\multirow{3}{*}{PFHRGB} & UNIFORM & 50 & 83 & 73 & 85 & 267 & 86 & 1.5$\pm$1.0 & 357.6$\pm$118.6\\
+      &ISS & 45 & 84 & 74 & 85 & 349 & 86 & 1.7$\pm$1.0 & 216.9$\pm$79.\\
+      &SUSAN & 15 & 15 & 15 & 85 & 86 & 86 & 1.0$\pm$0.0 & 8.4$\pm$3.5 \\
+      \hline\multirow{3}{*}{SHOT} & UNIFORM & 18 & 43 & 43 & 85 & 226 & 86 & 1.9$\pm$0.9 & 76.4$\pm$31.1\\
+      &ISS & 0 & 39 & 39 & 85 & 247 & 86 & 2.8$\pm$0.5 & 0\\
+      &SUSAN & 7 & 7 & 7 & 85 & 86 & 86 & 1.0$\pm$0.0 & 4.6$\pm$1.1 \\
+      \hline\multirow{3}{*}{SHOTCOLOR} & UNIFORM & 50 & 78 & 65 & 85 & 279 & 86 & 1.4$\pm$0.9 & 174.5$\pm$54.4\\
+      &ISS & 15 & 75 & 66 & 85 & 396 & 86 & 2.4$\pm$1.2 & 135.7$\pm$48.4\\
+      &SUSAN & 12 & 12 & 12 & 85 & 86 & 86 & 1.0$\pm$0.0 & 7.0$\pm$1.7 \\
+    \end{tabular}
+  }
+\caption{Query results for chair using DEF and DT settings. Avg rank is the
+  average position of the top ranking cluster, if there are any that match. Top
+  score is the average total votes for the top cluster.}
+\label{tab:qchair1}
+\end{table}
 
+\begin{table}
+  \centerline{
+    \begin{tabular}{cc|ccccccccccc}
+      Descriptor& Interest & Top & Total & Uniq & Actual & Clusters & Clouds & Avg rank & Top m score\\\hline
+      \multirow{3}{*}{FPFH} &UNIFORM & 25 & 57 & 54 & 85 & 509 & 86 & 2.2$\pm$1.7 & 251.4$\pm$84.9 \\
+                & ISS & 12 & 63 & 61 & 85 & 621 & 86 & 3.7$\pm$2.2 & 160.3$\pm$33.1 \\
+                &SUSAN & 11 & 11 & 11 & 85 & 86 & 86 & 1.0$\pm$0.0 & 11.7$\pm$10.0 \\\hline
+      \multirow{3}{*}{PFH} &UNIFORM & 21 & 62 & 58 & 85 & 498 & 86 & 2.3$\pm$1.5 & 206.5$\pm$61.2\\
+                & ISS & 1 & 63 & 61 & 85 & 507 & 86 & 3.6$\pm$1.1 & 141.0 \\
+                &SUSAN & 10 & 10 & 10 & 85 & 86 & 86 & 1.0$\pm$0.0 & 9.9$\pm$4.6\\\hline
+      \multirow{3}{*}{PFHRGB}&UNIFORM & 52 & 93 & 78 & 85 & 652 & 86 & 1.7$\pm$1.3 & 733.7$\pm$245.7 \\
+                & ISS & 41 & 95 & 77 & 85 & 746 & 86 & 1.9$\pm$1.5 & 436.8$\pm$151.4 \\
+                &SUSAN & 21 & 22 & 22 & 85 & 89 & 86 & 1.0$\pm$0.2 & 21.2$\pm$12.0 \\\hline
+      \multirow{3}{*}{SHOT}&UNIFORM & 13 & 88 & 79 & 85 & 580 & 86 & 3.0$\pm$1.5 & 226.5$\pm$71.9 \\
+                & ISS & 0 & 73 & 70 & 85 & 357 & 86 & 3.1$\pm$0.6 &0 \\
+                &SUSAN & 6 & 6 & 6 & 85 & 86 & 86 & 1.0$\pm$0.0 & 5.8$\pm$0.8 \\\hline
+      \multirow{3}{*}{SHOTCOLOR} &UNIFORM & 50 & 85 & 73 & 85 & 662 & 86 & 2.0$\pm$1.9 & 404.3$\pm$113.3\\
+                & ISS & 17 & 92 & 78 & 85 & 780 & 86 & 3.1$\pm$1.9 & 287.6$\pm$82.5\\
+                &SUSAN & 9 & 10 & 10 & 85 & 88 & 86 & 1.1$\pm$0.3 & 11.9$\pm$8.8 \\
+    \end{tabular}
+  }
+\caption{Query results for chair using K10R2 and DT settings.}
+\label{tab:qchair1_k10}
+\end{table}
+
+% \begin{table}
+%   \begin{tabular}{cc|cccc}
+%     Object & Type & Top & Total & Unique & Actual \\\hline
+%     \multirow{5}{*}{Backpack} & FPFH & 2.7$\pm$1.5 & 13.0$\pm$14.8 & 13.0$\pm$14.8 & 80.0$\pm$0.0\\
+%            & PFH & 2.0$\pm$2.6 & 12.3$\pm$16.4 & 12.3$\pm$16.4 & \ditto\\
+%            & PFHRGB & 42.3$\pm$11.0 & 53.3$\pm$19.7 & 53.3$\pm$19.7 & \ditto\\
+%            & SHOT & 1.0$\pm$1.7 & 4.0$\pm$6.9 & 4.0$\pm$6.9 & \ditto\\
+%            & SHOTCOLOR & 6.7$\pm$5.5 & 26.0$\pm$32.9 & 26.0$\pm$32.9 & \ditto\\\hline
+%     \multirow{5}{*}{Chair} & FPFH & 16.0$\pm$7.8 & 43.7$\pm$28.4 & 42.0$\pm$27.1 & 85\\
+%            & PFH & 10.7$\pm$10.0 & 45.0$\pm$30.3 & 43.0$\pm$28.6 & \ditto\\
+%            & PFHRGB & 38.0$\pm$15.7 & 70.0$\pm$41.6 & 59.0$\pm$32.0 & \ditto\\
+%            & SHOT & 6.3$\pm$6.5 & 55.7$\pm$43.7 & 51.7$\pm$39.8 & \ditto \\
+%            & SHOTCOLOR & 25.3$\pm$21.7 & 62.3$\pm$45.5 & 53.7$\pm$37.9 & \ditto\\\hline
+%     \multirow{5}{*}{Hanger jacket} & FPFH & 0.7$\pm$1.2 & 5.3$\pm$6.8 & 5.3$\pm$6.8 & 37\\
+%            & PFH & 0.0$\pm$0.0 & 5.3$\pm$4.7 & 5.3$\pm$4.7 & \ditto\\
+%            & PFHRGB & 13.0$\pm$11.3 & 17.3$\pm$15.3 & 17.3$\pm$15.3 & \ditto\\
+%            & SHOT & 0.0$\pm$0.0 & 0.7$\pm$1.2 & 0.7$\pm$1.2 & \ditto \\
+%            & SHOTCOLOR & 0.0$\pm$0.0 & 1.3$\pm$2.3 & 1.3$\pm$2.3 & \ditto\\\hline
+%     \multirow{5}{*}{Laptop} & FPFH & 2.3$\pm$4.0 & 14.3$\pm$12.7 & 14.3$\pm$12.7 & 45\\
+%            & PFH & 4.7$\pm$7.2 & 21.3$\pm$18.7 & 21.3$\pm$18.7 & \ditto \\
+%            & PFHRGB & 19.7$\pm$14.6 & 24.0$\pm$18.2 & 24.0$\pm$18.2 & \ditto\\
+%            & SHOT & 0.0$\pm$0.0 & 9.3$\pm$12.9 & 9.3$\pm$12.9 & \ditto \\
+%            & SHOTCOLOR & 0.0$\pm$0.0 & 13.0$\pm$16.8 & 13.0$\pm$16.8 & \ditto \\
+%   \end{tabular}
+%     \caption{Matching results for the K10R2 setting for query using data generated
+%       using DT setting from preprocessing aggregated according to the descriptor
+%       type that was used.}
+%     \label{tbl:feature_k10r2}
+% \end{table}
+
+% \begin{table}
+%   \begin{tabular}{cc|cccc}
+%     Object & Type & Top & Total & Unique & Actual \\\hline
+%     \multirow{3}{*}{Backpack} & ISS & 15.4$\pm$21.3 & 41.0$\pm$24.1 & 41.0$\pm$24.1 & 80\\
+%            & SUSAN & 8.2$\pm$13.1 & 8.2$\pm$13.1 & 8.2$\pm$13.1 & \ditto\\
+%            & UNIFORM & 9.2$\pm$18.9 & 16.0$\pm$25.3 & 16.0$\pm$25.3 & \ditto\\\hline
+%     \multirow{3}{*}{Chair} & ISS & 14.2$\pm$16.6 & 77.2$\pm$15.5 & 69.4$\pm$8.3 & 85\\
+%            & SUSAN & 11.4$\pm$5.7 & 11.8$\pm$6.0 & 11.8$\pm$6.0 & \ditto\\
+%            & UNIFORM & 32.2$\pm$17.7 & 77.0$\pm$16.3 & 68.4$\pm$11.6 & \ditto\\\hline
+%     \multirow{3}{*}{Hanger jacket} & ISS & 4.2$\pm$8.3 & 10.2$\pm$8.3 & 10.2$\pm$8.3 & 37\\
+%            & SUSAN & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 0.0$\pm$0.0 & \ditto\\
+%            & UNIFORM & 4.0$\pm$8.9 & 7.8$\pm$12.2 & 7.8$\pm$12.2 & \ditto\\\hline
+%     \multirow{3}{*}{Laptop} & ISS & 5.4$\pm$11.5 & 30.2$\pm$5.8 & 30.2$\pm$5.8& 45\\
+%            & SUSAN & 0.6$\pm$1.3 & 0.6$\pm$1.3 & 0.6$\pm$1.3 & \ditto\\
+%            & UNIFORM & 10.0$\pm$12.4 & 18.4$\pm$12.9 & 18.4$\pm$12.9 & \ditto\\
+%   \end{tabular}
+%   \caption{Results for the K10R2 setting for query using data generated using DT
+%   setting from preprocessing aggregated according to the interest type that was
+%   used.}
+% \label{tbl:interest_k10r2}
+% \end{table}
+
+Having observed that some of the descriptors and interest point methods do not
+perform well, we can look at the data with those excluded. Comparing
+Table~\ref{tbl:aggregate_query_skipped} to Table~\ref{tbl:aggregate_query}, we
+can see that as we should expect there is a large jump in the retrieval
+performance for the backpack, from around 15 matches on average to around 30,
+along with a jump for the chair, particularly on the DEF query set, from around
+28 to 38. The K10R2 set also has a small increase. The values for other objects
+have a slight variation, but nothing of note.
+
+\subsubsection{Voting and Clustering Examples}
+Figure~\ref{fig:chairvote} shows the results of voting using ISS and uniform
+feature selection, and Figure~\ref{fig:chaircluster} shows clusters extracted
+from the voting space. The figure shows how the number of neighbours affects the
+number of points in the space, and also shows that the majority of points for
+the PFHRGB descriptor fall in regions corresponding to object instances. Using
+the uniform selection method, the top cluster corresponds to the correct chair,
+but using ISS the other chair is matched instead. Technically this is a correct
+match, and given this result we expect that the retrieval results from PFHRGB
+are actually better than the results that we show in the tables, but we do not
+have a practical way of retrieving this information.
+Figures~\ref{fig:chairvote_shotc} and \ref{fig:chaircluster_shotc} show the same
+results for the SHOTCOLOR descriptor. Here again we see that both chairs have
+corresponding clusters. It is difficult to say anything general from looking at
+these results, since each cloud and object will result in variations. However,
+we have a visual confirmation that the matches are correct, and that the voting
+is placing points in the correct regions.
+\newpage
+\begin{figure}
+  % uniform_pfhrgb-2015-05-27_11-42-48/20140909/patrol_run_53/room_3/
+  %uniform_pfhrgb-2015-05-27_11-42-48/20140909/patrol_run_53/room_3/
+  \centering
+  \subfloat[Uniform]{
+    \includegraphics[width=0.46\textwidth]{images/votes_k5_uniform}
+    \includegraphics[width=0.46\textwidth]{images/votes_k10_uniform}
+  }\\
+  \subfloat[ISS]{
+    \includegraphics[width=0.46\textwidth]{images/votes_k5_iss}
+    \includegraphics[width=0.46\textwidth]{images/votes_k10_iss}
+  }
+  \caption{Examples of max $N$ points from voting space for PFHRGB descriptors
+    for the chair object from DT set using uniform and ISS methods. Left images
+    are for DEF query set, right are K10R2. The matching chair is on the right.}
+  \label{fig:chairvote}
+\end{figure}
+
+\begin{figure}
+  % uniform_pfhrgb-2015-05-27_11-42-48/20140909/patrol_run_53/room_3/
+  %uniform_pfhrgb-2015-05-27_11-42-48/20140909/patrol_run_53/room_3/
+  \centering
+  \subfloat[Uniform]{
+    \includegraphics[width=0.46\textwidth]{images/clusters_k5_uniform}
+    \includegraphics[width=0.46\textwidth]{images/clusters_k10_uniform}
+  }\\
+  \subfloat[ISS]{
+    \includegraphics[width=0.46\textwidth]{images/clusters_k5_iss}
+    \includegraphics[width=0.46\textwidth]{images/clusters_k10_iss}
+  }
+  \caption{Clusters found for corresponding images of
+    Figure~\ref{fig:chairvote}. Colours indicate cluster rank. Red is top, then
+    blue, green, yellow and light blue. Other colours are lower rank.}
+  \label{fig:chaircluster}
+\end{figure}
+
+\begin{figure}
+  % uniform_pfhrgb-2015-05-27_11-42-48/20140909/patrol_run_53/room_3/
+  %uniform_pfhrgb-2015-05-27_11-42-48/20140909/patrol_run_53/room_3/
+  \centering
+  \subfloat[Uniform]{
+    \includegraphics[width=0.46\textwidth]{images/votes_k5_uniform_shotc}
+    \includegraphics[width=0.46\textwidth]{images/votes_k10_uniform_shotc}
+  }\\
+  \subfloat[ISS]{
+    \includegraphics[width=0.46\textwidth]{images/votes_k5_iss_shotc}
+    \includegraphics[width=0.46\textwidth]{images/votes_k10_iss_shotc}
+  }
+  \caption{Examples of max $N$ points from voting space for SHOTCOLOR descriptors
+    for the chair object from DT set using uniform and ISS methods. Left images
+    are for DEF query set, right are K10R2. The matching chair is on the right.}
+  \label{fig:chairvote_shotc}
+\end{figure}
+
+\begin{figure}[H]
+  % uniform_pfhrgb-2015-05-27_11-42-48/20140909/patrol_run_53/room_3/
+  %uniform_pfhrgb-2015-05-27_11-42-48/20140909/patrol_run_53/room_3/
+  \centering
+  \subfloat[Uniform]{
+    \includegraphics[width=0.46\textwidth]{images/clusters_k5_uniform_shotc}
+    \includegraphics[width=0.46\textwidth]{images/clusters_k10_uniform_shotc}
+  }\\
+  \subfloat[ISS]{
+    \includegraphics[width=0.46\textwidth]{images/clusters_k5_iss_shotc}
+    \includegraphics[width=0.46\textwidth]{images/clusters_k10_iss_shotc}
+  }
+  \caption{Clusters found for corresponding images of
+    Figure~\ref{fig:chairvote_shotc}. Colours indicate cluster rank. Red is top,
+    then blue, green, yellow and light blue. Other colours are lower rank.}
+  \label{fig:chaircluster_shotc}
+\end{figure}
+
+\newpage
+\subsubsection{Retrieval Examples}
+Figure~\ref{fig:retrieval} shows examples of the regions returned by extracting
+the region around the top 5 cluster centroids for each object, using the PFHRGB
+descriptor and uniform selection, with the DT and K10R2 sets. As our discussion
+above would suggest, the results for the chair and backpack are good, with all
+five of the top matches being the actual object, with the chair even being
+extracted when someone is sitting on it. The hanger jacket and laptop also have
+a majority of correct matches in their top five results. We have excluded
+results from pillow, couch jacket and trash bin. There were no matches in the
+top 5 clusters, and what was retrieved appeared to be mostly parts of walls.
+\begin{figure}
+  \centering
+  \centerline{
+    \subfloat[Chair]{
+      \includegraphics[width=0.2\textwidth]{images/query_chair1_front}
+      \includegraphics[width=0.2\textwidth]{images/queryresults/chair_0}
+      \includegraphics[width=0.2\textwidth]{images/queryresults/chair_1}
+      \includegraphics[width=0.2\textwidth]{images/queryresults/chair_2}
+      \includegraphics[width=0.2\textwidth]{images/queryresults/chair_3}
+      \includegraphics[width=0.2\textwidth]{images/queryresults/chair_4}
+    }\\
+  }
+  \centerline{
+    \subfloat[Backpack]{
+      \includegraphics[width=0.2\textwidth]{images/query_backpack2_front}
+      \includegraphics[width=0.2\textwidth]{images/queryresults/backpack_0}
+      \includegraphics[width=0.2\textwidth]{images/queryresults/backpack_1}
+      \includegraphics[width=0.2\textwidth]{images/queryresults/backpack_2}
+      \includegraphics[width=0.2\textwidth]{images/queryresults/backpack_3}
+      \includegraphics[width=0.2\textwidth]{images/queryresults/backpack_4}
+    }\\
+  }
+  \centerline{
+    \subfloat[Hanger jacket]{
+      \includegraphics[width=0.2\textwidth]{images/query_hanger_jacket_front}
+      \includegraphics[width=0.2\textwidth]{images/queryresults/hanger_jacket_0}
+      \includegraphics[width=0.2\textwidth]{images/queryresults/hanger_jacket_1}
+      \includegraphics[width=0.2\textwidth]{images/queryresults/hanger_jacket_2}
+      \includegraphics[width=0.2\textwidth]{images/queryresults/hanger_jacket_3}
+      \includegraphics[width=0.2\textwidth]{images/queryresults/hanger_jacket_4}
+    }\\
+  }
+  \centerline{
+    \subfloat[Laptop]{
+      \includegraphics[width=0.2\textwidth]{images/query_laptop1_front}
+      \includegraphics[width=0.2\textwidth]{images/queryresults/laptop_0}
+      \includegraphics[width=0.2\textwidth]{images/queryresults/laptop_1}
+      \includegraphics[width=0.2\textwidth]{images/queryresults/laptop_2}
+      \includegraphics[width=0.2\textwidth]{images/queryresults/laptop_3}
+      \includegraphics[width=0.2\textwidth]{images/queryresults/laptop_4}
+    }\\
+  }
+  % \centerline{
+  %   \subfloat[Couch jacket]{
+  %     \includegraphics[width=0.2\textwidth]{images/query_top_couch_jacket2_front}
+  %     \includegraphics[width=0.2\textwidth]{images/queryresults/top_couch_jacket_0}
+  %     \includegraphics[width=0.2\textwidth]{images/queryresults/top_couch_jacket_1}
+  %     \includegraphics[width=0.2\textwidth]{images/queryresults/top_couch_jacket_2}
+  %     \includegraphics[width=0.2\textwidth]{images/queryresults/top_couch_jacket_3}
+  %     \includegraphics[width=0.2\textwidth]{images/queryresults/top_couch_jacket_4}
+  %   }\\
+  % }
+  % \centerline{
+  %   \subfloat[Pillow]{
+  %     \includegraphics[width=0.2\textwidth]{images/query_pillow_front}
+  %     \includegraphics[width=0.2\textwidth]{images/queryresults/pillow_0}
+  %     \includegraphics[width=0.2\textwidth]{images/queryresults/pillow_1}
+  %     \includegraphics[width=0.2\textwidth]{images/queryresults/pillow_2}
+  %     \includegraphics[width=0.2\textwidth]{images/queryresults/pillow_3}
+  %     \includegraphics[width=0.2\textwidth]{images/queryresults/pillow_4}
+  %   }\\
+  % }
+  % \centerline{
+  %   \subfloat[Trash bin]{
+  %     \includegraphics[width=0.2\textwidth]{images/query_trash_bin_front}
+  %     \includegraphics[width=0.2\textwidth]{images/queryresults/trash_bin_0}
+  %     \includegraphics[width=0.2\textwidth]{images/queryresults/trash_bin_1}
+  %     \includegraphics[width=0.2\textwidth]{images/queryresults/trash_bin_2}
+  %     \includegraphics[width=0.2\textwidth]{images/queryresults/trash_bin_3}
+  %     \includegraphics[width=0.2\textwidth]{images/queryresults/trash_bin_4}
+  %   }
+  % }
+  \caption{Examples of top 5 objects retrieved using PFHRGB descriptor with uniform
+    sampling with the K10R2 set and DT set. Query object is shown on the left.
+    Top cluster is second image in each row. Couch jacket, pillow and trash bin
+    excluded for compactness. There were no correct matches in the top 5 for
+    those objects.}
+  \label{fig:retrieval}
+\end{figure}
 \chapter{Conclusion and Further Work}
 \label{chap:conc}
-Describe what the project was about, what was achieved, summarise the
-experiments, describe what can be improved.
+In this report, we have presented our implementation of a system for object
+query in point clouds. We use a query cloud which contains points from a single
+object to search in target clouds. The first step in our system is to preprocess
+the clouds to remove points which do not contribute any useful information to
+the query system, such as planes. For this process, we used RANSAC, along with
+downsampling and some additional trimming and transformation. In the second step
+of the process, we select interesting points using one of several possible
+methods, and then extract descriptors at these locations. In the final step, the
+descriptors are compared to descriptors of the same type from a given query
+cloud, and using a voting scheme in 3D space along with clustering, we extract
+regions in which we believe the query object appears in the target cloud.
 
+In our experimental evaluation, we discovered that the system had an optimal
+retrieval rate of approximately 50\% of the actual number of objects of a given
+instance in the target cloud. This value was achieved only for the chair object,
+which appears to have some unique regions that the descriptor comparisons can
+pick up well. The backpack object had retrieval rates of around 40\%, while the
+rates for other objects were much lower, around 10-15\%. We also found that in
+terms of interest point selection, the best methods to use were uniform and ISS,
+which return a large number of points. We believe that these methods perform
+best due to the large numbers of points resulting in more points from the object
+being included in the voting space, and contributing to the cluster scores. The
+best performing descriptor was PFHRGB, followed by SHOTCOLOR, both of which
+include colour information in addition to shape, which is the main difference
+between these two descriptors and the others that we have used. The PFHRGB
+descriptor outperforms SHOTCOLOR in most cases, which we believe to be the
+result of the PFH family being more descriptive of the shape. However, in our
+evaluation of the descriptor computation times, PFHRGB was the most costly to
+compute, so perhaps there is a trade-off that can be made if faster operation is
+necessary. We found that keeping a larger number of the nearest neighbours of
+the query descriptor from the target cloud gave better results, presumably
+because the more descriptors from the object can contribute to the voting space
+and increase the likelihood of a cluster forming. An increase of the total
+number of points used when clustering also improved results.
 
+While the system works satisfactorily for two of the objects we used for
+testing, the results do not look particularly good in the general scheme of
+things. A 50\% retrieval rate is less than one would like, but considering that
+we have done only the bare minimum of preprocessing and descriptor computations,
+the results could be seen as favourable. We have skipped some expensive
+segmentation steps which might seek to separate objects from the scene before
+doing any computations. We use basic nearest neighbour matching to retrieve the
+closest descriptors to a query descriptor, and then use a simple clustering
+technique to select the points that we are interested in.
 
+\section{Possible Improvements}
+The system has many areas which could be improved, in particular in terms of
+computation time. The RANSAC plane extraction is very expensive, and as a result
+preprocessing takes a long time. There are still regions which are useless after
+the preprocessing step has completed, so there is room for faster methods, and
+those which remove more points which we do not wish to keep. Due to time
+constraints, we have been unable to do a thorough investigation of the effects
+of various parameters on the efficacy of the retrieval, especially for the
+descriptors and interest point selection methods. The parameters for the
+preprocessing generally work quite well, but as mentioned above there is room
+for improvement.
+
+Some improvements to the query stage are also likely to improve the retrieval
+rate. We had considered investigating the effect of applying a density estimate
+to the voting space and using that as a search space instead of just points in
+space, but we did not have enough time to try this approach --- it would be
+interesting to see what difference this would make to the output of the system.
+
+In terms of general usability, the system would benefit from an interface which
+would allow the user to more easily input a query object and receive results
+once processing is complete. This addition could include a learning system which
+would ask the user to select matches of the actual object out of the matches
+that were returned, and use these results to improve subsequent searches by
+weighting the descriptors in the regions from which the user-selected matches
+came from, and considering these weights when voting.
 \printbibliography
 \end{document}
