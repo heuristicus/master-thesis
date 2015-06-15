@@ -366,7 +366,18 @@ def write_aggregate_data(fname, data):
     print(lines)
     f = open(fname,'w')
     f.write(lines)
-    
+
+def write_timing_data(fname, data):
+    # first level of keys contains feature/interest point names
+    f = open(fname, 'w')
+    f.write("Feature & Query & Hough & Cluster\\\\\n")
+    for feature in sorted(data):
+        line = feature + " & "
+        line += "%.5f" % statistics.mean(data[feature]['query']) + "$\pm$" + "%.5f" % statistics.stdev(data[feature]['query']) + " & "
+        line += "%.5f" % statistics.mean(data[feature]['hough']) + "$\pm$" + "%.5f" % statistics.stdev(data[feature]['hough']) + " & "
+        line += "%.5f" % statistics.mean(data[feature]['cluster']) + "$\pm$" + "%.5f" % statistics.stdev(data[feature]['cluster']) + "\\\\\n"
+        f.write(line)
+        
 def output_processed_data(fdir, processed, interestset, skip):
     objects = set()
     features = set()
@@ -403,12 +414,15 @@ def output_processed_data(fdir, processed, interestset, skip):
     f = open(fdir + "results_short" + ("_interest" if groupinterest else "_feature") + ("_skipped" if skip else "") + ".txt", 'w')
     f.write(" & ".join(sorted(objdict)) + "\\\\\n")
     aggregate = {} # aggregate all the data
+    timings = {}
+    timings_agg = {}
+    timings_agg['query'] = []
+    timings_agg['cluster'] = []
+    timings_agg['hough'] = []
+    first = True
     for i,obj in enumerate(sorted(objdict)):
         aggregate[obj] = {}
         matches = []
-        houghtimes = []
-        clustertimes = []
-        querytimes = []
         count = 0
         thisobj = objdict[obj] # data for this object
         for it in sorted(thisobj):
@@ -423,10 +437,15 @@ def output_processed_data(fdir, processed, interestset, skip):
             #aggregate[obj][it]['5clusters'] = []
             #aggregate[obj][it]['6clouds'] = []
             sub = thisobj[it] # data for specific feature/interest type
+            timings[it] = {}
+            timings[it]['hough'] = []
+            timings[it]['cluster'] = []
+            timings[it]['query'] = []
             for ft in sub: # data for each feature/interest
                 data = sub[ft]
                 if (not data):
                     continue
+
                 aggregate[obj][it]['1top'].append(data['top_matches'])
                 aggregate[obj][it]['2total'].append(data['total_cluster_matches'])
                 aggregate[obj][it]['3distinct'].append(data['total_distinct_matches'])
@@ -435,14 +454,26 @@ def output_processed_data(fdir, processed, interestset, skip):
                 #aggregate[obj][it]['6clouds'].append(data['total_clouds'])
 
                 matches.append(data['total_distinct_matches'])
-                querytimes.append(data['query_time_mean'])
-                houghtimes.append(data['cluster_time_mean'])
-                clustertimes.append(data['cluster_time_mean'])
-                    
+                timings[it]['query'].append(data['query_time_mean'])
+                timings[it]['cluster'].append(data['cluster_time_mean'])
+                timings[it]['hough'].append(data['hough_time_mean'])
+                timings_agg['query'].append(data['query_time_mean'])
+                timings_agg['cluster'].append(data['cluster_time_mean'])
+                timings_agg['hough'].append(data['hough_time_mean'])
+                
+            first = False
         
         f.write("%.1f" % statistics.mean(matches) + "$\pm$" + "%.1f" % statistics.stdev(matches) + (" & " if i + 1 < len(objdict) else "\\\\\n"))
 
+    line = "Query & Hough & Cluster\\\\\n"
+    line += "%.5f" % statistics.mean(timings_agg['query']) + "$\pm$" + "%.5f" % statistics.stdev(timings_agg['query']) + " & "
+    line += "%.5f" % statistics.mean(timings_agg['hough']) + "$\pm$" + "%.5f" % statistics.stdev(timings_agg['hough']) + " & "
+    line += "%.5f" % statistics.mean(timings_agg['cluster']) + "$\pm$" + "%.5f" % statistics.stdev(timings_agg['cluster']) + "\\\\\n"
+    f.write(line)
+    f.close()
+
     write_aggregate_data(fdir + "results_aggregate" + ("_interest" if groupinterest else "_feature") + ("_skipped" if skip else "") + ".txt", aggregate)
+    write_timing_data(fdir + "results_timing"  + ("_interest" if groupinterest else "_feature") + ("_skipped" if skip else "") + ".txt", timings)
 
     typ = "matches" # or time
     for obj in objdict:
@@ -462,7 +493,8 @@ def output_processed_data(fdir, processed, interestset, skip):
         f.write("\\end{tabular}\n")
         f.write("\\caption{query results " + obj + "}\n")
         f.write("\\label{tab:q" + obj + "}\n")
-        f.write("\\end{table}\n")                
+        f.write("\\end{table}\n")
+        f.close()
     
 def process_multiple(outdir, args, interest, skip):
     # first, get the data out of the files and into a useful form
