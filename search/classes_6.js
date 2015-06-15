@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['pclutiltest',['PCLUtilTest',['../classtesting_1_1pclutil_1_1PCLUtilTest.html',1,'testing::pclutil']]],
-  ['preprocessroom',['PreprocessRoom',['../classobjsearch_1_1preprocessing_1_1PreprocessRoom.html',1,'objsearch::preprocessing']]],
-  ['processinfo',['ProcessInfo',['../structobjsearch_1_1preprocessing_1_1PreprocessRoom_1_1ProcessInfo.html',1,'objsearch::preprocessing::PreprocessRoom']]]
+  ['objectquery',['ObjectQuery',['../classobjsearch_1_1objectquery_1_1ObjectQuery.html',1,'objsearch::objectquery']]],
+  ['objsearchexception',['objsearchexception',['../classobjsearch_1_1sysutil_1_1objsearchexception.html',1,'objsearch::sysutil']]],
+  ['orientedboundingbox',['OrientedBoundingBox',['../classobjsearch_1_1pclutil_1_1OrientedBoundingBox.html',1,'objsearch::pclutil']]]
 ];

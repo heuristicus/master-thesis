@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['grid3d',['Grid3D',['../classobjsearch_1_1pclutil_1_1Grid3D.html',1,'objsearch::pclutil']]]
+  ['featureextractor',['FeatureExtractor',['../classobjsearch_1_1featureExtraction_1_1FeatureExtractor.html',1,'objsearch::featureExtraction']]],
+  ['featureinfo',['FeatureInfo',['../structobjsearch_1_1featureExtraction_1_1FeatureExtractor_1_1FeatureInfo.html',1,'objsearch::featureExtraction::FeatureExtractor']]]
 ];

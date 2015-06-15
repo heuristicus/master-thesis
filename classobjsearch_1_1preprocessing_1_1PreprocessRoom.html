@@ -296,6 +296,16 @@ template&lt;typename SegmentationType &gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Extract planes from the given cloud with normals</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">seg</td><td>segmentation type to use - different plane models </td></tr>
+    <tr><td class="paramname">cloud</td><td>cloud to apply process to </td></tr>
+    <tr><td class="paramname">normals</td><td>normals for the given cloud</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>
@@ -374,7 +384,8 @@ template&lt;typename SegmentationType &gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Start the processing of the point cloud. </p>
+<p>Preprocess the cloud</p>
+<dl class="section return"><dt>Returns</dt><dd>struct containing timing and cloud size information </dd></dl>
 
 </div>
 </div>
@@ -391,6 +402,13 @@ template&lt;typename SegmentationType &gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Process annotation clouds, rotating and translating them according to the given transform and saving the results in the output directory.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">cloudTransform</td><td>transform for the raw cloud from the local to global frame </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -463,6 +481,15 @@ template&lt;typename SegmentationType &gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Output information on timings and cloud sizes to a file</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">outPath</td><td>file to output to </td></tr>
+    <tr><td class="paramname">info</td><td>struct to use </td></tr>
+    <tr><td class="paramname">append</td><td>if true, put column headers at the top of the file </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -514,7 +541,7 @@ template&lt;typename SegmentationType &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed May 20 2015 14:45:37 for Object Search by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jun 15 2015 10:58:43 for Object Search by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>

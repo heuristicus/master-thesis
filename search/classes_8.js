@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['rgb',['rgb',['../structobjsearch_1_1pclutil_1_1rgb.html',1,'objsearch::pclutil']]]
+  ['queryinfo',['QueryInfo',['../structobjsearch_1_1objectquery_1_1ObjectQuery_1_1QueryInfo.html',1,'objsearch::objectquery::ObjectQuery']]]
 ];

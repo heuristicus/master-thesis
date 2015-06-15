@@ -210,6 +210,8 @@ Public Attributes</h2></td></tr>
 <tr class="separator:ab09a7b26c10021551c30b526b79d0dd3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a19ba2062b02bf2601ecda910fb3cd2da"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1featureExtraction_1_1FeatureExtractor.html#a19ba2062b02bf2601ecda910fb3cd2da">pfhrgbRadius_</a></td></tr>
 <tr class="separator:a19ba2062b02bf2601ecda910fb3cd2da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a53b3296a306fe3dfc76471277730d324"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1featureExtraction_1_1FeatureExtractor.html#a53b3296a306fe3dfc76471277730d324">doFeatures_</a></td></tr>
+<tr class="separator:a53b3296a306fe3dfc76471277730d324"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="af8fb0f2e1ee603939bab774e7b52adf7"></a>
@@ -308,6 +310,13 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Initialises internal variables according to the given path</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">path</td><td>initialise the variables for this path </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -324,6 +333,13 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Load the normals of the cloud for which features are being extracted. This is done based on part of the input filename</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">normals</td><td>normals loaded into this cloud </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -359,6 +375,13 @@ template&lt;typename PointType &gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Output descriptor location cloud to a file created based on some of the internal variables of the object.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">points</td><td>locations to output </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -377,6 +400,13 @@ template&lt;typename DescType &gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Output descriptor cloud to a file created based on some of the internal variables of the object.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">descriptors</td><td>descriptors to write </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -409,6 +439,15 @@ template&lt;typename DescType &gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Write information contained in the featureinfo struct to the specified path.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">outPath</td><td>filename to write information to </td></tr>
+    <tr><td class="paramname">info</td><td>struct containing information </td></tr>
+    <tr><td class="paramname">first</td><td>if true, headers for columns in the file will be added </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -455,6 +494,18 @@ template&lt;typename DescType &gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">std::string objsearch::featureExtraction::FeatureExtractor::dateTime_</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a53b3296a306fe3dfc76471277730d324"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool objsearch::featureExtraction::FeatureExtractor::doFeatures_</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -864,7 +915,7 @@ template&lt;typename DescType &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed May 20 2015 14:45:37 for Object Search by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jun 15 2015 10:58:43 for Object Search by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>

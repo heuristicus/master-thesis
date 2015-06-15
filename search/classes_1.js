@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['dircontents',['DirContents',['../structobjsearch_1_1sysutil_1_1DirContents.html',1,'objsearch::sysutil']]]
+  ['clusterinfo',['ClusterInfo',['../structobjsearch_1_1objectquery_1_1ObjectQuery_1_1ClusterInfo.html',1,'objsearch::objectquery::ObjectQuery']]]
 ];

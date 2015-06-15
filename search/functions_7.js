@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['indexfromdimindices',['indexFromDimIndices',['../classobjsearch_1_1pclutil_1_1Grid3D.html#ae5c60864935ddd0604fd897017f0d9fb',1,'objsearch::pclutil::Grid3D']]],
-  ['indexunflatten',['indexUnflatten',['../classobjsearch_1_1pclutil_1_1Grid3D.html#a1803d241872d221f5e4342eef7cc2641',1,'objsearch::pclutil::Grid3D']]],
+  ['indexfromdimindices',['indexFromDimIndices',['../classobjsearch_1_1pclutil_1_1Grid3D.html#a7305d0f9d17f39c3add1118d3983e3ef',1,'objsearch::pclutil::Grid3D']]],
+  ['indexunflatten',['indexUnflatten',['../classobjsearch_1_1pclutil_1_1Grid3D.html#aa4d7ecff2dcd72478a78503c636ff65c',1,'objsearch::pclutil::Grid3D']]],
   ['initandcheckpaths',['initAndCheckPaths',['../classobjsearch_1_1objectquery_1_1ObjectQuery.html#ada527e0595d92e9cb4a4813c102599ad',1,'objsearch::objectquery::ObjectQuery']]],
   ['initpaths',['initPaths',['../classobjsearch_1_1featureExtraction_1_1FeatureExtractor.html#a542ef0856f9a32bdf48e480eb78f9bed',1,'objsearch::featureExtraction::FeatureExtractor::initPaths()'],['../classobjsearch_1_1preprocessing_1_1PreprocessRoom.html#a0dd55d7666b2e83ee112662c6b911b5d',1,'objsearch::preprocessing::PreprocessRoom::initPaths()']]],
   ['intensitytorgb',['intensityToRGB',['../namespaceobjsearch_1_1featureExtraction.html#acf313acf02a31edbe92eaffe7f041793',1,'objsearch::featureExtraction']]],

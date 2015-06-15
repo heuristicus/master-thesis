@@ -107,6 +107,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structobjsearch_1_1objectquery_1_1ObjectQuery_1_1ClusterInfo.html">ClusterInfo</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structobjsearch_1_1objectquery_1_1ObjectQuery_1_1QueryInfo.html">QueryInfo</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -114,6 +116,8 @@ Classes</h2></td></tr>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a23f0e389ff924616cc14638528d4fc9c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1objectquery_1_1ObjectQuery.html#a23f0e389ff924616cc14638528d4fc9c">ObjectQuery</a> (int argc, char *argv[])</td></tr>
 <tr class="separator:a23f0e389ff924616cc14638528d4fc9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1d8fe91104b2bdc1561842fbedb252df"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1objectquery_1_1ObjectQuery.html#a1d8fe91104b2bdc1561842fbedb252df">extractFeatureFileInfo</a> (const std::string &amp;fname, std::string &amp;dateTime, std::string &amp;interestType, std::string &amp;featureType, std::string &amp;originalName)</td></tr>
+<tr class="separator:a1d8fe91104b2bdc1561842fbedb252df"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ada527e0595d92e9cb4a4813c102599ad"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1objectquery_1_1ObjectQuery.html#ada527e0595d92e9cb4a4813c102599ad">initAndCheckPaths</a> (std::string path)</td></tr>
 <tr class="separator:ada527e0595d92e9cb4a4813c102599ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a345bc7482d90ae9e3a8afa5697456ca9"><td class="memTemplParams" colspan="2">template&lt;typename DescType &gt; </td></tr>
@@ -121,10 +125,23 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a345bc7482d90ae9e3a8afa5697456ca9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a75cd0b4b1e88bdd1019822c075d5457c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1objectquery_1_1ObjectQuery.html#a75cd0b4b1e88bdd1019822c075d5457c">annotatePointsCloud</a> (std::string dir, const pcl::PointCloud&lt; pcl::PointXYZRGB &gt;::Ptr &amp;cloud, std::vector&lt; int &gt; &amp;indices, std::vector&lt; std::string &gt; &amp;labels, std::vector&lt; float &gt; &amp;distances, float maxDist)</td></tr>
 <tr class="separator:a75cd0b4b1e88bdd1019822c075d5457c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae17c89ed5592e1e78582e6558809bc18"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1objectquery_1_1ObjectQuery.html#ae17c89ed5592e1e78582e6558809bc18">annotatePointsOBB</a> (std::string dir, const pcl::PointCloud&lt; pcl::PointXYZRGB &gt;::Ptr &amp;cloud, std::vector&lt; int &gt; &amp;indices, std::vector&lt; std::string &gt; &amp;labels, std::string queryLabel=&quot;NULL&quot;)</td></tr>
-<tr class="separator:ae17c89ed5592e1e78582e6558809bc18"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acfaa0158cda37bdbd49f2369fb8df255"><td class="memItemLeft" align="right" valign="top">std::vector<br class="typebreak"/>
+&lt; <a class="el" href="classobjsearch_1_1pclutil_1_1OrientedBoundingBox.html">pclutil::OrientedBoundingBox</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1objectquery_1_1ObjectQuery.html#acfaa0158cda37bdbd49f2369fb8df255">annotatePointsOBB</a> (std::string dir, const pcl::PointCloud&lt; pcl::PointXYZRGB &gt;::Ptr &amp;cloud, std::vector&lt; int &gt; &amp;indices, std::vector&lt; std::string &gt; &amp;labels, std::string queryLabel=&quot;NULL&quot;)</td></tr>
+<tr class="separator:acfaa0158cda37bdbd49f2369fb8df255"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ae92a9ae4da7ed52f0aa32acd4133fa"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1objectquery_1_1ObjectQuery.html#a5ae92a9ae4da7ed52f0aa32acd4133fa">postProcess</a> (const <a class="el" href="classobjsearch_1_1pclutil_1_1Grid3D.html">pclutil::Grid3D</a> &amp;grid, const pcl::PointCloud&lt; pcl::PointXYZRGB &gt;::Ptr &amp;voteCloud, const std::vector&lt; int &gt; &amp;cellIndices, const std::vector&lt; std::pair&lt; int, int &gt; &gt; &amp;maxPoints, <a class="el" href="structobjsearch_1_1objectquery_1_1ObjectQuery_1_1QueryInfo.html">QueryInfo</a> &amp;info, std::vector&lt; <a class="el" href="structobjsearch_1_1objectquery_1_1ObjectQuery_1_1ClusterInfo.html">ClusterInfo</a> &gt; clusterDetails)</td></tr>
+<tr class="separator:a5ae92a9ae4da7ed52f0aa32acd4133fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af357728c546c14f1ecc27fc6eafc7d45"><td class="memItemLeft" align="right" valign="top">pcl::PointCloud<br class="typebreak"/>
+&lt; pcl::PointXYZRGB &gt;::Ptr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1objectquery_1_1ObjectQuery.html#af357728c546c14f1ecc27fc6eafc7d45">extractClusterRegionBox</a> (const pcl::PointCloud&lt; pcl::PointXYZRGB &gt;::Ptr &amp;cloud, const pcl::PointXYZ &amp;centroid, const pcl::PointXYZ &amp;extents)</td></tr>
+<tr class="separator:af357728c546c14f1ecc27fc6eafc7d45"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a455bbd1caac6b711710d43ac83c3c0eb"><td class="memItemLeft" align="right" valign="top">pcl::PointCloud<br class="typebreak"/>
+&lt; pcl::PointXYZRGB &gt;::Ptr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1objectquery_1_1ObjectQuery.html#a455bbd1caac6b711710d43ac83c3c0eb">extractClusterRegionSphere</a> (const pcl::PointCloud&lt; pcl::PointXYZRGB &gt;::Ptr &amp;cloud, const pcl::PointXYZ &amp;centre, float radius)</td></tr>
+<tr class="separator:a455bbd1caac6b711710d43ac83c3c0eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a70ab380a6a289d51a1d89b66f38bb649"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classobjsearch_1_1pclutil_1_1Grid3D.html">pclutil::Grid3D</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1objectquery_1_1ObjectQuery.html#a70ab380a6a289d51a1d89b66f38bb649">houghVoting</a> (const pcl::PointCloud&lt; pcl::PointXYZRGB &gt;::Ptr &amp;targetPoints, const std::vector&lt; std::vector&lt; int &gt; &gt; &amp;indices, const std::vector&lt; std::vector&lt; float &gt; &gt; &amp;distances)</td></tr>
 <tr class="separator:a70ab380a6a289d51a1d89b66f38bb649"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae4117789c430d67d4265160d2f446e80"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1objectquery_1_1ObjectQuery.html#ae4117789c430d67d4265160d2f446e80">writeInfo</a> (std::string outFile, const std::vector&lt; <a class="el" href="structobjsearch_1_1objectquery_1_1ObjectQuery_1_1QueryInfo.html">QueryInfo</a> &gt; &amp;infoVec)</td></tr>
+<tr class="separator:ae4117789c430d67d4265160d2f446e80"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ace6558f6f5a169347ab94620702e8856"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classobjsearch_1_1objectquery_1_1ObjectQuery.html#ace6558f6f5a169347ab94620702e8856">writeInfo</a> (std::string outFile, const <a class="el" href="structobjsearch_1_1objectquery_1_1ObjectQuery_1_1QueryInfo.html">QueryInfo</a> &amp;info, bool append)</td></tr>
+<tr class="separator:ace6558f6f5a169347ab94620702e8856"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="a23f0e389ff924616cc14638528d4fc9c"></a>
@@ -216,12 +233,12 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ae17c89ed5592e1e78582e6558809bc18"></a>
+<a class="anchor" id="acfaa0158cda37bdbd49f2369fb8df255"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void objsearch::objectquery::ObjectQuery::annotatePointsOBB </td>
+          <td class="memname">std::vector&lt; <a class="el" href="classobjsearch_1_1pclutil_1_1OrientedBoundingBox.html">pclutil::OrientedBoundingBox</a> &gt; objsearch::objectquery::ObjectQuery::annotatePointsOBB </td>
           <td>(</td>
           <td class="paramtype">std::string&#160;</td>
           <td class="paramname"><em>dir</em>, </td>
@@ -289,6 +306,145 @@ template&lt;typename DescType &gt; </div>
 
 </div>
 </div>
+<a class="anchor" id="af357728c546c14f1ecc27fc6eafc7d45"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">pcl::PointCloud&lt; pcl::PointXYZRGB &gt;::Ptr objsearch::objectquery::ObjectQuery::extractClusterRegionBox </td>
+          <td>(</td>
+          <td class="paramtype">const pcl::PointCloud&lt; pcl::PointXYZRGB &gt;::Ptr &amp;&#160;</td>
+          <td class="paramname"><em>cloud</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const pcl::PointXYZ &amp;&#160;</td>
+          <td class="paramname"><em>centroid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const pcl::PointXYZ &amp;&#160;</td>
+          <td class="paramname"><em>extents</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Extracts the box region defined by the centroid and extents given</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">cloud</td><td>The cloud from which to extract points </td></tr>
+    <tr><td class="paramname">centroid</td><td>the centroid of the box within which extracted points are to lie </td></tr>
+    <tr><td class="paramname">extents</td><td>the extents of the box - half of each dimension</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Point cloud containing points from <code>cloud</code> which are inside the box </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a455bbd1caac6b711710d43ac83c3c0eb"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">pcl::PointCloud&lt; pcl::PointXYZRGB &gt;::Ptr objsearch::objectquery::ObjectQuery::extractClusterRegionSphere </td>
+          <td>(</td>
+          <td class="paramtype">const pcl::PointCloud&lt; pcl::PointXYZRGB &gt;::Ptr &amp;&#160;</td>
+          <td class="paramname"><em>cloud</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const pcl::PointXYZ &amp;&#160;</td>
+          <td class="paramname"><em>centre</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>radius</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Extracts the spherical region defined by the centroid and radius given</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">cloud</td><td>The cloud from which to extract points </td></tr>
+    <tr><td class="paramname">centre</td><td>the centre of the sphere within which extracted points are to lie </td></tr>
+    <tr><td class="paramname">radius</td><td>Radius of sphere to use</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Point cloud containing points from <code>cloud</code> which are inside the box </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a1d8fe91104b2bdc1561842fbedb252df"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void objsearch::objectquery::ObjectQuery::extractFeatureFileInfo </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>fname</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string &amp;&#160;</td>
+          <td class="paramname"><em>dateTime</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string &amp;&#160;</td>
+          <td class="paramname"><em>interestType</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string &amp;&#160;</td>
+          <td class="paramname"><em>featureType</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string &amp;&#160;</td>
+          <td class="paramname"><em>originalName</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Extract information from the filename of a feature cloud</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">fname</td><td>the filename to get information from </td></tr>
+    <tr><td class="paramname">dateTime</td><td>the date and time the features were extracted </td></tr>
+    <tr><td class="paramname">interestType</td><td>the interest point selection method used </td></tr>
+    <tr><td class="paramname">featureType</td><td>the type of feature used </td></tr>
+    <tr><td class="paramname">originalName</td><td>the name of the file from which these features were extracted </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a class="anchor" id="a70ab380a6a289d51a1d89b66f38bb649"></a>
 <div class="memitem">
 <div class="memproto">
@@ -343,6 +499,157 @@ template&lt;typename DescType &gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Initialise internal variables using the given path. Sets the filenames of the corresponding interest point file, and checks that the files have the same descriptor type</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">path</td><td>path to use </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="classobjsearch_1_1sysutil_1_1objsearchexception.html">sysutil::objsearchexception</a></td><td>if an error occurs, such as if descriptor types do not match </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true if everything went OK </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a5ae92a9ae4da7ed52f0aa32acd4133fa"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void objsearch::objectquery::ObjectQuery::postProcess </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classobjsearch_1_1pclutil_1_1Grid3D.html">pclutil::Grid3D</a> &amp;&#160;</td>
+          <td class="paramname"><em>grid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const pcl::PointCloud&lt; pcl::PointXYZRGB &gt;::Ptr &amp;&#160;</td>
+          <td class="paramname"><em>voteCloud</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; int &gt; &amp;&#160;</td>
+          <td class="paramname"><em>cellIndices</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; std::pair&lt; int, int &gt; &gt; &amp;&#160;</td>
+          <td class="paramname"><em>maxPoints</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structobjsearch_1_1objectquery_1_1ObjectQuery_1_1QueryInfo.html">QueryInfo</a> &amp;&#160;</td>
+          <td class="paramname"><em>info</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; <a class="el" href="structobjsearch_1_1objectquery_1_1ObjectQuery_1_1ClusterInfo.html">ClusterInfo</a> &gt;&#160;</td>
+          <td class="paramname"><em>clusterDetails</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Perform some post processing on the results from the query. Creates some clouds from the hough grid, and uses additional knowledge about the bounding box of the query object to look at the points in that region</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">grid</td><td>the hough voting grid that was populated </td></tr>
+    <tr><td class="paramname">maxPoints</td><td>vector of pairs of indices and values at those indices in the grid </td></tr>
+    <tr><td class="paramname">cellIndices</td><td>vector of indices corresponding to the indices of nonzero cells in the hough grid </td></tr>
+    <tr><td class="paramname">voteCloud</td><td>the hough grid </td></tr>
+    <tr><td class="paramname">clusterDetails</td><td>information about clusters extracted from hough space </td></tr>
+    <tr><td class="paramname">info</td><td>info struct to fill with data </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ae4117789c430d67d4265160d2f446e80"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void objsearch::objectquery::ObjectQuery::writeInfo </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>outFile</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="structobjsearch_1_1objectquery_1_1ObjectQuery_1_1QueryInfo.html">QueryInfo</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>infoVec</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Output information about timings and cluster scores contained in a query information struct.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">outFile</td><td></td></tr>
+    <tr><td class="paramname">infoVec</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ace6558f6f5a169347ab94620702e8856"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void objsearch::objectquery::ObjectQuery::writeInfo </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>outFile</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structobjsearch_1_1objectquery_1_1ObjectQuery_1_1QueryInfo.html">QueryInfo</a> &amp;&#160;</td>
+          <td class="paramname"><em>info</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>append</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Output information about clusters contained in a query information struct.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">outFile</td><td>file to output to </td></tr>
+    <tr><td class="paramname">info</td><td>struct containing information </td></tr>
+    <tr><td class="paramname">append</td><td>if true, column headers will be output before the data </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -353,7 +660,7 @@ template&lt;typename DescType &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed May 20 2015 14:45:37 for Object Search by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jun 15 2015 10:58:43 for Object Search by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>

@@ -1,6 +1,7 @@
 var searchData=
 [
   ['s',['s',['../structobjsearch_1_1pclutil_1_1hsv.html#adfda03833a53919f3566b1b5325f95c0',1,'objsearch::pclutil::hsv']]],
+  ['score',['score',['../structobjsearch_1_1objectquery_1_1ObjectQuery_1_1ClusterInfo.html#a3165e8d67ef766a4ca3ad3c5b2578fea',1,'objsearch::objectquery::ObjectQuery::ClusterInfo']]],
   ['selecttime',['selectTime',['../structobjsearch_1_1featureExtraction_1_1FeatureExtractor_1_1FeatureInfo.html#ac3c267a10cfd24dfa881b5ea63d7ba86',1,'objsearch::featureExtraction::FeatureExtractor::FeatureInfo']]],
   ['shotradius_5f',['shotRadius_',['../classobjsearch_1_1featureExtraction_1_1FeatureExtractor.html#ab029eae5bcca782705b5866519486b1c',1,'objsearch::featureExtraction::FeatureExtractor']]],
   ['siftmincontrast_5f',['siftMinContrast_',['../classobjsearch_1_1featureExtraction_1_1FeatureExtractor.html#a0e0941d2db27119f9120082ce66621cd',1,'objsearch::featureExtraction::FeatureExtractor']]],

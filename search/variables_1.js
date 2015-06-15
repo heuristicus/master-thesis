@@ -11,5 +11,7 @@ var searchData=
   ['backtopleft',['backTopLeft',['../classtesting_1_1pclutil_1_1PCLUtilTest.html#abf19f8eaf688b6a25a42524f553a5335',1,'testing::pclutil::PCLUtilTest']]],
   ['backtopright',['backTopRight',['../classtesting_1_1pclutil_1_1PCLUtilTest.html#a348d639926034dc2674acec28f14f3c5',1,'testing::pclutil::PCLUtilTest']]],
   ['box',['box',['../classtesting_1_1pclutil_1_1PCLUtilTest.html#afe268e9c06e40cc6e6580f510083c7a0',1,'testing::pclutil::PCLUtilTest']]],
-  ['boxcentres',['boxCentres',['../classtesting_1_1pclutil_1_1PCLUtilTest.html#ad057d25270e0e07bb879b2334a9e842b',1,'testing::pclutil::PCLUtilTest']]]
+  ['boxcentres',['boxCentres',['../classtesting_1_1pclutil_1_1PCLUtilTest.html#ad057d25270e0e07bb879b2334a9e842b',1,'testing::pclutil::PCLUtilTest']]],
+  ['boxhistogram',['boxHistogram',['../structobjsearch_1_1objectquery_1_1ObjectQuery_1_1QueryInfo.html#aa7f392f3369327e3526f42ffa73f987c',1,'objsearch::objectquery::ObjectQuery::QueryInfo']]],
+  ['boxmaxhistogram',['boxMaxHistogram',['../structobjsearch_1_1objectquery_1_1ObjectQuery_1_1QueryInfo.html#a102e2dbefc74872e7c67986fb3319e03',1,'objsearch::objectquery::ObjectQuery::QueryInfo']]]
 ];

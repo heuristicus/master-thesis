@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['maxhistogram',['maxHistogram',['../structobjsearch_1_1objectquery_1_1ObjectQuery_1_1QueryInfo.html#adae40128bffe3c11af30e291706fccc3',1,'objsearch::objectquery::ObjectQuery::QueryInfo']]],
   ['midbottom',['midBottom',['../classtesting_1_1pclutil_1_1PCLUtilTest.html#a2a85fe14857a33f8ac11010cc2929bf6',1,'testing::pclutil::PCLUtilTest']]],
   ['midbottomleft',['midBottomLeft',['../classtesting_1_1pclutil_1_1PCLUtilTest.html#af39b9c9cb760cc53ff0083e3217d9a6f',1,'testing::pclutil::PCLUtilTest']]],
   ['midbottomright',['midBottomRight',['../classtesting_1_1pclutil_1_1PCLUtilTest.html#a3db7dbf52060f3126f36b21d529e1ea6',1,'testing::pclutil::PCLUtilTest']]],

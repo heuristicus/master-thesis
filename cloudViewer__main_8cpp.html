@@ -187,6 +187,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>View a single cloud from the given camera angle</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">cloudFile</td><td>cloud to view </td></tr>
+    <tr><td class="paramname">cameraFile</td><td>camera position from which to view cloud </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -225,6 +233,16 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>View multiple clouds in the same viewer.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">cloudFiles</td><td>vector of the files to view - can also contain a camera setting </td></tr>
+    <tr><td class="paramname">cameraFile</td><td>if true, use the last file in the cloud array as a camera setting </td></tr>
+    <tr><td class="paramname">colour</td><td>if true, apply preset colours to the clouds </td></tr>
+    <tr><td class="paramname">showOrigin</td><td>if true, show the origin </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -257,13 +275,22 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>View a cloud with its normals</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">cloudFile</td><td>The file of the cloud </td></tr>
+    <tr><td class="paramname">normalFile</td><td>file of normals </td></tr>
+    <tr><td class="paramname">cameraFile</td><td>camera file to use, if any </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed May 20 2015 14:45:37 for Object Search by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jun 15 2015 10:58:43 for Object Search by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>
