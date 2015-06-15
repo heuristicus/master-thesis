@@ -32,6 +32,15 @@ namespace objsearch {
 	    typename pcl::PointCloud<PointT>::Ptr cloud;
 	};
 
+	/** 
+	 * Read a processed annotation cloud from the specified file. Some
+	 * information will be extracted from the filename
+	 * 
+	 * @param filename 
+	 * @param reader 
+	 * 
+	 * @return 
+	 */
 	template <typename PointT>
 	AnnotatedCloud<PointT> getProcessedAnnotatedCloud(
 	    std::string filename, pcl::PCDReader& reader=pcl::PCDReader()) {
@@ -90,6 +99,16 @@ namespace objsearch {
 	    return clouds;
 	}
 
+	/** 
+	 * Get a single raw annotation cloud from the given filename and label
+	 * files.
+	 * 
+	 * @param filename 
+	 * @param labelfile 
+	 * @param reader 
+	 * 
+	 * @return 
+	 */
 	template <typename PointT>
 	AnnotatedCloud<PointT> getRawAnnotatedCloud(
 	    std::string filename, std::string labelfile,

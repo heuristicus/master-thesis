@@ -7,6 +7,13 @@
 // pastel blue, green, purple, yellow
 static const std::vector<int> colours({0x6275df, 0x52e57e, 0xc852dc, 0xffd05b});
 
+/** 
+ * View a cloud with its normals
+ * 
+ * @param cloudFile The file of the cloud
+ * @param normalFile file of normals
+ * @param cameraFile camera file to use, if any
+ */
 void viewNormals(std::string cloudFile, std::string normalFile, std::string cameraFile="NULL") {
     pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>());
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
@@ -42,6 +49,14 @@ void viewNormals(std::string cloudFile, std::string normalFile, std::string came
     }
 }
 
+/** 
+ * View multiple clouds in the same viewer.
+ * 
+ * @param cloudFiles vector of the files to view - can also contain a camera setting
+ * @param cameraFile if true, use the last file in the cloud array as a camera setting
+ * @param colour if true, apply preset colours to the clouds
+ * @param showOrigin if true, show the origin
+ */
 void viewClouds(std::vector<std::string> cloudFiles, bool cameraFile, bool colour, bool showOrigin) {
 
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
@@ -87,6 +102,12 @@ void viewClouds(std::vector<std::string> cloudFiles, bool cameraFile, bool colou
     }
 }
 
+/** 
+ * View a single cloud from the given camera angle
+ * 
+ * @param cloudFile cloud to view
+ * @param cameraFile camera position from which to view cloud
+ */
 void viewCloudFromCamera(std::string cloudFile, std::string cameraFile) {
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
 

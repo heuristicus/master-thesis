@@ -272,6 +272,13 @@ namespace objsearch {
 	    outPath_ = sysutil::combinePaths(outDir_, dataSubDir_);
 	}
 
+	/** 
+	 * Output information on timings and cloud sizes to a file
+	 * 
+	 * @param outPath file to output to
+	 * @param info struct to use 
+	 * @param append if true, put column headers at the top of the file
+	 */
 	void PreprocessRoom::writeInfo(std::string outPath, ProcessInfo info, bool append) {
 	    std::ofstream file;
 	    if (append){
@@ -304,7 +311,9 @@ namespace objsearch {
 	}
 
 	/** 
-	 * Start the processing of the point cloud.
+	 * Preprocess the cloud
+	 * 
+	 * @return struct containing timing and cloud size information
 	 */
 	PreprocessRoom::ProcessInfo PreprocessRoom::preprocessCloud() {
 	    ROS_INFO("Start processing");
@@ -555,6 +564,12 @@ namespace objsearch {
 	    ROS_INFO("Done");
 	}
 
+	/** 
+	 * Process annotation clouds, rotating and translating them according to
+	 * the given transform and saving the results in the output directory.
+	 * 
+	 * @param cloudTransform transform for the raw cloud from the local to global frame
+	 */
 	void PreprocessRoom::processAnnotations(const tf::StampedTransform& cloudTransform){
 	    ROS_INFO("Processing annotations...");
 	    pcl::PCDWriter writer;
@@ -626,11 +641,20 @@ namespace objsearch {
 		return extractPlanes(seg, cloud, normals);
 	    }
 	}
-	
+
+	/** 
+	 * Extract planes from the given cloud with normals
+	 * 
+	 * @param seg segmentation type to use - different plane models
+	 * @param cloud cloud to apply process to
+	 * @param normals normals for the given cloud
+	 * 
+	 * @return 
+	 */
 	template<typename SegmentationType>
 	int PreprocessRoom::extractPlanes(SegmentationType& seg,
-					   pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
-					   pcl::PointCloud<pcl::Normal>::Ptr& normals){
+					  pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,
+					  pcl::PointCloud<pcl::Normal>::Ptr& normals){
 	    ROS_INFO("Extracting planes.");
 	    ROS_INFO("Number of points in original cloud: %d", (int)cloud->size());
 	    ROS_INFO("Number of normals in original cloud: %d", (int)normals->size());

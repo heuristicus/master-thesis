@@ -34,7 +34,7 @@ namespace objsearch {
 	}
 
 	/** 
-	 * 
+	 * Add this bounding box to the given viewer
 	 * 
 	 * @param viewer 
 	 */
@@ -57,10 +57,10 @@ namespace objsearch {
 	}
 
 	/** 
+	 * Get the oriented bounding box for the given cloud, and apply the given label
 	 * 
-	 * 
-	 * @param cloud 
-	 * 
+	 * @param cloud cloud for which OBB is to be computed
+	 * @param label label to apply
 	 * @return 
 	 */
 	OrientedBoundingBox getOrientedBoundingBox(const pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud,

@@ -253,6 +253,15 @@ namespace objsearch {
 	    originalName = std::string(remainder.begin(), remainder.begin() + aindicator);
 	}
 
+	/** 
+	 * Initialise internal variables using the given path. Sets the
+	 * filenames of the corresponding interest point file, and checks that
+	 * the files have the same descriptor type
+	 * 
+	 * @param path path to use
+	 * @throw sysutil::objsearchexception if an error occurs, such as if descriptor types do not match
+	 * @return true if everything went OK
+	 */
 	bool ObjectQuery::initAndCheckPaths(std::string path) {
 	    targetFile_ = path;
 	    // Read the headers for the point clouds that were provided as
@@ -843,6 +852,13 @@ namespace objsearch {
 
 	}
 
+	/** 
+	 * Output information about clusters contained in a query information struct.
+	 * 
+	 * @param outFile file to output to 
+	 * @param info struct containing information
+	 * @param append if true, column headers will be output before the data
+	 */
 	void ObjectQuery::writeInfo(std::string outFile, const QueryInfo& info, bool append){
 	    std::ofstream file;
 	    file.open(outFile, std::ios::app);
@@ -875,6 +891,13 @@ namespace objsearch {
 	    clf.close();
 	}
 
+	/** 
+	 * Output information about timings and cluster scores contained in a
+	 * query information struct.
+	 * 
+	 * @param outFile 
+	 * @param infoVec 
+	 */
 	void ObjectQuery::writeInfo(std::string outFile, const std::vector<QueryInfo>& infoVec) {
 	    std::ofstream file;
 	    file.open(outFile, std::ios::app);
@@ -983,11 +1006,11 @@ namespace objsearch {
 	 * @param info info struct to fill with data
 	 */
 	
-void ObjectQuery::postProcess(const pclutil::Grid3D& grid,
-			      const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& voteCloud,
-			      const std::vector<int>& cellIndices,
-			      const std::vector<std::pair<int, int> >& maxPoints,
-			      QueryInfo& info, std::vector<ClusterInfo> clusterDetails) {
+	void ObjectQuery::postProcess(const pclutil::Grid3D& grid,
+				      const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& voteCloud,
+				      const std::vector<int>& cellIndices,
+				      const std::vector<std::pair<int, int> >& maxPoints,
+				      QueryInfo& info, std::vector<ClusterInfo> clusterDetails) {
 	    std::string scores;
 	    std::string points;
 	    //and put information about clusters into the info struct
@@ -1084,6 +1107,13 @@ void ObjectQuery::postProcess(const pclutil::Grid3D& grid,
 
 	}
 
+	/** 
+	 * convert an int vector to a comma separated string
+	 * 
+	 * @param vec 
+	 * 
+	 * @return 
+	 */
 	std::string ObjectQuery::vectorToString(std::vector<int> vec) {
 	    std::string str;
 	    for (size_t i = 0; i < vec.size(); i++) {

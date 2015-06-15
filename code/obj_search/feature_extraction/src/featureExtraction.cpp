@@ -162,6 +162,13 @@ namespace objsearch {
 	    }
 	}
 
+	/** 
+	 * Write information contained in the featureinfo struct to the specified path.
+	 * 
+	 * @param outPath filename to write information to
+	 * @param info struct containing information
+	 * @param first if true, headers for columns in the file will be added
+	 */
 	void FeatureExtractor::writeInfo(std::string outPath, FeatureInfo info, bool first) {
 	    std::ofstream file;
 	    file.open(outPath, std::ios::app);
@@ -183,7 +190,11 @@ namespace objsearch {
 	    file.close();
 	}
 
-
+	/** 
+	 * Initialises internal variables according to the given path
+	 * 
+	 * @param path initialise the variables for this path
+	 */
 	void FeatureExtractor::initPaths(std::string path) {
 	    // if the path is a directory, don't want to trim anything off the end.
 	    int toTrim = 1;
@@ -675,6 +686,11 @@ namespace objsearch {
 	    return fname;
 	}
 
+	/** 
+	 * Output descriptor cloud to a file created based on some of the internal variables of the object.
+	 * 
+	 * @param descriptors descriptors to write
+	 */
 	template<typename DescType>
 	void FeatureExtractor::writeDescriptors(const typename pcl::PointCloud<DescType>::Ptr& descriptors){
 	    if (!sysutil::makeDirs(sysutil::cleanDirPath(outPath_) + "/features/")){
@@ -687,7 +703,12 @@ namespace objsearch {
 	    ROS_INFO("Writing computed features to %s", featureOutFile.c_str());
 	    writer.write<DescType>(featureOutFile, *descriptors, true);
 	}
-	
+
+	/** 
+ 	 * Output descriptor location cloud to a file created based on some of the internal variables of the object.
+	 *
+	 * @param points locations to output
+	 */
 	template<typename PointType>
 	void FeatureExtractor::writeDescriptorLocs(const typename pcl::PointCloud<PointType>::Ptr& points){
 	    if (!sysutil::makeDirs(sysutil::cleanDirPath(outPath_) + "/features/")){
@@ -703,6 +724,12 @@ namespace objsearch {
 	}
 
 
+	/** 
+	 * Load the normals of the cloud for which features are being extracted.
+	 * This is done based on part of the input filename
+	 * 
+	 * @param normals normals loaded into this cloud
+	 */
 	void FeatureExtractor::loadNormals(pcl::PointCloud<pcl::Normal>::Ptr& normals){
 	    // load the cloud of normals. Should find a better way of
 	    // distinguishing between intermediate and complete clouds

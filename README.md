@@ -92,6 +92,16 @@ has an associated label found in a text file with a single line (e.g.
 
 # Usage
 
+## Setup
+Some global parameters can be configured in the
+[params](code/obj_search/objsearch_toplevel/config/global_params.yaml) file. In
+particular, the `raw_data_dir` and `processed_data_dir` should be set to the
+location of the raw data, and where the processed data should be output to.
+These values are used in certain parts of the system to facilitate the output of
+files to the same subdirectories in the processed directory as the raw
+directory. So, for example, if a file is in `raw/data/data1/data2`, then we
+output corresponding processed data to `processed/data/data1/data2`.
+
 ## Preprocessing
 
 The preprocessing node will reduce the size of the cloud by trimming the floors
@@ -201,6 +211,11 @@ Finally, this command can be used to create files which contain only information
 
 ## Query Data
 For a single directory containing query results, with directories for different
-object types, can use the following to output results to the current directory
+object types, can use the following to output results to the current directory.
+Data is aggregated according to the feature type used.
 
-    python3 $scr/query/process_results.py -m . `find . -regex .*[0-9].txt`
+    python3 scripts/query/process_results.py -m . `find . -regex .*[0-9].txt`
+
+The switch `-mi` will aggregate according to the interest point type used.
+`-m[i]k` will also produce results, but will skip SHOT, PFH, FPFH, SIFT and
+SUSAN data.

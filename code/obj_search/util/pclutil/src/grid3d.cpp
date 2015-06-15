@@ -182,7 +182,7 @@ namespace objsearch {
 	}
 
 	/** 
-	 * 
+	 * Return all of the centres of cells in the cloud
 	 * 
 	 * @return 
 	 */
@@ -195,7 +195,7 @@ namespace objsearch {
 	}
 	
 	/** 
-	 * 
+	 * Get the value in the cell which contains the given point
 	 * 
 	 * @param point 
 	 * 
@@ -219,7 +219,7 @@ namespace objsearch {
 	}
 
 	/** 
-	 * 
+	 * Get the value at the given index
 	 * 
 	 * @param index 
 	 * 
@@ -236,7 +236,7 @@ namespace objsearch {
 	}
 
 	/** 
-	 * 
+	 * Get the value in the cell containing the given point
 	 * 
 	 * @param point 
 	 * 
@@ -260,7 +260,7 @@ namespace objsearch {
 	}
 
 	/** 
-	 * 
+	 * Get the value at the specified index
 	 * 
 	 * @param index 
 	 * 
