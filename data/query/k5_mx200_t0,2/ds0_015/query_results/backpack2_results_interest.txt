@@ -1,0 +1,27 @@
+\begin{table}
+\begin{tabular}{cc|ccccccccccc}
+ & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
+\multirow{5}{*}{ISS} & SHOTCOLOR & 9 & 19 & 19 & 78 & 128 & 84 & 1.7$\pm$0.7 & 15.9$\pm$7.7 & 17.8$\pm$2.3 & 21.1$\pm$10.2 & 18.1$\pm$3.4\\
+&FPFH & 1 & 1 & 1 & 78 & 84 & 84 & 1.0 & 3.0 & n/a & 4.4$\pm$2.6 & n/a\\
+&PFHRGB & 54 & 55 & 55 & 78 & 93 & 84 & 1.0$\pm$0.1 & 35.1$\pm$12.9 & 15.0 & 10.9$\pm$9.0 & 19.4$\pm$3.0\\
+&SHOT & 6 & 6 & 6 & 78 & 84 & 84 & 1.0$\pm$0.0 & 2.2$\pm$0.4 & n/a & 2.3$\pm$1.3 & n/a\\
+&PFH & 1 & 1 & 1 & 78 & 84 & 84 & 1.0 & 3.0 & n/a & 3.4$\pm$3.3 & n/a\\
+\hline\multirow{5}{*}{SIFT} & SHOTCOLOR & 3 & 3 & 3 & 78 & 84 & 84 & 1.0$\pm$0.0 & 2.0$\pm$0.0 & n/a & 2.6$\pm$1.0 & n/a\\
+&FPFH & 2 & 2 & 2 & 78 & 84 & 84 & 1.0$\pm$0.0 & 2.0$\pm$0.0 & n/a & 2.2$\pm$0.8 & n/a\\
+&PFHRGB & 10 & 10 & 10 & 78 & 84 & 84 & 1.0$\pm$0.0 & 2.4$\pm$0.8 & n/a & 2.2$\pm$0.7 & n/a\\
+&SHOT & 1 & 1 & 1 & 78 & 84 & 84 & 1.0 & 2.0 & n/a & 2.7$\pm$1.1 & n/a\\
+&PFH & 0 & 0 & 0 & 78 & 84 & 84 & n/a & n/a & n/a & 2.3$\pm$0.8 & n/a\\
+\hline\multirow{5}{*}{SUSAN} & SHOTCOLOR & 7 & 7 & 7 & 78 & 84 & 84 & 1.0$\pm$0.0 & 6.7$\pm$5.5 & n/a & 7.2$\pm$6.9 & n/a\\
+&FPFH & 1 & 1 & 1 & 78 & 84 & 84 & 1.0 & 3.0 & n/a & 4.0$\pm$1.7 & n/a\\
+&PFHRGB & 31 & 31 & 31 & 78 & 84 & 84 & 1.0$\pm$0.0 & 8.2$\pm$7.1 & n/a & 5.7$\pm$3.5 & n/a\\
+&SHOT & 1 & 1 & 1 & 78 & 84 & 84 & 1.0 & 2.0 & n/a & 1.9$\pm$0.4 & n/a\\
+&PFH & 4 & 4 & 4 & 78 & 84 & 84 & 1.0$\pm$0.0 & 3.8$\pm$1.0 & n/a & 2.9$\pm$0.9 & n/a\\
+\hline\multirow{5}{*}{UNIFORM} & SHOTCOLOR & 0 & 1 & 1 & 71 & 257 & 74 & 2.0 & n/a & 25.0 & 37.6$\pm$13.7 & 21.2$\pm$6.0\\
+&FPFH & 0 & 0 & 0 & 78 & 223 & 84 & n/a & n/a & n/a & 40.8$\pm$16.2 & 22.7$\pm$7.0\\
+&PFHRGB & 53 & 63 & 63 & 78 & 313 & 84 & 1.3$\pm$0.8 & 163.4$\pm$39.0 & 57.5$\pm$26.5 & 103.2$\pm$32.5 & 46.6$\pm$19.9\\
+&SHOT & 0 & 0 & 0 & 78 & 289 & 84 & n/a & n/a & n/a & 33.3$\pm$11.5 & 18.1$\pm$4.8\\
+&PFH & 1 & 1 & 1 & 78 & 231 & 84 & 1.0 & 5.0 & n/a & 36.1$\pm$12.7 & 21.8$\pm$6.5\\
+\end{tabular}
+\caption{query results backpack2}
+\label{tab:qbackpack2}
+\end{table}

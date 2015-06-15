@@ -1,0 +1,27 @@
+\begin{table}
+\begin{tabular}{cc|ccccccccccc}
+ & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
+\multirow{5}{*}{FPFH} & UNIFORM & 0 & 0 & 0 & 59 & 544 & 86 & n/a & n/a & n/a & 83.9$\pm$27.5 & 31.7$\pm$13.9\\
+&SIFT & 2 & 2 & 2 & 59 & 86 & 86 & 1.0$\pm$0.0 & 3.0$\pm$1.4 & n/a & 2.9$\pm$1.0 & n/a\\
+&ISS & 0 & 0 & 0 & 59 & 255 & 86 & n/a & n/a & n/a & 34.1$\pm$12.5 & 20.4$\pm$5.4\\
+&SUSAN & 1 & 1 & 1 & 59 & 87 & 86 & 1.0 & 4.0 & n/a & 7.9$\pm$7.7 & n/a\\
+\hline\multirow{5}{*}{PFH} & UNIFORM & 0 & 0 & 0 & 59 & 523 & 86 & n/a & n/a & n/a & 71.3$\pm$25.1 & 29.2$\pm$12.3\\
+&SIFT & 0 & 0 & 0 & 59 & 86 & 86 & n/a & n/a & n/a & 3.5$\pm$0.7 & n/a\\
+&ISS & 0 & 0 & 0 & 59 & 275 & 86 & n/a & n/a & n/a & 33.7$\pm$13.0 & 18.8$\pm$4.3\\
+&SUSAN & 1 & 1 & 1 & 59 & 87 & 86 & 1.0 & 3.0 & n/a & 6.7$\pm$6.3 & 27.0\\
+\hline\multirow{5}{*}{PFHRGB} & UNIFORM & 0 & 0 & 0 & 59 & 599 & 86 & n/a & n/a & n/a & 129.6$\pm$72.9 & 39.3$\pm$20.3\\
+&SIFT & 0 & 0 & 0 & 59 & 86 & 86 & n/a & n/a & n/a & 3.9$\pm$1.1 & n/a\\
+&ISS & 0 & 0 & 0 & 59 & 334 & 86 & n/a & n/a & n/a & 44.9$\pm$20.5 & 22.8$\pm$8.3\\
+&SUSAN & 1 & 1 & 1 & 59 & 88 & 86 & 1.0 & 3.0 & n/a & 12.3$\pm$8.9 & 19.0$\pm$1.4\\
+\hline\multirow{5}{*}{SHOT} & UNIFORM & 0 & 0 & 0 & 59 & 579 & 83 & n/a & n/a & n/a & 82.7$\pm$29.3 & 27.2$\pm$12.4\\
+&SIFT & 0 & 0 & 0 & 59 & 86 & 86 & n/a & n/a & n/a & 3.1$\pm$1.1 & n/a\\
+&ISS & 0 & 0 & 0 & 59 & 210 & 89 & n/a & n/a & n/a & 23.8$\pm$9.1 & 15.5$\pm$4.0\\
+&SUSAN & 0 & 0 & 0 & 59 & 86 & 86 & n/a & n/a & n/a & 3.4$\pm$2.9 & n/a\\
+\hline\multirow{5}{*}{SHOTCOLOR} & UNIFORM & 0 & 0 & 0 & 59 & 606 & 86 & n/a & n/a & n/a & 92.5$\pm$31.2 & 30.7$\pm$16.8\\
+&SIFT & 1 & 1 & 1 & 59 & 86 & 86 & 1.0 & 4.0 & n/a & 3.7$\pm$1.2 & n/a\\
+&ISS & 0 & 0 & 0 & 59 & 461 & 89 & n/a & n/a & n/a & 50.1$\pm$18.2 & 22.3$\pm$9.3\\
+&SUSAN & 0 & 0 & 0 & 59 & 91 & 86 & n/a & n/a & n/a & 13.3$\pm$11.4 & 15.0$\pm$2.8\\
+\end{tabular}
+\caption{query results trash_bin}
+\label{tab:qtrash_bin}
+\end{table}

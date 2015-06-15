@@ -1,0 +1,22 @@
+\begin{table}
+\begin{tabular}{cc|ccccccccccc}
+ & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
+\multirow{5}{*}{FPFH} & ISS & 0 & 0 & 0 & 0 & 110 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&SUSAN & 0 & 0 & 0 & 0 & 86 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&UNIFORM & 0 & 0 & 0 & 0 & 572 & 86 & n/a & n/a & n/a & n/a & n/a\\
+\hline\multirow{5}{*}{PFH} & ISS & 0 & 0 & 0 & 0 & 114 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&SUSAN & 0 & 0 & 0 & 0 & 86 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&UNIFORM & 0 & 0 & 0 & 0 & 628 & 86 & n/a & n/a & n/a & n/a & n/a\\
+\hline\multirow{5}{*}{PFHRGB} & ISS & 0 & 0 & 0 & 0 & 162 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&SUSAN & 0 & 0 & 0 & 0 & 88 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&UNIFORM & 0 & 0 & 0 & 0 & 712 & 86 & n/a & n/a & n/a & n/a & n/a\\
+\hline\multirow{5}{*}{SHOT} & ISS & 0 & 0 & 0 & 0 & 155 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&SUSAN & 0 & 0 & 0 & 0 & 86 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&UNIFORM & 0 & 0 & 0 & 0 & 625 & 86 & n/a & n/a & n/a & n/a & n/a\\
+\hline\multirow{5}{*}{SHOTCOLOR} & ISS & 0 & 0 & 0 & 0 & 322 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&SUSAN & 0 & 0 & 0 & 0 & 106 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&UNIFORM & 0 & 0 & 0 & 0 & 680 & 86 & n/a & n/a & n/a & n/a & n/a\\
+\end{tabular}
+\caption{query results backpack2}
+\label{tab:qbackpack2}
+\end{table}

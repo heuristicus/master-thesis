@@ -1,0 +1,27 @@
+\begin{table}
+\begin{tabular}{cc|ccccccccccc}
+ & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
+\multirow{5}{*}{FPFH} & SUSAN & 0 & 0 & 0 & 0 & 86 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&ISS & 0 & 0 & 0 & 0 & 88 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&UNIFORM & 0 & 0 & 0 & 0 & 245 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&SIFT & 0 & 0 & 0 & 0 & 86 & 86 & n/a & n/a & n/a & n/a & n/a\\
+\hline\multirow{5}{*}{PFH} & SUSAN & 0 & 0 & 0 & 0 & 86 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&ISS & 0 & 0 & 0 & 0 & 94 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&UNIFORM & 0 & 0 & 0 & 0 & 262 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&SIFT & 0 & 0 & 0 & 0 & 86 & 86 & n/a & n/a & n/a & n/a & n/a\\
+\hline\multirow{5}{*}{PFHRGB} & SUSAN & 0 & 0 & 0 & 0 & 86 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&ISS & 0 & 0 & 0 & 0 & 89 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&UNIFORM & 0 & 0 & 0 & 0 & 280 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&SIFT & 0 & 0 & 0 & 0 & 86 & 86 & n/a & n/a & n/a & n/a & n/a\\
+\hline\multirow{5}{*}{SHOT} & SUSAN & 0 & 0 & 0 & 0 & 86 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&ISS & 0 & 0 & 0 & 0 & 94 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&UNIFORM & 0 & 0 & 0 & 0 & 315 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&SIFT & 0 & 0 & 0 & 0 & 86 & 86 & n/a & n/a & n/a & n/a & n/a\\
+\hline\multirow{5}{*}{SHOTCOLOR} & SUSAN & 0 & 0 & 0 & 0 & 86 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&ISS & 0 & 0 & 0 & 0 & 87 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&UNIFORM & 0 & 0 & 0 & 0 & 346 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&SIFT & 0 & 0 & 0 & 0 & 86 & 86 & n/a & n/a & n/a & n/a & n/a\\
+\end{tabular}
+\caption{query results pillow}
+\label{tab:qpillow}
+\end{table}

@@ -1,0 +1,27 @@
+\begin{table}
+\begin{tabular}{cc|ccccccccccc}
+ & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
+\multirow{5}{*}{ISS} & PFH & 2 & 2 & 2 & 37 & 86 & 86 & 1.0$\pm$0.0 & 3.0$\pm$0.0 & n/a & 3.6$\pm$0.6 & n/a\\
+&PFHRGB & 11 & 11 & 11 & 37 & 86 & 86 & 1.0$\pm$0.0 & 8.3$\pm$7.9 & n/a & 4.9$\pm$3.3 & n/a\\
+&FPFH & 2 & 2 & 2 & 37 & 86 & 86 & 1.0$\pm$0.0 & 3.5$\pm$0.7 & n/a & 3.9$\pm$0.6 & n/a\\
+&SHOTCOLOR & 4 & 4 & 4 & 37 & 88 & 86 & 1.0$\pm$0.0 & 2.5$\pm$0.6 & n/a & 5.7$\pm$7.4 & 14.0$\pm$0.0\\
+&SHOT & 1 & 1 & 1 & 37 & 86 & 86 & 1.0 & 2.0 & n/a & 2.2$\pm$0.4 & n/a\\
+\hline\multirow{5}{*}{SIFT} & PFH & 1 & 1 & 1 & 37 & 86 & 86 & 1.0 & 3.0 & n/a & 3.3$\pm$0.9 & n/a\\
+&PFHRGB & 0 & 0 & 0 & 37 & 86 & 86 & n/a & n/a & n/a & 3.1$\pm$1.1 & n/a\\
+&FPFH & 0 & 0 & 0 & 37 & 86 & 86 & n/a & n/a & n/a & 3.1$\pm$0.9 & n/a\\
+&SHOTCOLOR & 1 & 1 & 1 & 37 & 86 & 86 & 1.0 & 4.0 & n/a & 2.9$\pm$0.7 & n/a\\
+&SHOT & 0 & 0 & 0 & 37 & 86 & 86 & n/a & n/a & n/a & 2.5$\pm$0.7 & n/a\\
+\hline\multirow{5}{*}{SUSAN} & PFH & 0 & 0 & 0 & 37 & 87 & 86 & n/a & n/a & n/a & 9.0$\pm$6.7 & n/a\\
+&PFHRGB & 0 & 0 & 0 & 37 & 88 & 86 & n/a & n/a & n/a & 9.4$\pm$7.5 & n/a\\
+&FPFH & 0 & 0 & 0 & 37 & 87 & 86 & n/a & n/a & n/a & 7.3$\pm$5.9 & n/a\\
+&SHOTCOLOR & 0 & 0 & 0 & 37 & 125 & 86 & n/a & n/a & n/a & 30.4$\pm$13.2 & 19.8$\pm$3.4\\
+&SHOT & 0 & 0 & 0 & 37 & 86 & 86 & n/a & n/a & n/a & 5.4$\pm$6.6 & n/a\\
+\hline\multirow{5}{*}{UNIFORM} & PFH & 0 & 0 & 0 & 37 & 239 & 86 & n/a & n/a & n/a & 42.8$\pm$18.3 & 24.4$\pm$6.8\\
+&PFHRGB & 21 & 24 & 24 & 37 & 238 & 86 & 1.2$\pm$0.5 & 114.0$\pm$49.0 & 47.3$\pm$11.9 & 53.7$\pm$16.3 & 32.5$\pm$13.0\\
+&FPFH & 0 & 1 & 1 & 37 & 231 & 86 & 2.0 & n/a & 34.0 & 39.5$\pm$16.5 & 24.3$\pm$7.0\\
+&SHOTCOLOR & 0 & 0 & 0 & 37 & 235 & 86 & n/a & n/a & n/a & 49.0$\pm$20.1 & 20.8$\pm$7.1\\
+&SHOT & 0 & 0 & 0 & 37 & 256 & 86 & n/a & n/a & n/a & 36.4$\pm$12.0 & 19.6$\pm$5.9\\
+\end{tabular}
+\caption{query results hanger_jacket}
+\label{tab:qhanger_jacket}
+\end{table}

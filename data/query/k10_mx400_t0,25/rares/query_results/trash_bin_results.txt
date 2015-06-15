@@ -1,0 +1,27 @@
+\begin{table}
+\begin{tabular}{cc|ccccccccccc}
+ & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
+\multirow{5}{*}{ISS} & SHOTCOLOR & 0 & 0 & 0 & 58 & 571 & 86 & n/a & n/a & n/a & 59.2$\pm$15.6 & 24.9$\pm$11.0\\
+&PFHRGB & 0 & 0 & 0 & 58 & 415 & 86 & n/a & n/a & n/a & 53.9$\pm$18.6 & 26.2$\pm$11.3\\
+&PFH & 0 & 0 & 0 & 58 & 468 & 86 & n/a & n/a & n/a & 43.8$\pm$16.9 & 21.1$\pm$6.6\\
+&SHOT & 0 & 1 & 1 & 39 & 243 & 48 & 2.0 & n/a & 16.0 & 41.2$\pm$17.4 & 18.4$\pm$5.2\\
+&FPFH & 0 & 0 & 0 & 59 & 429 & 87 & n/a & n/a & n/a & 42.4$\pm$16.2 & 23.2$\pm$7.4\\
+\hline\multirow{5}{*}{SIFT} & SHOTCOLOR & 0 & 0 & 0 & 58 & 86 & 86 & n/a & n/a & n/a & 3.8$\pm$1.2 & n/a\\
+&PFHRGB & 0 & 0 & 0 & 58 & 86 & 86 & n/a & n/a & n/a & 4.1$\pm$1.2 & n/a\\
+&PFH & 0 & 0 & 0 & 58 & 86 & 86 & n/a & n/a & n/a & 3.7$\pm$1.0 & n/a\\
+&SHOT & 0 & 0 & 0 & 58 & 86 & 86 & n/a & n/a & n/a & 3.1$\pm$1.0 & n/a\\
+&FPFH & 0 & 0 & 0 & 58 & 86 & 86 & n/a & n/a & n/a & 2.9$\pm$0.8 & n/a\\
+\hline\multirow{5}{*}{SUSAN} & SHOTCOLOR & 0 & 0 & 0 & 58 & 118 & 86 & n/a & n/a & n/a & 19.3$\pm$9.5 & 17.2$\pm$2.5\\
+&PFHRGB & 0 & 0 & 0 & 58 & 99 & 86 & n/a & n/a & n/a & 18.2$\pm$12.9 & 18.2$\pm$2.6\\
+&PFH & 0 & 0 & 0 & 58 & 89 & 86 & n/a & n/a & n/a & 9.7$\pm$8.6 & 28.0\\
+&SHOT & 0 & 0 & 0 & 58 & 86 & 86 & n/a & n/a & n/a & 6.2$\pm$6.6 & n/a\\
+&FPFH & 0 & 0 & 0 & 58 & 89 & 86 & n/a & n/a & n/a & 10.3$\pm$9.1 & 13.0\\
+\hline\multirow{5}{*}{UNIFORM} & SHOTCOLOR & 0 & 0 & 0 & 8 & 120 & 16 & n/a & n/a & n/a & 144.9$\pm$45.6 & 37.5$\pm$24.4\\
+&PFHRGB & 0 & 0 & 0 & 31 & 346 & 40 & n/a & n/a & n/a & 147.9$\pm$49.3 & 46.0$\pm$25.2\\
+&PFH & 0 & 0 & 0 & 35 & 335 & 44 & n/a & n/a & n/a & 114.1$\pm$50.1 & 34.6$\pm$16.5\\
+&SHOT & 0 & 0 & 0 & 27 & 241 & 36 & n/a & n/a & n/a & 136.6$\pm$31.5 & 38.2$\pm$20.9\\
+&FPFH & 0 & 0 & 0 & 58 & 557 & 78 & n/a & n/a & n/a & 123.9$\pm$44.7 & 37.2$\pm$20.3\\
+\end{tabular}
+\caption{query results trash_bin}
+\label{tab:qtrash_bin}
+\end{table}

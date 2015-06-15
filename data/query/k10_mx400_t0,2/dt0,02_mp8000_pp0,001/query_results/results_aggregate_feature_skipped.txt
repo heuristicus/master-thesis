@@ -1,0 +1,17 @@
+\begin{table}
+\begin{tabular}{cc|cccc}
+Object & Type & Top & Total & Unique & Actual \\\hline
+\multirow{2}{*}{backpack2} & PFHRGB & 42.3$\pm$11.0 & 53.3$\pm$19.7 & 53.3$\pm$19.7 & 80.0$\pm$0.0\\
+ & SHOTCOLOR & 6.7$\pm$5.5 & 26.0$\pm$32.9 & 26.0$\pm$32.9 & 80.0$\pm$0.0\\\hline
+\multirow{2}{*}{chair1} & PFHRGB & 38.0$\pm$15.7 & 70.0$\pm$41.6 & 59.0$\pm$32.0 & 85.0$\pm$0.0\\
+ & SHOTCOLOR & 25.3$\pm$21.7 & 62.3$\pm$45.5 & 53.7$\pm$37.9 & 85.0$\pm$0.0\\\hline
+\multirow{2}{*}{hanger jacket} & PFHRGB & 13.0$\pm$11.3 & 17.3$\pm$15.3 & 17.3$\pm$15.3 & 37.0$\pm$0.0\\
+ & SHOTCOLOR & 0.0$\pm$0.0 & 1.3$\pm$2.3 & 1.3$\pm$2.3 & 37.0$\pm$0.0\\\hline
+\multirow{2}{*}{laptop1} & PFHRGB & 19.7$\pm$14.6 & 24.0$\pm$18.2 & 24.0$\pm$18.2 & 45.0$\pm$0.0\\
+ & SHOTCOLOR & 0.0$\pm$0.0 & 13.0$\pm$16.8 & 13.0$\pm$16.8 & 45.0$\pm$0.0\\\hline
+\multirow{2}{*}{top couch jacket2} & PFHRGB & 4.7$\pm$1.2 & 9.7$\pm$2.5 & 9.7$\pm$2.5 & 20.0$\pm$0.0\\
+ & SHOTCOLOR & 1.3$\pm$0.6 & 10.0$\pm$3.6 & 10.0$\pm$3.6 & 20.0$\pm$0.0\\\hline
+\multirow{2}{*}{trash bin} & PFHRGB & 0.3$\pm$0.6 & 0.7$\pm$0.6 & 0.7$\pm$0.6 & 58.0$\pm$0.0\\
+ & SHOTCOLOR & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 58.0$\pm$0.0\\\hline
+\end{tabular}
+\end{table}

@@ -1,0 +1,19 @@
+\begin{table}
+\begin{tabular}{cc|cccc}
+Object & Type & Top & Total & Unique & Actual \\\hline
+\multirow{2}{*}{backpack2} & ISS & 7.4$\pm$8.5 & 7.4$\pm$8.5 & 7.4$\pm$8.5 & 80.0$\pm$0.0\\
+ & UNIFORM & 11.2$\pm$24.5 & 13.2$\pm$29.0 & 13.2$\pm$29.0 & 80.0$\pm$0.0\\\hline
+\multirow{2}{*}{chair1} & ISS & 13.4$\pm$17.7 & 24.6$\pm$14.6 & 24.4$\pm$14.2 & 85.0$\pm$0.0\\
+ & UNIFORM & 27.2$\pm$11.2 & 53.2$\pm$21.1 & 49.4$\pm$17.5 & 85.0$\pm$0.0\\\hline
+\multirow{2}{*}{hanger jacket} & ISS & 4.0$\pm$4.1 & 4.0$\pm$4.1 & 4.0$\pm$4.1 & 37.0$\pm$0.0\\
+ & UNIFORM & 4.2$\pm$9.4 & 5.0$\pm$10.6 & 5.0$\pm$10.6 & 37.0$\pm$0.0\\\hline
+\multirow{2}{*}{laptop1} & ISS & 4.8$\pm$5.0 & 4.8$\pm$5.0 & 4.8$\pm$5.0 & 45.0$\pm$0.0\\
+ & UNIFORM & 6.0$\pm$8.7 & 9.4$\pm$14.1 & 9.4$\pm$14.1 & 45.0$\pm$0.0\\\hline
+\multirow{2}{*}{pillow} & ISS & 1.0$\pm$1.7 & 1.0$\pm$1.7 & 1.0$\pm$1.7 & 26.0$\pm$0.0\\
+ & UNIFORM & 3.4$\pm$2.1 & 7.4$\pm$2.1 & 7.4$\pm$2.1 & 26.0$\pm$0.0\\\hline
+\multirow{2}{*}{top couch jacket2} & ISS & 2.0$\pm$1.2 & 2.0$\pm$1.2 & 2.0$\pm$1.2 & 20.0$\pm$0.0\\
+ & UNIFORM & 1.0$\pm$1.7 & 3.6$\pm$4.3 & 3.6$\pm$4.3 & 20.0$\pm$0.0\\\hline
+\multirow{2}{*}{trash bin} & ISS & 0.2$\pm$0.4 & 0.2$\pm$0.4 & 0.2$\pm$0.4 & 58.0$\pm$0.0\\
+ & UNIFORM & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 58.0$\pm$0.0\\\hline
+\end{tabular}
+\end{table}

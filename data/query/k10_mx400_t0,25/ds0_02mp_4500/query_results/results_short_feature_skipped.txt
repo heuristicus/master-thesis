@@ -1,0 +1,2 @@
+backpack2 & chair1 & hanger_jacket & laptop1 & pillow & top_couch_jacket2\\
+21.2$\pm$22.2 & 49.2$\pm$31.5 & 5.3$\pm$5.9 & 8.8$\pm$9.8 & 2.7$\pm$3.9 & 3.3$\pm$2.3\\

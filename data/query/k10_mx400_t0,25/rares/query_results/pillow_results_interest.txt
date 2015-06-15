@@ -1,0 +1,27 @@
+\begin{table}
+\begin{tabular}{cc|ccccccccccc}
+ & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
+\multirow{5}{*}{ISS} & FPFH & 0 & 10 & 10 & 26 & 605 & 87 & 3.8$\pm$1.3 & n/a & 52.8$\pm$20.0 & 162.7$\pm$44.9 & 49.8$\pm$30.3\\
+&SHOTCOLOR & 0 & 8 & 8 & 26 & 465 & 86 & 3.5$\pm$1.6 & n/a & 88.9$\pm$76.5 & 304.1$\pm$88.3 & 65.0$\pm$41.8\\
+&PFHRGB & 1 & 6 & 6 & 26 & 373 & 86 & 3.3$\pm$1.4 & 201.0 & 69.6$\pm$7.5 & 191.6$\pm$72.4 & 69.1$\pm$36.3\\
+&SHOT & 0 & 3 & 3 & 26 & 661 & 86 & 6.0$\pm$1.0 & n/a & 25.3$\pm$4.9 & 148.8$\pm$64.7 & 45.3$\pm$25.7\\
+&PFH & 0 & 5 & 5 & 26 & 681 & 86 & 4.0$\pm$1.2 & n/a & 49.0$\pm$12.3 & 142.2$\pm$42.2 & 45.3$\pm$27.1\\
+\hline\multirow{5}{*}{SIFT} & FPFH & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 4.1$\pm$1.3 & n/a\\
+&SHOTCOLOR & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 4.2$\pm$0.9 & n/a\\
+&PFHRGB & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 5.7$\pm$2.0 & n/a\\
+&SHOT & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 3.1$\pm$0.9 & n/a\\
+&PFH & 1 & 1 & 1 & 26 & 86 & 86 & 1.0 & 4.0 & n/a & 5.2$\pm$1.4 & n/a\\
+\hline\multirow{5}{*}{SUSAN} & FPFH & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 1.9$\pm$0.7 & n/a\\
+&SHOTCOLOR & 1 & 1 & 1 & 26 & 86 & 86 & 1.0 & 2.0 & n/a & 1.4$\pm$0.6 & n/a\\
+&PFHRGB & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 2.0$\pm$0.7 & n/a\\
+&SHOT & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 1.2$\pm$0.4 & n/a\\
+&PFH & 0 & 0 & 0 & 26 & 86 & 86 & n/a & n/a & n/a & 1.6$\pm$0.6 & n/a\\
+\hline\multirow{5}{*}{UNIFORM} & FPFH & 1 & 4 & 4 & 26 & 628 & 86 & 3.2$\pm$2.1 & 132.0 & 111.0$\pm$97.9 & 221.0$\pm$54.2 & 67.0$\pm$43.2\\
+&SHOTCOLOR & 0 & 4 & 4 & 26 & 631 & 86 & 5.0$\pm$0.8 & n/a & 46.8$\pm$9.0 & 191.2$\pm$49.3 & 72.9$\pm$39.4\\
+&PFHRGB & 2 & 10 & 10 & 26 & 690 & 86 & 3.2$\pm$2.1 & 297.5$\pm$87.0 & 117.6$\pm$53.4 & 343.5$\pm$124.6 & 75.3$\pm$48.9\\
+&SHOT & 0 & 3 & 3 & 26 & 654 & 86 & 4.0$\pm$1.0 & n/a & 49.7$\pm$15.0 & 152.0$\pm$47.5 & 53.9$\pm$32.1\\
+&PFH & 1 & 6 & 6 & 26 & 600 & 86 & 3.0$\pm$1.4 & 144.0 & 87.8$\pm$59.9 & 195.0$\pm$42.5 & 66.1$\pm$41.2\\
+\end{tabular}
+\caption{query results pillow}
+\label{tab:qpillow}
+\end{table}

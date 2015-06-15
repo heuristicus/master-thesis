@@ -1,0 +1,27 @@
+\begin{table}
+\begin{tabular}{cc|ccccccccccc}
+ & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
+\multirow{5}{*}{ISS} & PFH & 4 & 4 & 4 & 45 & 86 & 86 & 1.0$\pm$0.0 & 3.0$\pm$0.0 & n/a & 3.6$\pm$2.5 & n/a\\
+&PFHRGB & 13 & 13 & 13 & 45 & 86 & 86 & 1.0$\pm$0.0 & 10.6$\pm$9.4 & n/a & 6.5$\pm$3.3 & n/a\\
+&FPFH & 5 & 5 & 5 & 45 & 86 & 86 & 1.0$\pm$0.0 & 4.8$\pm$1.1 & n/a & 5.4$\pm$5.0 & n/a\\
+&SHOTCOLOR & 2 & 2 & 2 & 45 & 86 & 86 & 1.0$\pm$0.0 & 3.5$\pm$0.7 & n/a & 6.2$\pm$5.6 & n/a\\
+&SHOT & 0 & 0 & 0 & 45 & 86 & 86 & n/a & n/a & n/a & 8.2$\pm$7.9 & n/a\\
+\hline\multirow{5}{*}{SIFT} & PFH & 2 & 2 & 2 & 45 & 86 & 86 & 1.0$\pm$0.0 & 2.0$\pm$0.0 & n/a & 1.9$\pm$0.3 & n/a\\
+&PFHRGB & 4 & 4 & 4 & 45 & 86 & 86 & 1.0$\pm$0.0 & 2.0$\pm$0.0 & n/a & 2.1$\pm$0.4 & n/a\\
+&FPFH & 3 & 3 & 3 & 45 & 86 & 86 & 1.0$\pm$0.0 & 2.0$\pm$0.0 & n/a & 2.0$\pm$0.6 & n/a\\
+&SHOTCOLOR & 2 & 2 & 2 & 45 & 86 & 86 & 1.0$\pm$0.0 & 1.5$\pm$0.7 & n/a & 1.9$\pm$0.5 & n/a\\
+&SHOT & 1 & 1 & 1 & 45 & 86 & 86 & 1.0 & 2.0 & n/a & 2.0$\pm$0.5 & n/a\\
+\hline\multirow{5}{*}{SUSAN} & PFH & 0 & 0 & 0 & 45 & 86 & 86 & n/a & n/a & n/a & 3.4$\pm$1.1 & n/a\\
+&PFHRGB & 8 & 8 & 8 & 45 & 86 & 86 & 1.0$\pm$0.0 & 3.5$\pm$0.8 & n/a & 3.5$\pm$2.6 & n/a\\
+&FPFH & 1 & 1 & 1 & 45 & 86 & 86 & 1.0 & 2.0 & n/a & 3.1$\pm$0.9 & n/a\\
+&SHOTCOLOR & 0 & 0 & 0 & 45 & 86 & 86 & n/a & n/a & n/a & 2.1$\pm$0.4 & n/a\\
+&SHOT & 0 & 0 & 0 & 45 & 86 & 86 & n/a & n/a & n/a & 1.7$\pm$0.5 & n/a\\
+\hline\multirow{5}{*}{UNIFORM} & PFH & 5 & 8 & 8 & 45 & 269 & 86 & 1.6$\pm$0.9 & 36.0$\pm$11.3 & 22.3$\pm$9.1 & 40.4$\pm$17.8 & 23.7$\pm$6.5\\
+&PFHRGB & 21 & 34 & 34 & 45 & 332 & 86 & 1.7$\pm$1.1 & 117.3$\pm$36.0 & 46.5$\pm$19.2 & 91.5$\pm$29.3 & 43.7$\pm$17.1\\
+&FPFH & 4 & 4 & 4 & 45 & 268 & 86 & 1.0$\pm$0.0 & 36.8$\pm$10.2 & n/a & 40.2$\pm$19.7 & 23.1$\pm$6.2\\
+&SHOTCOLOR & 0 & 0 & 0 & 45 & 316 & 86 & n/a & n/a & n/a & 40.7$\pm$10.2 & 23.7$\pm$7.3\\
+&SHOT & 0 & 1 & 1 & 45 & 284 & 86 & 2.0 & n/a & 16.0 & 35.8$\pm$13.5 & 19.5$\pm$5.3\\
+\end{tabular}
+\caption{query results laptop1}
+\label{tab:qlaptop1}
+\end{table}

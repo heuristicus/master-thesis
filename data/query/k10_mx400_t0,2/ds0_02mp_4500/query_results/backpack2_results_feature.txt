@@ -1,0 +1,22 @@
+\begin{table}
+\begin{tabular}{cc|ccccccccccc}
+ & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
+\multirow{5}{*}{FPFH} & ISS & 5 & 5 & 5 & 80 & 86 & 86 & 1.0$\pm$0.0 & 4.8$\pm$0.4 & n/a & 5.4$\pm$3.7 & n/a\\
+&UNIFORM & 1 & 9 & 9 & 80 & 628 & 86 & 3.1$\pm$1.2 & 118.0 & 42.8$\pm$9.2 & 104.1$\pm$39.5 & 35.3$\pm$18.4\\
+&SUSAN & 0 & 0 & 0 & 80 & 86 & 86 & n/a & n/a & n/a & 5.3$\pm$4.9 & n/a\\
+\hline\multirow{5}{*}{PFH} & ISS & 2 & 2 & 2 & 80 & 86 & 86 & 1.0$\pm$0.0 & 4.5$\pm$0.7 & n/a & 4.4$\pm$1.9 & n/a\\
+&UNIFORM & 1 & 5 & 5 & 80 & 641 & 86 & 2.2$\pm$0.8 & 59.0 & 43.2$\pm$9.1 & 89.9$\pm$26.0 & 34.1$\pm$16.2\\
+&SUSAN & 2 & 2 & 2 & 80 & 86 & 86 & 1.0$\pm$0.0 & 2.5$\pm$0.7 & n/a & 3.1$\pm$2.3 & n/a\\
+\hline\multirow{5}{*}{PFHRGB} & ISS & 31 & 31 & 31 & 80 & 92 & 86 & 1.0$\pm$0.0 & 29.2$\pm$6.3 & n/a & 10.3$\pm$9.1 & 21.0$\pm$5.0\\
+&UNIFORM & 54 & 64 & 64 & 80 & 673 & 86 & 1.4$\pm$1.0 & 317.2$\pm$87.4 & 126.9$\pm$44.8 & 255.5$\pm$81.9 & 74.6$\pm$45.7\\
+&SUSAN & 21 & 21 & 21 & 80 & 88 & 86 & 1.0$\pm$0.0 & 17.2$\pm$8.9 & n/a & 12.2$\pm$9.5 & 19.5$\pm$0.7\\
+\hline\multirow{5}{*}{SHOT} & ISS & 1 & 1 & 1 & 80 & 86 & 86 & 1.0 & 3.0 & n/a & 3.7$\pm$3.2 & n/a\\
+&UNIFORM & 0 & 1 & 1 & 80 & 627 & 86 & 4.0 & n/a & 37.0 & 101.0$\pm$37.6 & 31.8$\pm$14.9\\
+&SUSAN & 0 & 0 & 0 & 80 & 86 & 86 & n/a & n/a & n/a & 3.3$\pm$2.7 & n/a\\
+\hline\multirow{5}{*}{SHOTCOLOR} & ISS & 2 & 2 & 2 & 80 & 93 & 86 & 1.0$\pm$0.0 & 4.5$\pm$0.7 & n/a & 19.2$\pm$13.7 & 25.2$\pm$5.0\\
+&UNIFORM & 0 & 5 & 5 & 80 & 640 & 86 & 5.4$\pm$0.9 & n/a & 33.4$\pm$4.0 & 98.8$\pm$25.9 & 38.3$\pm$21.5\\
+&SUSAN & 7 & 7 & 7 & 80 & 89 & 86 & 1.0$\pm$0.0 & 11.0$\pm$11.1 & n/a & 11.9$\pm$10.4 & 19.0$\pm$1.7\\
+\end{tabular}
+\caption{query results backpack2}
+\label{tab:qbackpack2}
+\end{table}

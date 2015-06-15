@@ -1,0 +1,24 @@
+\begin{table}
+\begin{tabular}{cc|ccccccccccc}
+ & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
+\multirow{5}{*}{FPFH} & UNIFORM & 0 & 5 & 5 & 20 & 583 & 86 & 3.8$\pm$1.1 & n/a & 35.2$\pm$12.0 & 80.8$\pm$26.2 & 30.7$\pm$13.0\\
+&SIFT & 0 & 0 & 0 & 20 & 86 & 86 & n/a & n/a & n/a & 2.5$\pm$0.8 & n/a\\
+&SUSAN & 4 & 4 & 4 & 20 & 87 & 86 & 1.0$\pm$0.0 & 20.2$\pm$8.3 & n/a & 12.9$\pm$9.2 & 18.0\\
+\hline\multirow{5}{*}{PFH} & UNIFORM & 2 & 8 & 8 & 20 & 554 & 86 & 3.0$\pm$1.6 & 105.0$\pm$56.6 & 31.8$\pm$12.9 & 71.7$\pm$19.8 & 29.9$\pm$13.8\\
+&SIFT & 0 & 0 & 0 & 20 & 86 & 86 & n/a & n/a & n/a & 2.4$\pm$0.8 & n/a\\
+&SUSAN & 3 & 3 & 3 & 20 & 86 & 86 & 1.0$\pm$0.0 & 11.3$\pm$10.1 & n/a & 8.5$\pm$6.4 & n/a\\
+\hline\multirow{5}{*}{PFHRGB} & UNIFORM & 3 & 12 & 12 & 20 & 684 & 86 & 3.1$\pm$2.0 & 161.3$\pm$27.2 & 79.1$\pm$29.9 & 175.0$\pm$43.0 & 55.2$\pm$31.4\\
+&SIFT & 1 & 1 & 1 & 20 & 86 & 86 & 1.0 & 3.0 & n/a & 2.6$\pm$0.7 & n/a\\
+&ISS & 5 & 10 & 10 & 20 & 403 & 86 & 2.0$\pm$1.6 & 64.6$\pm$11.4 & 63.8$\pm$22.8 & 75.7$\pm$28.4 & 38.6$\pm$17.4\\
+&SUSAN & 7 & 7 & 7 & 20 & 99 & 86 & 1.0$\pm$0.0 & 67.0$\pm$22.3 & n/a & 31.3$\pm$19.2 & 31.3$\pm$13.1\\
+\hline\multirow{5}{*}{SHOT} & UNIFORM & 0 & 0 & 0 & 20 & 633 & 86 & n/a & n/a & n/a & 73.7$\pm$30.1 & 25.1$\pm$9.4\\
+&SIFT & 0 & 0 & 0 & 20 & 86 & 86 & n/a & n/a & n/a & 1.9$\pm$0.7 & n/a\\
+&ISS & 2 & 5 & 5 & 20 & 535 & 89 & 2.0$\pm$1.2 & 45.0$\pm$8.5 & 25.3$\pm$7.4 & 36.8$\pm$13.6 & 17.9$\pm$4.9\\
+&SUSAN & 0 & 0 & 0 & 20 & 90 & 86 & n/a & n/a & n/a & 8.5$\pm$6.6 & n/a\\
+\hline\multirow{5}{*}{SHOTCOLOR} & UNIFORM & 2 & 5 & 5 & 20 & 692 & 86 & 2.0$\pm$1.2 & 74.0$\pm$21.2 & 40.7$\pm$11.9 & 73.1$\pm$16.3 & 33.3$\pm$15.7\\
+&SIFT & 3 & 3 & 3 & 20 & 86 & 86 & 1.0$\pm$0.0 & 2.0$\pm$0.0 & n/a & 2.2$\pm$0.6 & n/a\\
+&SUSAN & 3 & 8 & 8 & 20 & 187 & 86 & 2.0$\pm$0.9 & 46.0$\pm$6.2 & 29.6$\pm$7.1 & 44.3$\pm$10.3 & 27.0$\pm$8.0\\
+\end{tabular}
+\caption{query results top_couch_jacket2}
+\label{tab:qtop_couch_jacket2}
+\end{table}

@@ -1,0 +1,22 @@
+\begin{table}
+\begin{tabular}{cc|ccccccccccc}
+ & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
+\multirow{5}{*}{ISS} & SHOT & 0 & 0 & 0 & 0 & 282 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&FPFH & 0 & 0 & 0 & 0 & 125 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&PFHRGB & 0 & 0 & 0 & 0 & 113 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&PFH & 0 & 0 & 0 & 0 & 157 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&SHOTCOLOR & 0 & 0 & 0 & 0 & 120 & 86 & n/a & n/a & n/a & n/a & n/a\\
+\hline\multirow{5}{*}{SUSAN} & SHOT & 0 & 0 & 0 & 0 & 86 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&FPFH & 0 & 0 & 0 & 0 & 86 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&PFHRGB & 0 & 0 & 0 & 0 & 86 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&PFH & 0 & 0 & 0 & 0 & 86 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&SHOTCOLOR & 0 & 0 & 0 & 0 & 86 & 86 & n/a & n/a & n/a & n/a & n/a\\
+\hline\multirow{5}{*}{UNIFORM} & SHOT & 0 & 0 & 0 & 0 & 724 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&FPFH & 0 & 0 & 0 & 0 & 631 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&PFHRGB & 0 & 0 & 0 & 0 & 677 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&PFH & 0 & 0 & 0 & 0 & 600 & 86 & n/a & n/a & n/a & n/a & n/a\\
+&SHOTCOLOR & 0 & 0 & 0 & 0 & 716 & 86 & n/a & n/a & n/a & n/a & n/a\\
+\end{tabular}
+\caption{query results pillow}
+\label{tab:qpillow}
+\end{table}

@@ -1,0 +1,27 @@
+\begin{table}
+\begin{tabular}{cc|ccccccccccc}
+ & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
+\multirow{5}{*}{ISS} & PFH & 3 & 5 & 5 & 38 & 163 & 86 & 1.4$\pm$0.5 & 29.0$\pm$21.3 & 24.5$\pm$13.4 & 23.7$\pm$12.4 & 19.0$\pm$4.0\\
+&PFHRGB & 14 & 19 & 19 & 38 & 205 & 86 & 1.3$\pm$0.5 & 57.0$\pm$19.7 & 33.8$\pm$5.3 & 42.0$\pm$25.0 & 24.1$\pm$6.7\\
+&SHOTCOLOR & 1 & 5 & 5 & 40 & 304 & 89 & 2.8$\pm$1.1 & 47.0 & 18.8$\pm$4.9 & 73.2$\pm$48.3 & 27.8$\pm$12.1\\
+&SHOT & 1 & 1 & 1 & 40 & 134 & 89 & 1.0 & 3.0 & n/a & 19.2$\pm$13.1 & 15.3$\pm$2.2\\
+&FPFH & 4 & 6 & 6 & 38 & 190 & 86 & 1.7$\pm$1.0 & 22.8$\pm$12.4 & 22.0$\pm$1.4 & 29.6$\pm$12.7 & 21.5$\pm$5.0\\
+\hline\multirow{5}{*}{SIFT} & PFH & 0 & 0 & 0 & 38 & 86 & 86 & n/a & n/a & n/a & 2.3$\pm$0.7 & n/a\\
+&PFHRGB & 0 & 0 & 0 & 38 & 86 & 86 & n/a & n/a & n/a & 2.7$\pm$0.9 & n/a\\
+&SHOTCOLOR & 1 & 1 & 1 & 38 & 86 & 86 & 1.0 & 3.0 & n/a & 2.9$\pm$1.0 & n/a\\
+&SHOT & 0 & 0 & 0 & 38 & 86 & 86 & n/a & n/a & n/a & 2.7$\pm$0.7 & n/a\\
+&FPFH & 0 & 0 & 0 & 38 & 86 & 86 & n/a & n/a & n/a & 3.3$\pm$0.7 & n/a\\
+\hline\multirow{5}{*}{SUSAN} & PFH & 0 & 0 & 0 & 38 & 86 & 86 & n/a & n/a & n/a & 9.0$\pm$8.0 & n/a\\
+&PFHRGB & 1 & 1 & 1 & 38 & 90 & 86 & 1.0 & 8.0 & n/a & 13.9$\pm$10.0 & n/a\\
+&SHOTCOLOR & 0 & 0 & 0 & 38 & 131 & 86 & n/a & n/a & n/a & 30.9$\pm$15.3 & 24.6$\pm$9.7\\
+&SHOT & 0 & 0 & 0 & 38 & 87 & 86 & n/a & n/a & n/a & 5.6$\pm$4.7 & n/a\\
+&FPFH & 0 & 0 & 0 & 38 & 88 & 86 & n/a & n/a & n/a & 8.7$\pm$7.9 & 16.0\\
+\hline\multirow{5}{*}{UNIFORM} & PFH & 0 & 0 & 0 & 38 & 153 & 86 & n/a & n/a & n/a & 27.5$\pm$11.6 & 21.2$\pm$4.8\\
+&PFHRGB & 21 & 21 & 21 & 38 & 192 & 86 & 1.0$\pm$0.0 & 86.6$\pm$38.0 & n/a & 46.4$\pm$19.8 & 34.3$\pm$11.1\\
+&SHOTCOLOR & 0 & 0 & 0 & 38 & 217 & 86 & n/a & n/a & n/a & 34.8$\pm$16.7 & 20.0$\pm$7.2\\
+&SHOT & 0 & 0 & 0 & 38 & 220 & 86 & n/a & n/a & n/a & 26.1$\pm$10.2 & 16.9$\pm$4.8\\
+&FPFH & 0 & 0 & 0 & 38 & 151 & 86 & n/a & n/a & n/a & 23.6$\pm$8.9 & 21.1$\pm$4.4\\
+\end{tabular}
+\caption{query results hanger_jacket}
+\label{tab:qhanger_jacket}
+\end{table}

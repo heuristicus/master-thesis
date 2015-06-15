@@ -1,0 +1,27 @@
+\begin{table}
+\begin{tabular}{cc|ccccccccccc}
+ & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
+\multirow{5}{*}{ISS} & SHOTCOLOR & 1 & 2 & 2 & 35 & 155 & 84 & 2.0$\pm$1.4 & 20.0 & 17.0 & 31.4$\pm$15.4 & 16.7$\pm$3.8\\
+&FPFH & 1 & 1 & 1 & 35 & 86 & 84 & 1.0 & 4.0 & n/a & 5.4$\pm$4.1 & n/a\\
+&PFHRGB & 9 & 9 & 9 & 35 & 87 & 84 & 1.0$\pm$0.0 & 23.1$\pm$8.3 & n/a & 11.4$\pm$8.7 & 20.0\\
+&SHOT & 3 & 3 & 3 & 35 & 84 & 84 & 1.0$\pm$0.0 & 2.3$\pm$0.6 & n/a & 5.1$\pm$5.7 & n/a\\
+&PFH & 1 & 1 & 1 & 35 & 84 & 84 & 1.0 & 3.0 & n/a & 5.9$\pm$4.5 & n/a\\
+\hline\multirow{5}{*}{SIFT} & SHOTCOLOR & 0 & 0 & 0 & 35 & 84 & 84 & n/a & n/a & n/a & 2.5$\pm$0.7 & n/a\\
+&FPFH & 0 & 0 & 0 & 35 & 84 & 84 & n/a & n/a & n/a & 4.0$\pm$0.7 & n/a\\
+&PFHRGB & 0 & 0 & 0 & 35 & 84 & 84 & n/a & n/a & n/a & 2.6$\pm$0.8 & n/a\\
+&SHOT & 0 & 0 & 0 & 35 & 84 & 84 & n/a & n/a & n/a & 2.2$\pm$0.4 & n/a\\
+&PFH & 0 & 0 & 0 & 35 & 84 & 84 & n/a & n/a & n/a & 2.9$\pm$0.8 & n/a\\
+\hline\multirow{5}{*}{SUSAN} & SHOTCOLOR & 0 & 0 & 0 & 35 & 119 & 84 & n/a & n/a & n/a & 31.7$\pm$11.6 & 19.4$\pm$4.0\\
+&FPFH & 0 & 0 & 0 & 35 & 85 & 84 & n/a & n/a & n/a & 10.3$\pm$7.8 & n/a\\
+&PFHRGB & 0 & 0 & 0 & 35 & 87 & 84 & n/a & n/a & n/a & 11.5$\pm$9.0 & 23.0$\pm$4.2\\
+&SHOT & 0 & 0 & 0 & 35 & 86 & 84 & n/a & n/a & n/a & 6.1$\pm$5.8 & n/a\\
+&PFH & 0 & 0 & 0 & 35 & 84 & 84 & n/a & n/a & n/a & 7.2$\pm$5.2 & n/a\\
+\hline\multirow{5}{*}{UNIFORM} & SHOTCOLOR & 0 & 0 & 0 & 35 & 210 & 72 & n/a & n/a & n/a & 32.2$\pm$14.0 & 19.5$\pm$8.9\\
+&FPFH & 0 & 0 & 0 & 35 & 197 & 84 & n/a & n/a & n/a & 31.9$\pm$9.0 & 20.5$\pm$5.1\\
+&PFHRGB & 19 & 24 & 24 & 35 & 228 & 84 & 1.2$\pm$0.5 & 85.5$\pm$36.6 & 45.0$\pm$7.7 & 49.2$\pm$14.3 & 33.0$\pm$11.3\\
+&SHOT & 0 & 0 & 0 & 35 & 215 & 84 & n/a & n/a & n/a & 28.6$\pm$11.8 & 17.1$\pm$2.7\\
+&PFH & 0 & 0 & 0 & 35 & 219 & 84 & n/a & n/a & n/a & 31.6$\pm$10.8 & 21.7$\pm$5.8\\
+\end{tabular}
+\caption{query results hanger_jacket}
+\label{tab:qhanger_jacket}
+\end{table}

@@ -1,0 +1,27 @@
+\begin{table}
+\begin{tabular}{cc|ccccccccccc}
+ & desc & top & total & uniq & actual & clusters & clouds & avg rank & top m score & m score & top nm score & nm score\\\hline
+\multirow{5}{*}{ISS} & FPFH & 6 & 12 & 12 & 81 & 135 & 87 & 1.6$\pm$0.7 & 21.5$\pm$4.8 & 16.8$\pm$4.7 & 27.4$\pm$12.0 & 20.3$\pm$3.6\\
+&SHOTCOLOR & 14 & 60 & 60 & 80 & 426 & 86 & 2.5$\pm$1.2 & 60.6$\pm$11.3 & 44.4$\pm$13.5 & 69.0$\pm$18.8 & 31.7$\pm$12.5\\
+&PFH & 8 & 12 & 12 & 80 & 151 & 86 & 1.4$\pm$0.7 & 16.6$\pm$9.4 & 18.2$\pm$3.2 & 21.5$\pm$7.5 & 18.3$\pm$3.4\\
+&SHOT & 2 & 6 & 6 & 80 & 180 & 86 & 2.2$\pm$1.2 & 16.5$\pm$19.1 & 15.5$\pm$3.1 & 20.0$\pm$9.8 & 15.7$\pm$2.6\\
+&PFHRGB & 55 & 67 & 67 & 80 & 233 & 86 & 1.3$\pm$0.8 & 97.2$\pm$26.7 & 38.8$\pm$9.4 & 55.7$\pm$23.5 & 29.1$\pm$9.2\\
+\hline\multirow{5}{*}{SIFT} & FPFH & 0 & 0 & 0 & 80 & 86 & 86 & n/a & n/a & n/a & 2.7$\pm$1.0 & n/a\\
+&SHOTCOLOR & 5 & 5 & 5 & 80 & 86 & 86 & 1.0$\pm$0.0 & 3.0$\pm$0.7 & n/a & 2.9$\pm$1.0 & n/a\\
+&PFH & 0 & 0 & 0 & 80 & 86 & 86 & n/a & n/a & n/a & 2.3$\pm$0.7 & n/a\\
+&SHOT & 0 & 0 & 0 & 80 & 86 & 86 & n/a & n/a & n/a & 2.5$\pm$0.9 & n/a\\
+&PFHRGB & 5 & 5 & 5 & 80 & 86 & 86 & 1.0$\pm$0.0 & 2.4$\pm$0.9 & n/a & 2.3$\pm$0.7 & n/a\\
+\hline\multirow{5}{*}{SUSAN} & FPFH & 2 & 2 & 2 & 80 & 86 & 86 & 1.0$\pm$0.0 & 1.0$\pm$0.0 & n/a & 1.6$\pm$0.6 & n/a\\
+&SHOTCOLOR & 15 & 15 & 15 & 80 & 86 & 86 & 1.0$\pm$0.0 & 1.6$\pm$0.6 & n/a & 1.3$\pm$0.5 & n/a\\
+&PFH & 0 & 0 & 0 & 80 & 86 & 86 & n/a & n/a & n/a & 1.4$\pm$0.5 & n/a\\
+&SHOT & 0 & 0 & 0 & 80 & 86 & 86 & n/a & n/a & n/a & 1.1$\pm$0.4 & n/a\\
+&PFHRGB & 32 & 32 & 32 & 80 & 86 & 86 & 1.0$\pm$0.0 & 2.0$\pm$0.7 & n/a & 1.8$\pm$0.7 & n/a\\
+\hline\multirow{5}{*}{UNIFORM} & FPFH & 2 & 2 & 2 & 80 & 187 & 86 & 1.0$\pm$0.0 & 9.5$\pm$4.9 & n/a & 36.2$\pm$15.1 & 21.7$\pm$5.8\\
+&SHOTCOLOR & 0 & 1 & 1 & 80 & 293 & 86 & 2.0 & n/a & 32.0 & 36.5$\pm$11.6 & 21.3$\pm$7.7\\
+&PFH & 1 & 1 & 1 & 80 & 225 & 86 & 1.0 & 4.0 & n/a & 30.9$\pm$10.4 & 20.4$\pm$5.5\\
+&SHOT & 0 & 0 & 0 & 80 & 288 & 86 & n/a & n/a & n/a & 35.1$\pm$12.2 & 18.6$\pm$4.7\\
+&PFHRGB & 52 & 64 & 64 & 80 & 308 & 86 & 1.4$\pm$0.9 & 158.0$\pm$38.9 & 56.3$\pm$14.2 & 93.3$\pm$28.6 & 44.3$\pm$15.7\\
+\end{tabular}
+\caption{query results backpack2}
+\label{tab:qbackpack2}
+\end{table}

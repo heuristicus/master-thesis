@@ -1,0 +1,110 @@
+obj_search:
+  camera_z: 1.7
+  ceiling_z: 2.27
+  floor_z: 0
+  object_query: {K: 5}
+  processed_data_dir: /home/michal/Downloads/pcddata/processed/
+  raw_data_dir: /media/michal/Pauli/masterdata/raw/
+object_query: {K: 10, cluster_maxsize: 500, cluster_minsize: 12, cluster_tolerance: 0.25,
+  clusters_to_results: true, extract_mult: 1.3, match: nonPlanes<shot_susan, n_max_points: 400,
+  output_dir: 'NULL', query_features: '/home/michal/Downloads/pcddata/processed/query/queryobjects/0,01/pillow/features/rgb_0003_label_pillow<shot_susan_2015-05-26_15-07-31.pcd',
+  results_out: '/home/michal/Downloads/pcddata/processed/query/k10_mx400_t0,25/rares',
+  subdirs: 4, target_features: /media/michal/Pauli/masterdata/processed/annotated/rares,
+  x_step_hough: 0.05, y_step_hough: 0.05, z_step_hough: 0.05}
+rosdistro: 'indigo
+
+  '
+roslaunch:
+  uris: {host_tycho__37879: 'http://tycho:37879/', host_tycho__41227: 'http://tycho:41227/'}
+rosversion: '1.11.10
+
+  '
+run_id: 0a28806c-071b-11e5-bb9a-3c970e77227e
+BEGIN_DATA
+# fname t_query t_hough t_cluster cluster_n cluster_scores cluster_points cluster_inobb n_hough_tot nonzero_hough hough_votes boxpts boxvotes maxpts maxvotes maxboxpts maxboxvotes hough_hist box_hist max_hist boxmax_hist
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140820/patrol_run_2/room_1/features/nonPlanes<shot_susan_2015-05-17_16-10-25.pcd 0.00315487 0.00148097 0.000174726 1 2 1 -1 382800 9 10 -1 -1 9 10 -1 -1 382791,8,1 -1 0,8,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140820/patrol_run_4/room_0/features/nonPlanes<shot_susan_2015-05-17_16-10-38.pcd 0.00467913 0.000789409 9.836e-05 1 1 1 -1 409596 10 10 -1 -1 10 10 -1 -1 409586,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140828/patrol_run_19/room_3/features/nonPlanes<shot_susan_2015-05-17_16-10-52.pcd 0.00297748 0.000551245 0.000106819 1 1 1 -1 365442 10 10 -1 -1 10 10 -1 -1 365432,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140829/patrol_run_20/room_3/features/nonPlanes<shot_susan_2015-05-17_16-11-06.pcd 0.00326539 0.000559635 0.000110102 1 1 1 -1 380358 10 10 -1 -1 10 10 -1 -1 380348,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140829/patrol_run_26/room_2/features/nonPlanes<shot_susan_2015-05-17_16-11-19.pcd 0.00364312 0.000588276 0.000115295 1 1 1 0 389961 10 10 0 0 10 10 0 0 389951,10 0,0 0,10 0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140901/patrol_run_27/room_2/features/nonPlanes<shot_susan_2015-05-17_16-11-33.pcd 0.00296319 0.000940829 8.0121e-05 1 1 1 -1 367488 10 10 -1 -1 10 10 -1 -1 367478,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140901/patrol_run_31/room_2/features/nonPlanes<shot_susan_2015-05-17_16-11-38.pcd 0.00310643 0.000574915 0.000105262 1 1 1 -1 415800 10 10 -1 -1 10 10 -1 -1 415790,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140901/patrol_run_32/room_2/features/nonPlanes<shot_susan_2015-05-17_16-11-50.pcd 0.00259893 0.000975443 8.1618e-05 1 1 1 -1 384087 10 10 -1 -1 10 10 -1 -1 384077,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140901/patrol_run_33/room_1/features/nonPlanes<shot_susan_2015-05-17_16-12-02.pcd 0.00135699 0.000930505 9.6893e-05 1 1 1 -1 400554 10 10 -1 -1 10 10 -1 -1 400544,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140902/patrol_run_35/room_2/features/nonPlanes<shot_susan_2015-05-17_16-12-12.pcd 0.00266363 0.000954853 0.000103044 1 1 1 -1 381376 10 10 -1 -1 10 10 -1 -1 381366,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140902/patrol_run_38/room_0/features/nonPlanes<shot_susan_2015-05-17_16-12-21.pcd 0.00326784 0.000582753 0.000114249 1 1 1 0 378972 10 10 0 0 10 10 0 0 378962,10 0,0 0,10 0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140903/patrol_run_1/room_4/features/nonPlanes<shot_susan_2015-05-17_16-12-34.pcd 0.00361773 0.000586451 0.000114176 1 1 1 0 392040 10 10 0 0 10 10 0 0 392030,10 0,0 0,10 0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140903/patrol_run_10/room_2/features/nonPlanes<shot_susan_2015-05-17_16-12-50.pcd 0.00291281 0.000614999 0.000112467 1 1 1 -1 401082 10 10 -1 -1 10 10 -1 -1 401072,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140903/patrol_run_12/room_2/features/nonPlanes<shot_susan_2015-05-17_16-13-01.pcd 0.00289063 0.00057249 0.000105399 1 1 1 -1 389961 10 10 -1 -1 10 10 -1 -1 389951,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140903/patrol_run_14/room_1/features/nonPlanes<shot_susan_2015-05-17_16-13-11.pcd 0.00438425 0.000507654 8.673e-05 1 2 1 -1 396032 9 10 -1 -1 9 10 -1 -1 396023,8,1 -1 0,8,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140903/patrol_run_2/room_4/features/nonPlanes<shot_susan_2015-05-17_16-13-16.pcd 0.00319167 0.00138917 0.000106651 1 1 1 0 378624 10 10 0 0 10 10 0 0 378614,10 0,0 0,10 0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140903/patrol_run_9/room_2/features/nonPlanes<shot_susan_2015-05-17_16-13-22.pcd 0.00426417 0.000566904 9.1681e-05 1 1 1 -1 420849 10 10 -1 -1 10 10 -1 -1 420839,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140904/patrol_run_15/room_2/features/nonPlanes<shot_susan_2015-05-17_16-13-35.pcd 0.00482724 0.000554433 8.6233e-05 1 1 1 -1 398112 10 10 -1 -1 10 10 -1 -1 398102,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140905/patrol_run_17/room_2/features/nonPlanes<shot_susan_2015-05-17_16-13-51.pcd 0.00409633 0.00055154 9.2132e-05 1 1 1 -1 376064 10 10 -1 -1 10 10 -1 -1 376054,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140905/patrol_run_19/room_1/features/nonPlanes<shot_susan_2015-05-17_16-14-01.pcd 0.00314119 0.00057839 0.000131034 1 1 1 -1 361984 10 10 -1 -1 10 10 -1 -1 361974,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140905/patrol_run_21/room_2/features/nonPlanes<shot_susan_2015-05-17_16-14-07.pcd 0.00308765 0.000601666 0.000105483 1 1 1 -1 391545 10 10 -1 -1 10 10 -1 -1 391535,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140905/patrol_run_23/room_2/features/nonPlanes<shot_susan_2015-05-17_16-14-21.pcd 0.00359935 0.000529249 9.4421e-05 1 1 1 -1 382239 10 10 -1 -1 10 10 -1 -1 382229,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140905/patrol_run_25/room_1/features/nonPlanes<shot_susan_2015-05-17_16-14-33.pcd 0.00420874 0.000528955 9.1007e-05 1 1 1 -1 372096 10 10 -1 -1 10 10 -1 -1 372086,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140905/patrol_run_27/room_2/features/nonPlanes<shot_susan_2015-05-17_16-14-45.pcd 0.00350338 0.00052118 9.2483e-05 1 1 1 -1 383724 10 10 -1 -1 10 10 -1 -1 383714,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140905/patrol_run_29/room_2/features/nonPlanes<shot_susan_2015-05-17_16-14-57.pcd 0.00418436 0.000515388 8.4722e-05 1 2 1 -1 372900 9 10 -1 -1 9 10 -1 -1 372891,8,1 -1 0,8,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140905/patrol_run_30/room_1/features/nonPlanes<shot_susan_2015-05-17_16-15-01.pcd 0.00390978 0.000520539 8.8023e-05 1 1 1 -1 382800 10 10 -1 -1 10 10 -1 -1 382790,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140905/patrol_run_30/room_7/features/nonPlanes<shot_susan_2015-05-17_16-15-12.pcd 0.00411608 0.000499632 8.9542e-05 1 1 1 -1 369171 10 10 -1 -1 10 10 -1 -1 369161,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140908/patrol_run_32/room_2/features/nonPlanes<shot_susan_2015-05-17_16-15-25.pcd 0.00374351 0.000553544 8.2189e-05 1 1 1 -1 401082 10 10 -1 -1 10 10 -1 -1 401072,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140908/patrol_run_34/room_2/features/nonPlanes<shot_susan_2015-05-17_16-15-30.pcd 0.00352561 0.000569831 0.000107219 1 1 1 -1 386100 10 10 -1 -1 10 10 -1 -1 386090,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140908/patrol_run_36/room_3/features/nonPlanes<shot_susan_2015-05-17_16-15-37.pcd 0.00281267 0.000980014 9.2956e-05 1 3 1 -1 371316 8 10 -1 -1 8 10 -1 -1 371308,7,0,1 -1 0,7,0,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140908/patrol_run_38/room_2/features/nonPlanes<shot_susan_2015-05-17_16-15-44.pcd 0.00311278 0.00094283 8.9559e-05 1 1 1 -1 371910 10 10 -1 -1 10 10 -1 -1 371900,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140908/patrol_run_39/room_3/features/nonPlanes<shot_susan_2015-05-17_16-15-59.pcd 0.00315173 0.000566881 0.00011067 1 1 1 -1 382239 10 10 -1 -1 10 10 -1 -1 382229,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140908/patrol_run_41/room_3/features/nonPlanes<shot_susan_2015-05-17_16-16-10.pcd 0.00319588 0.000534304 9.9646e-05 1 1 1 -1 378972 10 10 -1 -1 10 10 -1 -1 378962,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140908/patrol_run_43/room_3/features/nonPlanes<shot_susan_2015-05-17_16-16-18.pcd 0.00310903 0.000562077 9.8904e-05 1 2 1 -1 371910 9 10 -1 -1 9 10 -1 -1 371901,8,1 -1 0,8,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140908/patrol_run_45/room_2/features/nonPlanes<shot_susan_2015-05-17_16-16-27.pcd 0.00387504 0.00056649 8.094e-05 1 1 1 -1 382239 10 10 -1 -1 10 10 -1 -1 382229,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140908/patrol_run_47/room_3/features/nonPlanes<shot_susan_2015-05-17_16-16-46.pcd 0.00547569 0.000589342 0.000100581 1 1 1 -1 380919 10 10 -1 -1 10 10 -1 -1 380909,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140909/patrol_run_49/room_3/features/nonPlanes<shot_susan_2015-05-17_16-16-54.pcd 0.00320404 0.000556852 0.00012213 1 1 1 -1 371316 10 10 -1 -1 10 10 -1 -1 371306,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140909/patrol_run_51/room_3/features/nonPlanes<shot_susan_2015-05-17_16-17-07.pcd 0.00298078 0.000969002 7.471e-05 1 2 1 -1 378972 9 10 -1 -1 9 10 -1 -1 378963,8,1 -1 0,8,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140909/patrol_run_53/room_3/features/nonPlanes<shot_susan_2015-05-17_16-17-16.pcd 0.00282394 0.000942929 0.000108024 1 1 1 -1 367488 10 10 -1 -1 10 10 -1 -1 367478,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140909/patrol_run_55/room_3/features/nonPlanes<shot_susan_2015-05-17_16-17-26.pcd 0.0035376 0.000597279 0.000107694 1 1 1 -1 378972 10 10 -1 -1 10 10 -1 -1 378962,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140909/patrol_run_59/room_3/features/nonPlanes<shot_susan_2015-05-18_14-05-15.pcd 0.00290169 0.000700925 7.391e-05 1 1 1 -1 375144 10 10 -1 -1 10 10 -1 -1 375134,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140909/patrol_run_61/room_3/features/nonPlanes<shot_susan_2015-05-18_14-05-29.pcd 0.00436732 0.000536759 9.3439e-05 1 1 1 -1 375705 10 10 -1 -1 10 10 -1 -1 375695,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140909/patrol_run_63/room_3/features/nonPlanes<shot_susan_2015-05-18_14-05-47.pcd 0.0025195 0.00097148 8.1194e-05 1 1 1 0 384846 10 10 0 0 10 10 0 0 384836,10 0,0 0,10 0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140910/patrol_run_67/room_3/features/nonPlanes<shot_susan_2015-05-18_14-06-01.pcd 0.00302964 0.000623282 9.855e-05 1 2 1 -1 452760 9 10 -1 -1 9 10 -1 -1 452751,8,1 -1 0,8,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140910/patrol_run_69/room_3/features/nonPlanes<shot_susan_2015-05-18_14-06-16.pcd 0.00463605 0.000611155 9.7982e-05 1 1 1 -1 371316 10 10 -1 -1 10 10 -1 -1 371306,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140910/patrol_run_71/room_3/features/nonPlanes<shot_susan_2015-05-18_14-06-33.pcd 0.00361626 0.000591675 0.000102252 1 1 1 -1 424710 10 10 -1 -1 10 10 -1 -1 424700,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140910/patrol_run_74/room_3/features/nonPlanes<shot_susan_2015-05-18_14-06-49.pcd 0.00295757 0.0010328 7.8184e-05 1 1 1 -1 367488 10 10 -1 -1 10 10 -1 -1 367478,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140910/patrol_run_77/room_4/features/nonPlanes<shot_susan_2015-05-18_14-07-03.pcd 0.00329222 0.000538326 8.7953e-05 1 1 1 -1 367488 10 10 -1 -1 10 10 -1 -1 367478,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140910/patrol_run_79/room_2/features/nonPlanes<shot_susan_2015-05-18_14-07-20.pcd 0.00320587 0.000558619 7.4058e-05 1 1 1 -1 377600 10 10 -1 -1 10 10 -1 -1 377590,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140910/patrol_run_81/room_2/features/nonPlanes<shot_susan_2015-05-18_14-07-34.pcd 0.00204252 0.000417422 0.000123687 1 1 1 -1 380919 10 10 -1 -1 10 10 -1 -1 380909,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140911/patrol_run_82/room_3/features/nonPlanes<shot_susan_2015-05-18_14-07-44.pcd 0.00310348 0.000536963 0.000105492 1 1 1 -1 419958 10 10 -1 -1 10 10 -1 -1 419948,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140911/patrol_run_84/room_3/features/nonPlanes<shot_susan_2015-05-18_14-07-57.pcd 0.00278946 0.000569029 0.000108312 1 1 1 -1 351648 10 10 -1 -1 10 10 -1 -1 351638,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140911/patrol_run_88/room_3/features/nonPlanes<shot_susan_2015-05-18_14-08-11.pcd 0.00288076 0.000544027 0.000106668 1 1 1 -1 357390 10 10 -1 -1 10 10 -1 -1 357380,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140911/patrol_run_90/room_3/features/nonPlanes<shot_susan_2015-05-18_14-08-25.pcd 0.00280999 0.000575443 0.000106619 1 1 1 -1 390456 10 10 -1 -1 10 10 -1 -1 390446,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140911/patrol_run_92/room_3/features/nonPlanes<shot_susan_2015-05-18_14-08-38.pcd 0.00280156 0.000957171 0.000100617 1 1 1 -1 405405 10 10 -1 -1 10 10 -1 -1 405395,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140912/patrol_run_100/room_3/features/nonPlanes<shot_susan_2015-05-18_14-08-51.pcd 0.00326888 0.000551219 0.000110177 1 1 1 -1 363776 10 10 -1 -1 10 10 -1 -1 363766,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140912/patrol_run_102/room_3/features/nonPlanes<shot_susan_2015-05-18_14-09-08.pcd 0.00307518 0.000547795 0.000103865 1 2 1 -1 372900 9 10 -1 -1 9 10 -1 -1 372891,8,1 -1 0,8,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140912/patrol_run_104/room_3/features/nonPlanes<shot_susan_2015-05-18_14-09-22.pcd 0.0031605 0.000529583 0.000105479 1 1 1 -1 351120 10 10 -1 -1 10 10 -1 -1 351110,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140912/patrol_run_94/room_3/features/nonPlanes<shot_susan_2015-05-18_14-09-38.pcd 0.00297816 0.000976195 7.7536e-05 1 1 1 -1 357504 10 10 -1 -1 10 10 -1 -1 357494,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140912/patrol_run_96/room_2/features/nonPlanes<shot_susan_2015-05-18_14-09-55.pcd 0.00289835 0.000991265 0.000110126 1 1 1 -1 353856 10 10 -1 -1 10 10 -1 -1 353846,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140912/patrol_run_98/room_3/features/nonPlanes<shot_susan_2015-05-18_14-10-09.pcd 0.00325514 0.00095769 9.7658e-05 1 1 1 -1 364800 10 10 -1 -1 10 10 -1 -1 364790,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140921/patrol_run_110/room_2/features/nonPlanes<shot_susan_2015-05-18_14-10-27.pcd 0.00124454 0.000649011 9.6823e-05 1 3 1 -1 277200 8 10 -1 -1 8 10 -1 -1 277192,7,0,1 -1 0,7,0,1 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140921/patrol_run_112/room_2/features/nonPlanes<shot_susan_2015-05-18_14-10-37.pcd 0.00343932 0.000576368 0.000104563 1 1 1 0 397683 10 10 0 0 10 10 0 0 397673,10 0,0 0,10 0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140921/patrol_run_114/room_1/features/nonPlanes<shot_susan_2015-05-18_14-10-52.pcd 0.00304995 0.000562925 0.000100625 1 1 1 0 385152 10 10 0 0 10 10 0 0 385142,10 0,0 0,10 0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140922/patrol_run_116/room_2/features/nonPlanes<shot_susan_2015-05-18_14-11-07.pcd 0.0030612 0.000851675 9.8099e-05 1 2 1 0 350526 9 10 0 0 9 10 0 0 350517,8,1 0,0,0 0,8,1 0,0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140922/patrol_run_118/room_2/features/nonPlanes<shot_susan_2015-05-18_14-11-22.pcd 0.0030507 0.000989489 0.000106086 1 1 1 0 358974 10 10 0 0 10 10 0 0 358964,10 0,0 0,10 0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140922/patrol_run_120/room_1/features/nonPlanes<shot_susan_2015-05-18_14-11-39.pcd 0.00310516 0.000580044 0.000108843 1 1 1 0 383295 10 10 0 0 10 10 0 0 383285,10 0,0 0,10 0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140922/patrol_run_124/room_2/features/nonPlanes<shot_susan_2015-05-18_14-11-54.pcd 0.00380676 0.000579666 0.000109709 1 1 1 0 404000 10 10 0 0 10 10 0 0 403990,10 0,0 0,10 0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140922/patrol_run_126/room_2/features/nonPlanes<shot_susan_2015-05-18_14-12-13.pcd 0.00279185 0.000617088 0.000105068 1 2 1 0 363776 9 10 0 0 9 10 0 0 363767,8,1 0,0,0 0,8,1 0,0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140922/patrol_run_128/room_2/features/nonPlanes<shot_susan_2015-05-18_14-12-28.pcd 0.00311451 0.000553311 0.000121298 1 1 1 0 378144 10 10 0 0 10 10 0 0 378134,10 0,0 0,10 0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140922/patrol_run_130/room_2/features/nonPlanes<shot_susan_2015-05-18_14-12-43.pcd 0.00338418 0.000576362 9.7396e-05 1 2 1 0 360525 9 10 0 0 9 10 0 0 360516,8,1 0,0,0 0,8,1 0,0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140922/patrol_run_132/room_1/features/nonPlanes<shot_susan_2015-05-18_14-13-01.pcd 0.00367329 0.000610453 0.000106645 1 1 1 0 373626 10 10 0 0 10 10 0 0 373616,10 0,0 0,10 0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140922/patrol_run_134/room_2/features/nonPlanes<shot_susan_2015-05-18_14-13-16.pcd 0.00358053 0.000566396 0.000104657 1 1 1 0 358512 10 10 0 0 10 10 0 0 358502,10 0,0 0,10 0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140922/patrol_run_138/room_2/features/nonPlanes<shot_susan_2015-05-18_14-13-37.pcd 0.00311895 0.000855147 0.000111399 1 1 1 0 415272 10 10 0 0 10 10 0 0 415262,10 0,0 0,10 0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140923/patrol_run_139/room_2/features/nonPlanes<shot_susan_2015-05-18_14-13-51.pcd 0.00298803 0.00052397 0.000101279 1 1 1 0 354816 10 10 0 0 10 10 0 0 354806,10 0,0 0,10 0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140923/patrol_run_141/room_2/features/nonPlanes<shot_susan_2015-05-18_14-14-07.pcd 0.0029987 0.000410891 7.0603e-05 1 1 1 0 354816 10 10 0 0 10 10 0 0 354806,10 0,0 0,10 0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140923/patrol_run_144/room_2/features/nonPlanes<shot_susan_2015-05-18_14-14-22.pcd 0.00283908 0.000562297 7.9219e-05 1 2 1 0 355740 9 10 0 0 9 10 0 0 355731,8,1 0,0,0 0,8,1 0,0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140923/patrol_run_146/room_2/features/nonPlanes<shot_susan_2015-05-18_14-14-37.pcd 0.00307939 0.000644975 0.000101123 1 2 1 0 376992 9 10 0 0 9 10 0 0 376983,8,1 0,0,0 0,8,1 0,0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140923/patrol_run_148/room_2/features/nonPlanes<shot_susan_2015-05-18_14-14-50.pcd 0.00288271 0.00123673 9.7087e-05 1 1 1 0 348096 10 10 1 1 10 10 1 1 348086,10 0,1 0,10 0,1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140923/patrol_run_150/room_2/features/nonPlanes<shot_susan_2015-05-18_14-15-04.pcd 0.00288503 0.00054314 7.4893e-05 1 1 1 0 371680 10 10 0 0 10 10 0 0 371670,10 0,0 0,10 0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140924/patrol_run_152/room_2/features/nonPlanes<shot_susan_2015-05-18_14-15-18.pcd 0.00284802 0.000544417 9.7445e-05 1 1 1 0 340992 10 10 0 0 10 10 0 0 340982,10 0,0 0,10 0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140924/patrol_run_156/room_2/features/nonPlanes<shot_susan_2015-05-18_14-15-32.pcd 0.002776 0.000537949 9.2831e-05 1 1 1 0 355740 10 10 0 0 10 10 0 0 355730,10 0,0 0,10 0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140924/patrol_run_158/room_1/features/nonPlanes<shot_susan_2015-05-18_14-15-44.pcd 0.0039416 0.000950707 9.7116e-05 1 1 1 0 379962 10 10 0 0 10 10 0 0 379952,10 0,0 0,10 0,0
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140924/patrol_run_162/room_2/features/nonPlanes<shot_susan_2015-05-18_14-15-57.pcd 0.00310943 0.000527558 0.000100638 1 1 1 -1 351232 10 10 -1 -1 10 10 -1 -1 351222,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140924/patrol_run_164/room_1/features/nonPlanes<shot_susan_2015-05-18_14-16-11.pcd 0.00318433 0.000551709 9.6736e-05 1 1 1 -1 364914 10 10 -1 -1 10 10 -1 -1 364904,10 -1 0,10 -1
+/media/michal/Pauli/masterdata/processed/annotated/rares/20140924/patrol_run_166/room_2/features/nonPlanes<shot_susan_2015-05-18_14-16-27.pcd 0.00324838 0.000552993 8.5788e-05 1 3 1 -1 368115 8 10 -1 -1 8 10 -1 -1 368107,7,0,1 -1 0,7,0,1 -1
