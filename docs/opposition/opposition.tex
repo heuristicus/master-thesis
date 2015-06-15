@@ -1,0 +1,121 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{fontspec}
+\defaultfontfeatures{Mapping=tex-text}
+\setromanfont[Ligatures={Common},Numbers={Lining}]{Linux Libertine}
+\author{Michal Staniaszek}
+\title{Opposition Report: \emph{Visual Odometry for Autonomous MAV with On-Board
+  Processing} by Jacob Greenberg}
+
+\begin{document}
+\maketitle
+In his project, Jacob deals with the problem of using visual odometry to track
+the position of an MAV. The reason for using visual odometry is that there are
+some environments in which the standard method of GPS cannot be used, such as
+inside buildings. Specifically, he evaluates the efficacy of a particular
+algorithm, AICK, for this purpose. The aims of the project are well explained,
+both in the abstract and the introduction sections. The title is a good
+reflection of these aims, but perhaps including that the work is for GPS-denied
+environments would be good. Justification for the method of tackling the problem
+is also given in the introduction, and while it is not particularly detailed,
+given that the project aims to investigate the method, the explanation given is
+sufficient. Additional reasons for investigating AICK are given in the related
+work section.
+
+The ideas behind the project are adequately explained, with the background
+section giving information about how MAVs work, and hints at why visual odometry
+may be needed, as well as some information about the RGB-D camera, registration
+and visual odometry. This covers all of the major parts of the project. The
+related work section explains in more detail the ideas behind visual odometry
+and specific approaches to the problem. Some approaches to RGB-D SLAM are also
+mentioned, which is relevant as position tracking forms a major part of SLAM
+algorithms.
+
+Chapter 4 describes in detail the ORB and AICK methods, explaining how features
+are extracted from point cloud frames and then matched between frames. Each part
+is explained with all the important details, and one can understand the logic
+behind the method well from reading the chapter. It also discusses some
+different approaches for the registration in terms of which frames are used,
+which forms an important component of the experimental results.
+
+The implementation chapter seems a little out of place in its current position
+in the report. While hardware details and things relating to the implementation
+should be mentioned in the report, the flow is broken slightly by this chapter,
+and I feel it would be better as an appendix.
+
+The experimental evaluation is well done. Several trials are performed with
+characteristics for the motion of the MAV to investigate registration quality.
+These include two trials where the performance of the system is not
+satisfactory. The inclusion of these trials is good, as it acknowledges the
+existence of environments in which the system does not perform well, and
+examines the problems in more depth. Each trial has a detailed written
+evaluation along with figures showing registration results and information about
+the keypoints extracted. Although the purpose of these trials was to test the
+registration, it would have been good to see the tracking error for the
+trajectories, but this is not something that is easy to gather, so its omission
+is not a serious problem given the scope of the project.
+
+Trials are also performed to compare the tracking error on the ORB-SLAM and AICK
+methods. It is acknowledged that the experimental setup for these trials was not
+ideal and might affect the results to some degree. However, the trials are still
+useful to see the performance of the system, and are the only realistic way to
+evaluate the tracking error. The plots shown give a good idea of how the
+tracking drifts for the two methods.
+
+One potential issue with the layout of the experimental evaluation is that some
+techniques for solving problems with the system are proposed there, rather than
+in the method section. While they are quite small, since they are part of how
+the final system works perhaps it would be better to move the explanation of
+those modifications. At the same time, the flow of the experiments section might
+be broken by the removal of the explanations.
+
+The final section of the chapter mentions autonomous station-keeping
+experiments, but data from these experiments is not shown --- it would be nice
+to see this as well.
+
+Since there was only one type of keypoint selection method and descriptor used,
+it might have been instructive to see how different selection methods or
+descriptors would affect the system.
+
+To summarise, the experimental evaluation acknowledges the limitations of the
+system, and proposes solutions to certain problems encountered during testing,
+some of which are implemented. This is good as it indicates that solutions to
+these problems were considered.
+
+The conclusion briefly explains what was achieved in the project, and mentions
+some of the issues that were encountered. The future work section mentions some
+specific improvements that could be made to improve the system, and also
+suggests some other sensor setups that could be used to navigate GPS-denied
+environments.
+
+The bibliography contains papers which are very relevant to the work. Some
+landmark papers on the SIFT and SURF features are included, as well as some
+papers describing corner detection methods. Papers for the ORB and AICK methods
+are also present. ICP and visual odometry literature are also included. Some
+papers on benchmarking and evaluating SLAM are mentioned, as well as some work
+specifically on MAVs with constrained computational power. All of these
+inclusions mean that there are no glaring omissions in the bibiliography.
+
+There was one section of the report which was difficult to understand. On page
+45 there is a discussion of how monocular SLAM is unable to compute the scales,
+which I could not grasp very well. Other than that, beyond minor spelling and
+grammatical mistakes there are no issues, particularly in the sections which are
+important for understanding. Page 42, with the explanation of parts of the scene
+with large numbers of keypoints exiting the image is also not very easy to follow.
+
+Overall, I think the project is good, and has achieved quite good results. A
+number of different scenarios were examined, showing the strengths and
+weaknesses of the approach. Some solutions to problems encountered were
+proposed, and some of them made a big difference to the end result. All but a
+few small parts of the report were easy to understand.
+
+\section*{Questions}
+  \begin{itemize}
+  \item Advantages/disadvantages of visual odometry over e.g. laser sensors
+  \item Different keypoint algorithm could help with the problem of low
+    keypoint numbers?
+  \item Why is rotation more difficult to handle (6.2.2)
+  \item How could you test the station keeping of (6.4)
+  \item Could visual odometry also be useful outside of GPS-denied environments?
+  \end{itemize}
+\end{document}
