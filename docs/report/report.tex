@@ -14,10 +14,12 @@
 \usepackage{graphicx}
 \usepackage{moreverb}
 \usepackage{longtable}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
 \usepackage{xhfill}
 \renewcommand{\textquotedbl}{\texttt{"}}
 \newcommand{\ditto}[1][.4pt]{\xrfill{#1}~\textquotedbl~\xrfill{#1}}
-%\usepackage[toc,page]{appendix}
+\usepackage[toc,page]{appendix}
 \setcounter{tocdepth}{3}
 \setcounter{secnumdepth}{3}
 % \defaultfontfeatures{Mapping=tex-text}
@@ -25,63 +27,67 @@
 
 \bibliography{report.bib}
 
-\author{Michal Staniaszek \\  \vskip 3cm Supervisor: John Folkesson \\ Examiner: Danica Kragic}
-\title{A System for Object Query in Point Clouds Using Feature-Feature Matching}
+\author{Michal Staniaszek \\ \vskip 3cm Supervisor: John Folkesson \\ Examiner:
+  Danica Kragic}
+\title{Feature-Feature Matching For Object Retrieval in Point Clouds}
 
 \begin{document}
 \maketitle
 \begin{abstract}
-  In this report, we will describe our implementation of a system for retrieving
-  instances of objects using feature based matching techniques. We use point
-  cloud data gathered using RGB-D sensors in an office environment over a period
-  of approximately a month. Some preprocessing steps are applied to the data to
-  reduce the size of the clouds and use basic RANSAC-based plane segmentation to
-  remove parts which we believe will not contain any objects. Using locations
-  determined by one of several possible interest point selection methods, one of
-  a number of possible types of features is extracted. Using a nearest neighbour
-  approach, these features, are compared to a corresponding set extracted from a
-  cloud representing a query object. Results from this comparison are used to
-  vote for the position of the object in a 3D grid overlaid on the room cloud.
-  We then cluster these votes and rank the clusters. The centroid of each of the
-  clusters is used to extract a region from the room cloud which, in the ideal
-  case, corresponds to the object that was passed to the system.
+  In this project, we implement a system for retrieving instances of objects
+  from point clouds using feature based matching techniques. The target dataset
+  of point clouds consists of approximately 80 full scans of office rooms over a
+  period of one month. The raw clouds are preprocessed to remove regions which
+  are unlikely to contain objects. Using locations determined by one of several
+  possible interest point selection methods, one of a number of descriptors is
+  extracted from the processed clouds. Descriptors from a target cloud are
+  compared to those from a query object using a nearest neighbour approach. The
+  nearest neighbours of each descriptor in the query cloud are used to vote for
+  the position of the object in a 3D grid overlaid on the room cloud. We apply
+  clustering in the voting space and rank the clusters according to the number
+  of votes they contain. The centroid of each of the clusters is used to extract
+  a region from the target cloud which, in the ideal case, corresponds to the
+  query object.
 
   We perform an experimental evaluation of the system using various parameter
   settings in order to investigate factors affecting the usability of the
-  system, and the ability of the system to retrieve the correct objects. In the
+  system, and the efficacy of the system in retrieving correct objects. In the
   best case, we retrieve approximately 50\% of the matching objects in the
-  dataset that we are examining for a given query object. We find that the best
+  dataset. In the worst case, we retrieve only 10\%. We find that the best
   approach is to use a uniform sampling over the room clouds, and to use a
-  descriptor which uses colour in addition to shape information to describe
+  descriptor which factors in both colour and shape information to describe
   points.
 \end{abstract}
+\newpage
 \tableofcontents
 \chapter{Introduction}
-Having a large amount of data is in most cases a good thing. Data, in an
-abstract sense, is the driving force behind the actions of every living thing,
-and as such holds great power. However, in order to make use of data, it is
-necessary to have some way of interacting with it in a useful way, and further
-processing it. While technologies for storing and interacting with data have
-been around for millennia, for the most part they were inconvenient and
-cumbersome. Writing allowed practically lossless transfer of information between
-generations, and is no doubt one of the most important inventions in the history
-of humanity. That being said, books are quite limited, especially when one wants
-to investigate a specific topic. Libraries are partial solutions to the problem,
-but most libraries don't possess all books in existence, and while indexes exist
-for a reason, it is still not easy to find what one is looking for.
+Data, in an abstract sense, is the driving force behind every action, and as
+such holds great power. However, in order to make use of data, it is necessary
+to have some way of interacting with it in a useful way, and further processing
+it. For a long time, the only way to access data was through the written word.
+While writing allows for transfer of information between generations, and is no
+doubt one of the most important inventions in the history of humanity, books are
+difficult to work with. Retrieving data is a long process, and requires
+knowledge of the books that exist, and the information they contain. Creating an
+index of this knowledge was no doubt a time consuming task. Access to a library
+was a privileged thing for a long time, and even the most well equipped
+libraries in the world did not contain all books.
 
 With the internet and the immense amount of data available to its users, this
-problem of finding what one is looking for has been compounded, and good ways of
-getting around the problem have launched one of the most successful companies in
-history. At first, listing all of the early internet to create a database was a
-realistic proposition, and for some time this was a satisfactory solution.
-However, as the number of accessible data on the internet grew, the system
-became gradually more impractical. It could take minutes or even hours to get a
-result for a query, and the trawling of content caused network slowdowns
+problem of finding what one is looking for has been compounded, since there is
+so much more information available. Given that the information is digitised,
+however, time of access is usually not the biggest problem. Instead, the
+problems lie in finding ways to index and retrieve relevant data. Good ways of
+solving these problems have spawned many successful businesses. At first,
+listing all of the early internet to create a database was a realistic
+proposition, and for some time this was a satisfactory solution. However, as the
+number of accessible data on the internet grew, the system became gradually more
+impractical. It could take minutes or even hours to get a result for a query,
+and the trawling of content caused network slowdowns
 \cite{firstsearch,archieabout,bowman1993research}. Subsequent work in the area
 led to the development of search engines which were able to search for words in
-pages, and various innovations led this to become the very effective way of
-searching that we know today \cite{brin1998anatomy,pinkerton1994finding}.
+pages, and various innovations led this to become the effective way of searching
+that we know today \cite{brin1998anatomy,pinkerton1994finding}.
 
 While images have been on the internet since the early days, in recent years the
 advent of affordable digital cameras and the ubiquity of mobile phone cameras
@@ -110,28 +116,26 @@ quickly purchased the hardware, and much work has been done in the area since. A
 into existence for use with point clouds, as the data which comes from such 3D
 sensors is known \cite{opencv, pcl}.
 
-In this report, we will describe our approach the problem of retrieving from a
-data set objects that are similar to some object that we have provided, which we
-will call object query. In essence, we need to extract information from the data
-set and the objects that we are interested in which describes their properties
-in such a way that we can compare the descriptions to see if there are any
-similarities that imply the presence of an object in the data set. While the
-data set could be anything, in our particular case we have data from a project
-which studies long-term robot operation in office environments. The data set
-contains point clouds of a single office taken from the same position over a period
-of approximately a month. Some objects in the data set have also been labelled,
-so there is information about the positions of objects in the clouds.
+In this report, we will describe our approach to the problem of retrieving from
+a data set objects that are similar to some object that we have provided, which
+we will call object retrieval. In essence, we need to extract information from
+the data set and the objects that we are interested in which describes their
+properties in such a way that we can compare the descriptions to see if there
+are any similarities that imply the presence of an object in the data set. In
+particular, we are interested in object retrieval from a data set containing
+clouds of a single office taken from the same position over a period of
+approximately a month.
 
 While this project is not aiming to perform a specific task on an actual robotic
 system, within this context there are applications to which an object query
-system could be applied. Given a data set over long periods of time with clouds
+system could be applied. Given a data set over long periods of time with data
 taken at various locations, the system could be used to track the motion of
 objects over time, and to provide information about where an object is likely to
-be at a certain time. One potential application is to help people find objects
-that have been misplaced.
+be at a certain time. This could be used to help people find objects that have
+been misplaced, for example.
 
 The project will focus in particular on the implementation of a system which can
-perform object query. It will evaluate a number of standard methods for
+perform object retrieval. It will evaluate a number of standard methods for
 describing objects, and finding parts of objects that are particularly
 discriminative. While it is possible to describe objects as a whole, we will
 investigate the efficacy of using descriptions of small parts of the object to
@@ -140,16 +144,55 @@ descriptions, which are generally vectors of scalar values, to each other, and
 finding those which have the most similar values. This approach is called
 feature matching.
 
-While the use of descriptors is the basis for the majority of systems for object
-retrieval, in most cases there are several additional layers applied on top of
-the basic feature-feature matching in the lower levels. This often includes
-costly pre-segmentation of the input data, where it is necessary to determine
-what parts of the clouds are actually objects in order to create a description
-of them to use later. If the data is labelled in some way, this can be
-relatively easy to achieve, but we are interested in querying data which has no
-labels at all. As a result, we would like to investigate the effectiveness of
-using a very simple approach to the problem which does not required complex
-reasoning about the nature of objects.
+While the use of compact descriptions is the basis for the majority of systems
+for object retrieval, in most cases there are several additional layers applied
+on top of the basic feature matching. This often includes costly
+pre-segmentation of the input data, where it is necessary to determine what
+parts of the data are actually objects in order to create a description of them
+to use later. If the data is labelled in some way, this can be relatively easy
+to achieve, but we are interested in querying data which has no labels at all.
+As a result, we would like to investigate the effectiveness of using a very
+simple approach to the problem which does not require complex reasoning about
+the nature of objects. In addition, rather than applying our methods to
+sub-parts of a larger structure (in our case a room), we combine these parts
+into a single unified structure and apply the system to this aggregate data.
+
+\begin{figure}
+  \centering
+  \begin{tikzpicture}
+    \node[] (raw) {raw cloud};
+
+    \node[draw,rectangle,thick,right=0.5cm of raw] (pre) {Preprocess};
+    \node[right=0.5cm of pre] (proc) {processed cloud};
+    \node[draw,rectangle,thick,right=0.5cm of proc] (interest) {Interest points};
+    \node[below=0.5cm of interest] (intc) {interest cloud};
+    \node[draw,rectangle,thick,below=0.5cm of intc] (desc) {Descriptors};
+    \node[left=0.5cm of desc] (desccl) {descriptor cloud};
+    \node[draw,rectangle,thick,left=0.5cm of desccl] (query) {Query};
+    \node[above left=0.1cm and 0.5cm of query] (cluster) {object cluster};
+    \node[below=1cm of cluster] (region) {object region};
+
+    \node[below=1cm of desccl] (objdesc) {object descriptors};
+  
+    % arrows
+    \draw[->,thick] (raw) -- (pre);
+    \draw[->,thick] (pre) -- (proc);
+    \draw[->,thick] (proc) -- (interest);
+    \draw[->,thick] (interest) -- (intc);
+    \draw[->,thick] (intc) -- (desc);
+    \draw[->,thick] (desc) -- (desccl);
+    \draw[->,thick] (desccl) -- (query);
+    \draw[->,thick] (query) -| (cluster);
+    \draw[->,thick] (query) -| (region);
+    \draw[->,thick] (objdesc) -| (query);
+    \draw[->,thick] (intc) -| (query);
+
+  \end{tikzpicture}
+  \caption{Basic diagram of the system process. The object descriptors are
+    extracted using the same three initial steps of preprocessing, interest
+    point extraction and descriptor computation.}
+  \label{fig:sysflow}
+\end{figure}
 
 In chapter~\ref{chap:bg}, we explain some concepts that are important to
 understand the work, provide background information on relevant parts of the
@@ -160,11 +203,12 @@ points and descriptors that we use are given in chapters~\ref{chap:interest} and
 \ref{chap:descriptors} along with some explanation as to why we wish to use
 these methods. Chapter~\ref{chap:query} is the final chapter describing our
 system, wherein we discuss our approach to using descriptors to retrieve
-objects. Our experimental setup and the results of the experiments are described
-in chapter~\ref{chap:exp}. We compare the quality of retrieval when different
+objects. Finally, we summarise the system and our results in
+chapter~\ref{chap:conc}, and suggest some potential improvements and extensions.
+Our experimental setup and the results of the experiments are described in
+appendix~\ref{chap:exp}. We compare the quality of retrieval when different
 methods are used, and also investigate the time taken by the system under
-varying parameter settings. Finally, we summarise the system and our results in
-chapter~\ref{chap:conc}.
+varying parameter settings.
 \chapter{Background}
 \label{chap:bg}
 In this chapter we will introduce some key ideas relating to the project, and
@@ -175,6 +219,20 @@ approaching problems in this area. We discuss methods of finding interesting
 regions in image and point cloud data, and how these regions can be represented
 using descriptors, along with some methods for storing descriptors in ways that
 make it easy and efficient to find similarities.
+
+\section{Point Clouds}
+The most important data structure in this project is the point cloud. A point
+cloud consists of points in 3D space, with $x$, $y$ and $z$ coordinates.
+Depending on the way the data was gathered, there may be additional information
+such as RGB data for the colour at that specific point, or intensity information
+in the case of greyscale data. Point clouds can be gathered in several ways, but
+recently the most common approach is to use an RGB-D camera such as the
+Microsoft Kinect. To gather 3D data from a scene, an infrared grid is projected
+by the camera onto the scene. Using variations in the size and distribution of
+points on the grid, the depth at each point is computed in hardware. This data
+is then combined with RGB information from another camera to create the point
+cloud. The resulting point cloud is called a \emph{frame}. The camera is able to
+create around 10 frames per second, depending on the resolution.
 
 \section{Segmentation}
 Segmentation encompasses techniques for splitting an image or a point cloud into
@@ -194,7 +252,7 @@ methods in the area, which approach the problem from different starting points.
     }
   }
   \caption{Examples of 2D and 3D superpixel segmentations}
-  \label{fig:meanshift}
+  \label{fig:supervoxel}
 \end{figure}
 
 Superpixel clustering is the most common technique used for segmenting images.
@@ -206,7 +264,8 @@ most simple method is to use a threshold on the edge weights to create
 superpixels. Fulkerson et al. use superpixel methods to identify object classes
 in images \cite{fulkerson2009class}. An algorithm which applies the idea of
 superpixels to point clouds to create supervoxels (3D pixels) has also been
-developed \cite{papon2013voxel}.
+developed \cite{papon2013voxel}. An example of supervoxels is shown in
+Figure~\ref{fig:supervoxel}.
 
 Gradient ascent based algorithms iteratively improve clusters until some
 criterion for convergence is reached \cite{achanta2012slic}. Popularised by
@@ -262,11 +321,12 @@ and often form part of two stage process for extracting descriptor information
 from images or scenes. As the name suggests, techniques which use this approach
 try to find points in the image which are interesting, by some measure. This can
 be any of a number of things, depending on the types of images or objects that
-is being described. The general idea is that regions which have extreme values
-for something are more likely to be picked up later when the same object is
-observed in another image. This is very important, as when computing descriptors
-one would like to extract them at the same points on the same objects every time
-in order to ensure that two instances of the object can be matched.
+are being described. The general idea is that regions which have extreme values
+for some measure like intensity or curvature are more likely to be picked up
+later when the same object is observed in another image. This is very important,
+as when computing descriptors one would like to extract them at the same points
+on the same objects every time in order to ensure that two instances of the
+object can be matched.
 
 Sipiran and Bustos extend the popular Harris detector \cite{harris1988combined}
 to 3D \cite{sipiran2011harris}. The original detector for 2D finds edges and
@@ -316,8 +376,7 @@ they use to give effective results can be transferred over to use for 3D
 description.
 
 The Laplacian of Gaussians was introduced by Lindeberg, and uses derivatives
-combined with some other techniques to select interest points.
-\cite{lindeberg1998feature}. This paper also introduces the concept of automatic
+combined with some other techniques to select interest points \cite{lindeberg1998feature}. This paper also introduces the concept of automatic
 scale selection for feature detection, which has played an important part in the
 field since then. The scale of features can be investigated by blurring an image
 using a Gaussian kernel --- higher standard deviation blurs the image more,
@@ -351,18 +410,9 @@ values, which makes it more robust to noise. The resulting descriptor is a 64
 element vector, which means that it is also faster to compare than SIFT
 \cite{bay2008speeded}.
 
-\subsection{3D}
-One early descriptor which remains popular is the spin image. The descriptor is
-generated from a mesh model at oriented points with a surface normal. A plane
-intersecting the normal with a certain width and height is rotated around the
-normal, forming a cylinder. The plane is separated into bins. The bins
-accumulate the number of points which pass through a certain bin during the
-rotation. The resulting 2D image is the descriptor. By varying the width of the
-plane the region which defines the descriptor can be modified. A small width
-will give a local descriptor, while a large width will give a descriptor for the
-whole image \cite{johnson1997spin,johnson1999using}. Figure~\ref{fig:spinimg}
-shows a visualisation of how the image is generated.
 
+
+\subsection{3D}
 \begin{figure}
   \centering
   \subfloat{\includegraphics[width=0.11\textwidth]{images/spin1}}
@@ -378,15 +428,47 @@ shows a visualisation of how the image is generated.
   \label{fig:spinimg}
 \end{figure}
 
+One early descriptor which remains popular is the spin image. The descriptor is
+generated from a mesh model at oriented points with a surface normal. A plane
+intersecting the normal with a certain width and height is rotated around the
+normal, forming a cylinder. The plane is separated into bins. The bins
+accumulate the number of points which pass through a certain bin during the
+rotation. The resulting 2D image is the descriptor. By varying the width of the
+plane the region which defines the descriptor can be modified. A small width
+will give a local descriptor, while a large width will give a descriptor for the
+whole image \cite{johnson1997spin,johnson1999using}. Figure~\ref{fig:spinimg}
+shows a visualisation of how the image is generated.
+
 The Ensemble of Shape Functions (ESF) descriptor introduced in
 \cite{wohlkinger2011ensemble} by Wohlkinger and Vincze combines the Shape
 Distribution approach introduced by \cite{osada2002shape} along with some
 extensions proposed in \cite{ip2002using}. It also makes use of their
-voxel-based distance measure from \cite{wohlkinger2011shapedist}. Pairs or triples of
-points are sampled from segmented partial clouds of objects, and histograms are
-created by extracting information such as distance, angle, ratios, and whether
-points are inside or outside (or a mix) of the model. See
-Figure~\ref{fig:wohlESF}.
+voxel-based distance measure from \cite{wohlkinger2011shapedist}. Pairs or
+triples of points are sampled from segmented partial clouds of objects, and
+histograms are created by extracting information such as distance, angle,
+ratios, and whether points are inside or outside (or a mix) of the model, as
+shown in Figure~\ref{fig:wohlESF}.
+
+\begin{figure}
+  \centering
+  \subfloat[]{
+    \includegraphics[width=0.23\textwidth]{images/wohl_d2}
+  }
+  \subfloat[]{
+    \includegraphics[width=0.23\textwidth]{images/wohl_onoff}
+  }
+  \subfloat[]{
+    \includegraphics[width=0.23\textwidth]{images/wohl_ratio}
+  }
+  \subfloat[]{
+    \includegraphics[width=0.23\textwidth]{images/wohl_a3}
+  }
+  \caption{Examples of the measures used to construct the Ensemble of Shape
+    Functions histograms of \cite{wohlkinger2011ensemble}. a) Distance between
+    points. b) Whether the points are on or off the model, or mixed. c) Ratio of
+    line segments on and off the surface of the model. d) Angle between pairs of lines.}
+  \label{fig:wohlESF}
+\end{figure}
 
 The Point Feature Histogram (PFH) was introduced by Rusu et al. in
 \cite{rusu2008persistent}. It creates descriptors based on the angles between a
@@ -401,7 +483,7 @@ extending it to facilitate estimation of the rotation of objects \cite{aldoma201
 
 Bo et al. develop the kernel descriptor initially created for RGB images for use
 on depth images and point clouds. The kernels are used to describe size, shape
-and edge features. Local features are combined to object-level features . Kernel
+and edge features. Local features are combined to object-level features. Kernel
 descriptors avoid the need to quantise attributes. Similarity is instead defined
 by a match kernel \cite{bo2010kernel}, which improves recognition accuracy
 \cite{bo2011depth}.
@@ -496,27 +578,6 @@ of the rays is divided into segments, with a binary value associated with each
 segment depending on whether the segment is inside or outside the protein. To
 compare the descriptor, a rotation is applied to match the rays, and a volume of
 overlap is computed based on matching bits in the rays.
-
-\begin{figure}
-  \centering
-  \subfloat[]{
-    \includegraphics[width=0.23\textwidth]{images/wohl_d2}
-  }
-  \subfloat[]{
-    \includegraphics[width=0.23\textwidth]{images/wohl_onoff}
-  }
-  \subfloat[]{
-    \includegraphics[width=0.23\textwidth]{images/wohl_ratio}
-  }
-  \subfloat[]{
-    \includegraphics[width=0.23\textwidth]{images/wohl_a3}
-  }
-  \caption{Examples of the measures used to construct the Ensemble of Shape
-    Functions histograms of \cite{wohlkinger2011ensemble}. a) Distance between
-    points. b) Whether the points are on or off the model, or mixed. c) Ratio of
-    line segments on and off the surface of the model. d) Angle between pairs of lines.}
-  \label{fig:wohlESF}
-\end{figure}
 
 The splash descriptor was introduced by Stein et al. \cite{stein1992structural}.
 A point on the surface with a given surface normal (the reference normal) is
@@ -647,8 +708,7 @@ number of leaf nodes. Further improvements on the k-d tree are introduced in
 \cite{silpa2008optimised}, where multiple randomised trees are used to optimise
 the search. A priority search tree algorithm is introduced in
 \cite{muja2014scalable}, which appears to be very effective. This may be the
-same one as in \cite{muja2009fast}. The algorithm in the last two papers has
-been integrated into PCL, which is useful.
+same one as in \cite{muja2009fast}.
 
 A different approach to nearest neighbour search is the balltree, which uses
 hyperspheres in a hierarchy to enclose points in the space
@@ -710,11 +770,11 @@ slightly below the horizontal. Examples of the raw clouds can be seen in
 Figure~\ref{fig:orig}.
 \begin{figure}
   \centering
-  \includegraphics[width=0.49\textwidth]{images/orig_side}
-  \includegraphics[width=0.49\textwidth]{images/orig_top}
-  \includegraphics[width=0.49\textwidth]{images/orig_diag_left}
-  \includegraphics[width=0.49\textwidth]{images/orig_diag_right}
-  \caption{Sample raw cloud viewed from several angles}
+  \includegraphics[width=0.9\textwidth]{images/orig_side}
+  \includegraphics[width=0.9\textwidth]{images/orig_top}
+  \includegraphics[width=0.9\textwidth]{images/orig_diag_left}
+  \includegraphics[width=0.9\textwidth]{images/orig_diag_right}
+  \caption{Sample raw cloud from various viewpoints.}
   \label{fig:orig}
 \end{figure}
 
@@ -759,13 +819,13 @@ effect which is viewpoint dependent. Most of the structure in the cloud is
 retained, which is key. This step is important, as it greatly affects the speed
 of computation of subsequent steps in the system, but it is a trade off. If the
 downsampling resolution is too low, then we lose a lot of information about the
-surface structure of parts of the cloud, and this is likely to lead to worse
+surface structure of parts of the cloud. This is likely to lead to worse
 performance when trying to find matches. How tolerant we are to low resolution
 also depends on the kinds of objects that we are interested in finding. If we do
 not care about smaller objects, then even with a lower resolution the results
 should still be satisfactory. However, a lower resolution likely means that it
 will be necessary to look at larger regions of space in order to describe
-points. We will investigate the effects of this in chapter~\ref{chap:exp}.
+points. We will investigate the effects of this in appendix~\ref{chap:exp}.
 
 \begin{figure}
   \centering
@@ -802,10 +862,10 @@ points. We will investigate the effects of this in chapter~\ref{chap:exp}.
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.8\textwidth]{images/orig_transformed}
-  \caption{Original cloud and the transformed cloud. The original cloud
-    is on the right. The coordinate axis shows the global reference frame ---
-    none of the axes are aligned for the original cloud, but the transformed
-    cloud is well aligned with the $x$-$y$ plane.}
+  \caption{Original cloud and the transformed cloud. The original cloud is on
+    the left, transformed on the right. The coordinate axis shows the global
+    reference frame --- none of the axes are aligned for the original cloud, but
+    the transformed cloud is well aligned with the $x$-$y$ plane (green and red lines).}
   \label{fig:orig_transformed}
 \end{figure}
 
@@ -841,10 +901,10 @@ Figure~\ref{fig:trimmed} shows the end result of this step.
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.45\textwidth]{images/trimmed_side}
-  \includegraphics[width=0.45\textwidth]{images/trimmed_top}
-  \includegraphics[width=0.45\textwidth]{images/trimmed_diag_left}
-  \includegraphics[width=0.45\textwidth]{images/trimmed_diag_right}
+  \includegraphics[width=0.9\textwidth]{images/trimmed_side}
+  \includegraphics[width=0.9\textwidth]{images/trimmed_top}
+  \includegraphics[width=0.9\textwidth]{images/trimmed_diag_left}
+  \includegraphics[width=0.9\textwidth]{images/trimmed_diag_right}
   \caption{Result of trimming step. Transformed cloud is blue, trimmed is green.}
   \label{fig:trimmed}
 \end{figure}
@@ -857,21 +917,13 @@ used to define surfaces and the like, in our system we are not interested in
 using the planes for anything in particular, and as such removing them from the
 cloud is good, because we remove a large portion of points in the clouds which
 are not be parts of any object, speeding up computation time of subsequent
-steps. An example of the result of this step can be seen in
-Figure~\ref{fig:plane_extr}.
-
-\begin{figure}
-  \centering
-  
-  \caption{Example of the result of plane extraction.}
-  \label{fig:plane_extr}
-\end{figure}
+steps.
 
 Plane extraction is done by running RANSAC multiple times with a plane model. A
 plane can be described by its general form equation
 \begin{equation}
   \label{eq:1}
-  ax+by+cz+d=0
+  ax+by+cz+d=0\,,
 \end{equation}
 where the normal vector $\mathbf{n}$ is defined by the coefficients $a$, $b$ and
 $c$. To get the model coefficients, RANSAC samples three points ($p_1,p_2$ and
@@ -880,7 +932,7 @@ using the cross product \cite{planeeq}
 
 \begin{equation}
   \label{eq:2}
-  \mathbf{n}=(p_2-p_1)\times(p_3-p_1)
+  \mathbf{n}=(p_2-p_1)\times(p_3-p_1)\,.
 \end{equation}
 
 Once the plane coefficients have been computed, we must find the inlier points of this
@@ -888,7 +940,7 @@ plane model, based on their distance to the plane. The perpendicular distance of
 a point $p$ to a plane is
 \begin{equation}
   \label{eq:3}
-  D=\frac{\mathbf{n}\cdot p + d}{\mid \mathbf{n} \mid}
+  D=\frac{\mathbf{n}\cdot p + d}{\mid \mathbf{n} \mid}\,.
 \end{equation}
 
 A point is considered to be an inlier if $D<D_t$, where $D_t$ is some threshold
@@ -904,7 +956,7 @@ a single additional step to the inlier check, which also looks at the angle
 between the plane normal and the normal at the point, computed by
 \begin{equation}
   \label{eq:5}
-  \theta=\cos^{-1}(\mathbf{n}\cdot p)
+  \theta=\cos^{-1}(\mathbf{n}\cdot p)\,.
 \end{equation}
 
 A point is then considered an inlier only if it passes the distance threshold
@@ -913,11 +965,10 @@ This simple addition gives much more consistent results.
 
 The RANSAC implementation that we are working with uses only a single distance
 computation
-\begin{align}
+\begin{equation}
   \label{eq:6}
-  D_a&=w\theta + (1-w)D\\
-  w&=(1-p_c)w_n
-\end{align}
+  D_a=(1-p_c)w_n\theta + (1-((1-p_c)w_n))D\,,
+\end{equation}
 where $p_c$ is the curvature at the point $p$, and $w_n$ is a predefined weight
 on the distance between the point and plane normals. $p_c\rightarrow 0$ on flat
 surfaces, so in these regions the normal will have a higher influence on the
@@ -931,7 +982,7 @@ set a hard limit on the total number of planes which can be extracted, and also
 define a threshold on the minimum number of points $N_{\min}$ in a plane.
 \begin{equation}
   \label{eq:7}
-  N_{\min}=\max(\eta N_{\text{trim}},\, N_{\text{fixed}})
+  N_{\min}=\max(\eta N_{\text{trim}},\, N_{\text{fixed}})\,,
 \end{equation}
 where $\eta$ is a small positive positive value. Since we are dealing with large
 clouds, a suitable range of values is $\left[0.02,0.05\right]$.
@@ -986,10 +1037,10 @@ shows an example of the effect of different neighbourhood sizes on the results.
 
 \begin{figure}
   \centering
-  \subfloat[0.02]{\includegraphics[width=0.49\textwidth]{images/plane_normal_0,02}}
-  \subfloat[0.04]{\includegraphics[width=0.49\textwidth]{images/plane_normal_0,04}}\\
-  \subfloat[0.06]{\includegraphics[width=0.49\textwidth]{images/plane_normal_0,06}}
-  \subfloat[0.08]{\includegraphics[width=0.49\textwidth]{images/plane_withnorm}}
+  \subfloat[0.02m]{\includegraphics[width=0.49\textwidth]{images/plane_normal_0,02}}
+  \subfloat[0.04m]{\includegraphics[width=0.49\textwidth]{images/plane_normal_0,04}}\\
+  \subfloat[0.06m]{\includegraphics[width=0.49\textwidth]{images/plane_normal_0,06}}
+  \subfloat[0.08m]{\includegraphics[width=0.49\textwidth]{images/plane_withnorm}}
   \caption{Planes extracted with different settings for the normal radius.
     Notice in particular the improved extraction of the back wall as normal
     radius increases.}
@@ -1013,16 +1064,18 @@ unique to an object, it makes any correspondences that are found when comparing
 the descriptors likely to be actual occurrences of the object in the clouds in
 which we are searching.
 
-In this section we will describe in some detail the methods that we use. All of
-the methods used are part of the PCL keypoints library \cite{pcl_keypoints}.
+In this section we will describe in some detail the methods that we use. The
+interest point selection methods and descriptors are implemented in the Point
+Cloud Library\cite{pcl}, an open source library for point cloud manipulation and
+processing.
 
 \section{Uniform}
 The first and most obvious method of selecting points for feature extraction is
 not to try to select interesting points at all, but to simply spread points
 uniformly over the space. With this method, one would expect to extract a larger
-number of points than with targeted methods, and since the entire space is
-covered, it is unlikely that there will be any omissions of points that are
-interesting.
+number of points than with targeted methods (depending on the spread of points
+used), and since the entire space is covered, it is unlikely that there will be
+any omissions of points that are interesting.
 
 The problem with having a large number of points is that this results in more
 features having to be computed and compared in later stages.
@@ -1031,7 +1084,7 @@ To compute the uniform points, we simply downsample the cloud once more. The
 size of the voxels used determines the spread of the points over the space ---
 the behaviour of this method is determined entirely by a single parameter.
 \section{ISS}
-Zhong~\cite{zhong2009intrinsic} introduces the intrinsic shape signature
+Zhong~\cite{zhong2009intrinsic} introduces the Intrinsic Shape Signature (ISS)
 interest point selection method as one of a series of steps in the computation
 of the ISS descriptor introduced in the same paper.
 
@@ -1040,7 +1093,7 @@ matrix of points within a spherical region around a sample point. For a point
 $p_i$, the $3\times 3$ scatter matrix is
 \begin{equation}
   \label{eq:4}
-  S(p_i)=\sum_{\mid p_j - p_i \mid < r_s}(p_j-p_i)(p_j-p_i)^T
+  S(p_i)=\sum_{\mid p_j - p_i \mid < r_s}(p_j-p_i)(p_j-p_i)^T\,,
 \end{equation}
 where $p_j$ is another point in the cloud. $r_s$ defines the saliency radius,
 which limits the points which we consider to be in the neighbourhood of $p_i$.
@@ -1055,7 +1108,7 @@ the eigenvalues computed are equal, the reference frame of the point can become
 ambiguous, so limits are applied to the ratio of the eigenvalues such that
 \begin{equation}
   \label{eq:8}
-  \frac{\lambda^2_i}{\lambda^1_i}< \gamma_{21},\, \frac{\lambda^3_i}{\lambda^2_i}< \gamma_{32}
+  \frac{\lambda^2_i}{\lambda^1_i}< \gamma_{21},\, \frac{\lambda^3_i}{\lambda^2_i}< \gamma_{32}\,.
 \end{equation}
 
 With this formulation, it is likely that more points are considered interest
@@ -1101,14 +1154,14 @@ considered as part of the USAN, a point must fulfill the inequalities
 \begin{align}
   \label{eq:9}
   \left|I_i-I_j\right|&\leq I_t\\
-  1-\mathbf{n}_i\cdot\mathbf{n}_j&\leq \theta_t
+  1-\mathbf{n}_i\cdot\mathbf{n}_j&\leq \theta_t\,,
 \end{align}
 where $I$ is the intensity of a point, and $\mathbf{n}$ is the normal, and $I_t$
 and $\theta_t$ are user-defined thresholds on the intensity and angular
 difference. The intensity is computed from RGB values using
 \begin{equation}
   \label{eq:10}
-  I=\frac{r+g+b}{3}
+  I=\frac{r+g+b}{3}\,.
 \end{equation}
 
 We assume that each channel of the RGB value of a point has the same weight.
@@ -1116,14 +1169,14 @@ We assume that each channel of the RGB value of a point has the same weight.
 The centroid $C$ is computed using
 \begin{equation}
   \label{eq:11}
-  C=\frac{1}{\left|\text{USAN}\right|}\sum_{p_j \in \text{USAN}}p_j
+  C=\frac{1}{\left|\text{USAN}\right|}\sum_{p_j \in \text{USAN}}p_j\,.
 \end{equation}
 
 The last thing to do for each point is to ensure that the number of points in
 the USAN is within the bound
 \begin{equation}
   \label{eq:13}
-  0 < \left| USAN \right| < 0.5(N-1)
+  0 < \left| USAN \right| < 0.5(N-1)\,,
 \end{equation}
 where $N$ is the number of points in the neighbourhood of the nucleus. If this
 check is successful, the output intensity of the nucleus is set to
@@ -1141,7 +1194,7 @@ suppression is applied. Only those points which have the minimal intensity in
 the neighbourhood defined by $r_m$ are used as the final interest points.
 
 \section{SIFT}
-The scale invariant feature transform, introduced by
+The Scale Invariant Feature Transform (SIFT), introduced by
 Lowe~\cite{lowe2004distinctive} in 1999, it is still commonly used for many 2D
 image processing applications. The most important concept introduced in the
 paper is that of scale invariance --- the SIFT feature extraction method
@@ -1158,7 +1211,7 @@ scale defined for that octave $S_{o}$, which initially is set to the minimum
 scale $S_{\min}$. The scales in the octave are then defined by
 \begin{equation}
   \label{eq:14}
-  s_i=\frac{S_o\cdot 2^{i - 1}}{N_s}
+  s_i=\frac{S_o\cdot 2^{i - 1}}{N_s}\,,
 \end{equation}
 where $0<i<N_s$. Each point $p$ in the cloud has its nearest neighbours $P_{nn}$ computed,
 within a radius three times the maximum scale $s_{N_s}$ in that octave. The same
@@ -1167,13 +1220,13 @@ scale in the octave. In each scale, a Gaussian response $R$ is computed
 \begin{equation}
   \label{eq:15}
   R_i=\frac{\sum_{q\in P_{nn}}0.299q_r + 0.587q_g +
-    0.114q_b\exp\left\{-\frac{0.5}{\sigma}\mid\mid p-q\mid\mid\right\}}{\sum_{q\in P_{nn}}\exp\left\{-\frac{0.5}{\sigma}\mid\mid p-q\mid\mid\right\}}\\
+    0.114q_b\exp\left\{-\frac{0.5}{\sigma}\mid\mid p-q\mid\mid\right\}}{\sum_{q\in P_{nn}}\exp\left\{-\frac{0.5}{\sigma}\mid\mid p-q\mid\mid\right\}}\,,
 \end{equation}
-$q_r$, $q_g$ and $q_b$ are the red, blue and green channels of the colour at the
+where $q_r$, $q_g$ and $q_b$ are the red, blue and green channels of the colour at the
 point $q$, $\sigma=s_i^2$. The difference of Gaussians is then
 \begin{equation}
   \label{eq:16}
-  \text{DoG}_i=R_i-R_{i-1}
+  \text{DoG}_i=R_i-R_{i-1}\,,
 \end{equation}
 where $1<i<N_s$. These values are then used to find extrema in the scale space.
 The neighbourhood of each point is examined again, and the maximum and minimum
@@ -1242,23 +1295,23 @@ from the development of 2D methods.
     the subdivisions used for local histogram computation.}
   \label{fig:shotcolor}
 \end{figure}
-The signature of histograms of orientations descriptor is the product of a study
-on 2D descriptors, particularly SIFT, and makes extensive use of histograms, as
-the authors believe that this is part of the reason why the descriptor is so
-effective \cite{tombari2010unique}. The paper also discusses the importance of
-the local reference frame, or RF. Defining a local RF is a way to ensure that
-the same descriptor will be computed if the same points are translated or
-rotated, or if there is noise or clutter in the region the descriptor algorithm
-uses to define the descriptor values. This is analogous to the problem of
-rotation and scale invariance in 2D descriptors. The RF is computed based on the
-eigenvalue decomposition of a special scatter matrix $M$
+The Signature of Histograms of OrienTations (SHOT) descriptor is the product of
+a study on 2D descriptors, particularly SIFT, and makes extensive use of
+histograms, as the authors believe that this is part of the reason why the
+descriptor is so effective \cite{tombari2010unique}. The paper also discusses
+the importance of the local reference frame, or RF. Defining a local RF is a way
+to ensure that the same descriptor will be computed if the same points are
+translated or rotated, or if there is noise or clutter in the region the
+descriptor algorithm uses to define the descriptor values. This is analogous to
+the problem of rotation and scale invariance in 2D descriptors. The RF is
+computed based on the eigenvalue decomposition of a special scatter matrix $M$
 \begin{equation}
   \label{eq:12}
-  M=\frac{1}{\sum_{i:d_i\leq R}(R-d_i)}\sum_{i:d_i\leq R}(R-d_i)(\mathbf{p}_i-\mathbf{p})(\mathbf{p}_i-\mathbf{p})^T
+  M=\frac{1}{\sum_{i:d_i\leq R}(R-d_i)}\sum_{i:d_i\leq R}(R-d_i)(\mathbf{p}_i-\mathbf{p})(\mathbf{p}_i-\mathbf{p})^T\,,
 \end{equation}
 where $R$ is the radius used to define the neighbourhood used to compute the
 descriptor, $\mathbf{p}$ is the point at which the feature is to be computed,
-$\mathbf{p}_i$ is another point in the cloud, and $d_i$ is the eclidean
+$\mathbf{p}_i$ is another point in the cloud, and $d_i$ is the Euclidean
 distance between $\mathbf{p}_i$ and $\mathbf{p}$.
 
 The addition made by the authors to previous work is to use a weighted linear
@@ -1291,12 +1344,12 @@ neighbourhood point, the authors use the $L_1$ norm of the RGB value converted
 to the CIELab colour space. The value a pair of points is therefore
 \begin{equation}
   \label{eq:17}
-  l(C_p, C_q)=\sum^3_{i=1}\mid C_p(i)-C_q(i)\mid
+  l(C_p, C_q)=\sum^3_{i=1}\mid C_p(i)-C_q(i)\mid\,,
 \end{equation}
 where $C$ is the CIELab colour triple of a point.
 
 \section{USC}
-Another descriptor introduced by Tombari is the universal shape context
+Another descriptor introduced by Tombari is the Universal Shape Context (USC)
 \cite{tombari2010uniquesc}. This descriptor is an improvement of the 3D shape
 context, in the sense that it has a unique reference frame, constructed in the
 same way as for SHOT. As with SHOT, a spherical region is defined by a radius
@@ -1305,7 +1358,7 @@ the number of points $N$ in a local region defined by radius $R_d$ is computed.
 A weighting $w$ for this point is then computed according to
 \begin{equation}
   \label{eq:18}
-  w=\frac{1}{N}V_b
+  w=\frac{1}{N}V_b\,,
 \end{equation}
 where $V_b$ is the volume of the bin that the point falls within. For each
 point, $w$ is accumulated in the descriptor vector according to the bin into
@@ -1318,21 +1371,21 @@ combined weights of all of the points in the sphere.
   \caption{Darboux frame defined by the vectors $u$, $v$ and $w$ \cite{rusu2008learning}.}
   \label{fig:darboux}
 \end{figure}
-The point feature histogram is the first in a family of descriptors described by
-Rusu et al. \cite{rusu2008aligning}. The descriptor was developed in order to
-improve performance of cloud matching with iterative closest point (ICP). Most
-of the descriptors used for that purpose previously had only a single dimension,
-and as a result could not be properly descriptive over a whole scene. The
-descriptor is likely to have a similar value at different points in the scene,
-which causes problem as one cannot have a high confidence that a correspondence
-between two points in two different scenes is the correct one.
+The Point Feature Histogram (PFH) is the first in a family of descriptors
+described by Rusu et al. \cite{rusu2008aligning}. The descriptor was developed
+in order to improve performance of cloud matching with iterative closest point
+(ICP). Most of the descriptors used for that purpose previously had only a
+single dimension, and as a result could not be properly descriptive over a whole
+scene. The descriptor is likely to have a similar value at different points in
+the scene, which causes problems as one cannot have a high confidence that a
+correspondence between two points in two different scenes is the correct one.
 
-To solve this problem, the PFH descriptor uses 16 dimensions, computed based on
-histograms, which allow for more distinctive features. As with all other
-descriptors, operations are done on points within a radius $r$ of the central
-point $p$. Each pair of points in the neighbourhood is examined, as in
-Figure~\ref{fig:pfhinfluence}. In each pair, a source point $p_s$ and a target
-point $p_t$ are determined by looking at the normals of the points, and
+To solve this problem, the PFH descriptor uses a vector rather than a scalar
+value, computed based on histograms, which allows for more distinctive features.
+As with all other descriptors, operations are done on points within a radius $r$
+of the central point $p$. Each pair of points in the neighbourhood is examined,
+as in Figure~\ref{fig:pfhinfluence}. In each pair, a source point $p_s$ and a
+target point $p_t$ are determined by looking at the normals of the points, and
 comparing the angles relative to the line connecting the two points. The point
 whose normal has the smaller angle is the source, the other the target. A
 reference frame with the origin as the source point is defined using the normal
@@ -1341,7 +1394,7 @@ of the source $n_s$ as
   \label{eq:19}
   u&=n_s\\
   v&=(p_t-p_s)\times u\\
-  w&=u\times v
+  w&=u\times v\,,
 \end{align}
 as shown in Figure~\ref{fig:darboux}.
 
@@ -1351,17 +1404,21 @@ Using this frame, four features are computed
   f_0&=v\cdot n_t\\
   f_1&=\mid\mid p_t - p_s\mid\mid\\
   f_2&=\frac{u\cdot(p_t-p_s)}{f_1}\\
-  f_3&=atan(w\cdot n_t,u\cdot n_t)
+  f_3&=atan(w\cdot n_t,u\cdot n_t)\,,
 \end{align}
 where $n_t$ is the normal of the target point. These values are then used to
 compute an index
 \begin{equation}
   \label{eq:21}
-  idx=\sum^3_{i=0}\left\lfloor \frac{f_i\cdot d}{f_{i\max}-f_{i\min}}\right\rfloor\cdot d^i
+  idx=\sum^3_{i=0}\left\lfloor \frac{f_i\cdot d}{f_{i\max}-f_{i\min}}\right\rfloor\cdot d^i\,,
 \end{equation}
 that defines which of the histogram bins the pair of points falls. $d$ is the
 number of divisions to apply to the possible feature value range
-$f_{i\max}-f_{i\min}$.
+$f_{i\max}-f_{i\min}$. The value of $d$ defines the dimensionality of the final
+descriptor --- the higher its value the larger the number of bins in the
+histogram. The bins in the histogram start zeroed, and are incremented by a
+value based on the number of points in the descriptor region each time the
+value from Equation~\eqref{eq:21} is the index of that bin.
 
 Because this descriptor computation operates on \emph{all} point pairs in the
 neighbourhood, depending on the size of the neighbourhood and the point density,
@@ -1374,9 +1431,9 @@ computation can be slow.
   \label{fig:pfhinfluence}
 \end{figure}
 \section{FPFH}
-The fast point feature histogram was introduced to tailor the PFH descriptor to
-real time applications while maintaining its discriminative power
-\cite{rusu2009fast}. Instead of computing the values in \eqref{eq:19}
+The Fast Point Feature Histogram (FPFH) was introduced to tailor the PFH
+descriptor to real time applications while maintaining its discriminative power
+\cite{rusu2009fast}. Instead of computing the values in Equation~\eqref{eq:19}
 for every pair of points in the neighbourhood of $r$, they are only computed for
 each point and its $k$ neighbours $p_k$ within the same radius --- this is
 called the simplified point feature histogram (SPFH). Because of the use of two
@@ -1385,7 +1442,7 @@ $2r$ away. Once the SPFH value for each point in the neighbourhood is computed,
 it is integrated into the final FPFH descriptor using
 \begin{equation}
   \label{eq:20}
-  FPFH(p)=SPFH(p)+\frac{1}{k}\sum^k_{i=1}\frac{1}{\omega_k}\cdot SPFH(p_k)
+  FPFH(p)=SPFH(p)+\frac{1}{k}\sum^k_{i=1}\frac{1}{\omega_k}\cdot SPFH(p_k)\,,
 \end{equation}
 where $k$ is the number of neighbours within $r$ and $\omega_k$ is the distance
 between $p$ and $p_k$.
@@ -1415,14 +1472,14 @@ they are in the interval $\left[-1,1\right]$.
   \label{eq:22}
   f_4=\frac{p_{s_r}}{p_{t_r}}\\
   f_5=\frac{p_{s_g}}{p_{t_g}}\\
-  f_6=\frac{p_{s_b}}{p_{t_b}}
+  f_6=\frac{p_{s_b}}{p_{t_b}}\,.
 \end{align}
 
 If one of the values $f_i$ is outside the interval, then it is pushed back into
 the interval using
 \begin{equation}
   \label{eq:23}
-  f_i=-\frac{1}{f_i}
+  f_i=-\frac{1}{f_i}\,.
 \end{equation}
 
 These values are then added to the histogram and combined to create the final
@@ -1449,17 +1506,17 @@ representative of that object.
 
 \section{Preprocessing Objects}
 To ensure that the objects are in a usable form, we apply the downsampling,
-transformation and normal extraction steps from preprocessing. Without
-downsampling the feature extraction step is particularly expensive, because
-there are a large number of points concentrated in small regions, so even with a
-small radius, the number of neighbours that have to be examined is generally
-very large. In addition, the raw annotations have issues with a ``slicing''
-effect caused by the positioning of the camera when the frames were taken, and
-its depth resolution (Figure~\ref{fig:slicing}). Using the raw clouds to compute
-features would most likely result in worse retrieval performance as the surface
-structure of the cloud is essentially a series of stacked planes, which is not
-actually what the surface looks like in the target clouds that we are passing to
-the system.
+transformation and normal extraction steps from Chapter~\ref{chap:preprocess}.
+Without downsampling the feature extraction step is particularly expensive,
+because there are a large number of points concentrated in small regions, so
+even with a small radius, the number of neighbours that have to be examined is
+generally very large. In addition, the raw annotations have issues with a
+``slicing'' effect caused by the positioning of the camera when the frames were
+taken, and its depth resolution (Figure~\ref{fig:slicing}). Using the raw clouds
+to compute features would most likely result in worse retrieval performance as
+the surface structure of the cloud is essentially a series of stacked planes,
+which is not actually what the surface looks like in the target clouds that we
+are passing to the system.
 
 \begin{figure}
   \centering
@@ -1495,30 +1552,24 @@ the system.
 
 \section{Query Process}
 
-The part of the system receives two clouds; the query cloud, containing the
-features extracted from the cloud of the object that we are interested in
-finding, and the target cloud, which contains features extracted from the cloud
-which we wish to search for the object. For point $q$ in the query cloud, we
-search the target cloud for the closest $K$ points using a nearest neighbour
-search. As we do not care about the exact distance, but only the relative
-distances of points, we use a simplified $L_2$ norm which does not take the
-square root of distances, returning only the sum of the squares of the
-differences between each dimension, which speeds up computation. The nearest
-neighbour search uses optimised functions implemented in the FLANN library
-\cite{muja2009fast, muja2014scalable}.
+The query systemn receives two clouds; the query cloud, containing the features
+extracted from the cloud of the object that we are interested in finding, and
+the target cloud, which contains features extracted from the cloud which we wish
+to search for the object. For point $q$ in the query cloud, we search the target
+cloud for the closest $K$ points using a nearest neighbour search. As we do not
+care about the exact distance, but only the relative distances of points, we use
+a simplified $L_2$ norm which does not take the square root of distances,
+returning only the sum of the squares of the differences between each dimension,
+which speeds up computation. The nearest neighbour search uses optimised
+functions implemented in the FLANN library \cite{muja2009fast,
+  muja2014scalable}.
 
-\begin{figure}
-  \centering
-  
-  \caption{Example of a voting cloud}
-  \label{fig:voting}
-\end{figure}
-In the next step, we use of the computed nearest neighbours of each point to
-place votes into a 3D grid overlaid onto the target cloud. We construct the grid
-with a width, depth and height based on the minimum and maximum values of the
-$x$, $y$ and $z$ dimensions of the points in the target cloud. This space is
+In the next step, we make use of the computed nearest neighbours of each point
+to place votes into a 3D grid overlaid onto the target cloud. We construct the
+grid with a width, depth and height based on the minimum and maximum values of
+the $x$, $y$ and $z$ dimensions of the points in the target cloud. This space is
 then subdivided using a step, which defines the dimensions of each of the
-individual voting spaces. For each neighbour descriptor, we add a vote in the
+individual voting cells. For each neighbour descriptor, we add a vote in the
 grid in the cell that contains the point at which it was computed.
 
 This voting scheme is more robust than simply taking the single nearest
@@ -1557,21 +1608,29 @@ are likely to be found in regions where the actual object is.
 
 Once the voting grid is populated, we perform clustering in this space to
 extract regions which contain potential matches. The clustering performed is
-simple Euclidean clustering, shown in Algorithm~\ref{alg:euc}. Essentially, at
-each point we grow a cluster by adding points to a queue until there are no more
-points that can be added that fall within a sphere of radius $r$ of any point in
-the queue. Once no more points can be found, the queue is converted to a cluster
-and the process begins again with another point from the cloud. We do not
-directly take into account the number of votes that points have when clustering
-them. Instead, rather than using all of the points in the voting grid, we take
-only the $N$ points which have the highest number of votes, and cluster those.
-If, as we would hope, most of the points with high numbers of votes correspond
-to the same object, then they are likely to be in the same spatial region, and
-can therefore be extracted by the clustering.
+simple Euclidean clustering, shown in Algorithm~\ref{alg:euc}. The voting grid
+consists of cells in 3D space, and we represent each cell by a point at its
+centre. During the voting process, there will be many points which do not
+receive any votes, and these points are not interesting to us, so we exclude
+them from the point cloud generated from the voting space. Rather than using all
+of the points with a non-zero number of votes, we extract the top $N$ points
+ranked according to the number of votes. If, as we would hope, most of the
+points with high numbers of votes correspond to the query object, then they are
+likely to be in the same spatial region, and can therefore be extracted by the
+clustering. The clustering works by adding an initial seed point to a queue, and
+adding points within radius $r$ of that point in the queue. The original point
+is then added to a ``processed'' queue and will not be considered in any other
+clusters. The rest of the points in the queue are processed in the same way,
+adding points within radius $r$ of those points. Once there are no more points
+which are within the radius of any point in the queue, the queue is converted to
+a cluster. The process then begins again with another point from the cloud which
+is not already part of a cluster. The clustering does not take into account the
+number of votes a point has when checking its neighbours. If no clusters are
+found, then we use the point in the voting space which has the highest number of
+votes as a cluster of a single point.
 
-If no clusters are found, then we use the maximum point in the voting space as a
-cluster of a single point.
 \begin{figure}
+  % 20140905/patrol_run_29/room_2/
   \centering
   \subfloat[Voting]{\includegraphics[width=0.8\textwidth]{images/votes_shotc}}\\
   \subfloat[Clustering]{\includegraphics[width=0.8\textwidth]{images/clusters_shotc}}
@@ -1582,6 +1641,24 @@ cluster of a single point.
     of votes they have. The clusters are coloured by rank from red to green,
     blue and yellow.}
   \label{fig:clusters_ex}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \centerline{
+    \subfloat[334 points]{\includegraphics[width=0.2\textwidth]{images/region_0}}
+    \subfloat[251 points]{\includegraphics[width=0.2\textwidth]{images/region_1}}
+    \subfloat[186 points]{\includegraphics[width=0.2\textwidth]{images/region_2}}
+    \subfloat[169 points]{\includegraphics[width=0.2\textwidth]{images/region_3}}
+  }\\
+  \centerline{
+    \subfloat[138 points]{\includegraphics[width=0.2\textwidth]{images/region_4}}
+    \subfloat[118 points]{\includegraphics[width=0.2\textwidth]{images/region_5}}
+    \subfloat[75 points]{\includegraphics[width=0.2\textwidth]{images/region_6}}
+  }
+  \caption{Regions extracted based on centroids of clusters found in
+    Figure~\ref{fig:clusters_ex}.}
+  \label{fig:cluster_regions}
 \end{figure}
 
 Once points have been clustered, the total score of each cluster is computed by
@@ -1595,11 +1672,92 @@ cloud. $\alpha$ is a small multiplier greater than 1, used to ensure that a
 large part of the object is captured even if the centroid is offset from the
 object. This extracted region should contain the object.
 Figure~\ref{fig:clusters_ex} shows an example of the votes and clusters
-extracted using the proceduce.
+extracted using the procedure. Figure~\ref{fig:cluster_regions} shows the
+corresponding regions extracted from the target cloud, of which three are
+instances of the query object.
 
+\chapter{Conclusion and Further Work}
+\label{chap:conc}
+In this report, we have presented our implementation of a system for object
+query in point clouds. We use a query cloud which contains points from a single
+object to search in target clouds. The first step in our system is to preprocess
+the clouds to remove points which do not contribute any useful information to
+the query system, such as planes. For this process, we used RANSAC, along with
+downsampling and some additional trimming and transformation. In the second step
+of the process, we select interesting points using one of several possible
+methods, and then extract descriptors at these locations. In the final step, the
+descriptors are compared to descriptors of the same type from a given query
+cloud. U using a voting scheme in 3D space along with clustering, we extract
+regions in which we believe the query object appears in the target cloud.
 
+In our experimental evaluation (Appendix~\ref{chap:exp}), we discovered that the
+system had an optimal retrieval rate of approximately 50\% of the actual number
+of objects of a given instance in the target cloud. This value was achieved only
+for the chair object, which appears to have some unique regions that the
+descriptor comparisons can pick up more frequently than for other objects. The
+backpack object had retrieval rates of around 40\%, while the rates for other
+objects were much lower, around 10-15\%. We also found that in terms of interest
+point selection, the best methods to use were uniform and ISS, which return a
+large number of points. We believe that these methods perform best due to the
+large numbers of points resulting in more points from the object being included
+in the voting space, and contributing to the cluster scores. The best performing
+descriptor was PFHRGB, followed by SHOTCOLOR, both of which include colour
+information in addition to shape, which is the main difference between these two
+descriptors and the others that we have used. The PFHRGB descriptor outperforms
+SHOTCOLOR in most cases, which we believe to be the result of the PFH family
+being more descriptive of the shape. However, in our evaluation of the
+descriptor computation times, PFHRGB was the most costly to compute, so there is
+a trade-off that can be made if faster operation is necessary. We found that
+keeping a larger number of the nearest neighbours of the query descriptor from
+the target cloud gave better results, presumably because the more descriptors
+from the object can contribute to the voting space and increase the likelihood
+of a cluster forming. An increase of the total number of points used when
+clustering also improved results.
 
+While the system works satisfactorily for two of the objects we used for
+testing, the results do not look particularly good in the general scheme of
+things. A 50\% retrieval rate is less than one would like, but considering that
+we have done only the bare minimum of preprocessing and descriptor computations,
+the results could be seen as favourable. We have skipped some expensive
+segmentation steps which might seek to separate objects from the scene before
+doing any computations. We use basic nearest neighbour matching to retrieve the
+closest descriptors to a query descriptor, and then use a simple clustering
+technique to select the points that we are interested in.
 
+\section{Possible Improvements}
+The system has many areas which could be improved, in particular in terms of
+computation time. The RANSAC plane extraction is very expensive, and as a result
+preprocessing takes a long time. There are still regions which are useless after
+the preprocessing step has completed, so there is room for faster methods, and
+those which remove more points which we do not wish to keep. Due to time
+constraints, we have been unable to do a thorough investigation of the effects
+of various parameters on the efficacy of the retrieval, especially for the
+descriptors and interest point selection methods. The parameters for the
+preprocessing generally work quite well, but as mentioned above there is room
+for improvement.
+
+Some improvements to the query stage are also likely to improve the retrieval
+rate. We had considered investigating the effect of applying a density estimate
+to the voting space and using that as a search space instead of just points in
+space, but we did not have enough time to try this approach --- it would be
+interesting to see what difference this would make to the output of the system.
+Another possibility which is similar to a density estimate would be to vary the
+clustering radius for each point based on its vote count; points with higher
+values would have a larger radius. This could have a positive effect on the
+clustering, as it would ensure that points with high number of votes have larger
+clusters. It might also mitigate some of the issues with pruning of small
+clusters if the maximum point happens to be in a relatively sparse region of
+space. It is difficult to speculate on the exact effect that this would have. 
+
+In terms of general usability, the system would benefit from an interface which
+would allow the user to more easily input a query object and receive results
+once processing is complete. This addition could include a learning system which
+would ask the user to select matches of the actual object out of the matches
+that were returned, and use these results to improve subsequent searches by
+weighting the descriptors in the regions from which the user-selected matches
+came from, and considering these weights when voting.
+
+\appendix
 \chapter{Experimental Results}
 \label{chap:exp}
 In this chapter, we will investigate the effects of different variables or
@@ -1730,7 +1888,7 @@ them using the shortened keys below.
       DS2M & 0.56$\pm$0.10 & 0.03$\pm$0.00 & 1.23$\pm$0.25 & 32.13$\pm$4.06 & 4.26$\pm$0.61 & 0.23$\pm$0.05 & 33.96$\pm$4.27 \\
     \end{tabular}
   }
-  \caption{Average time taken for various stages of preprocessing. The total
+  \caption{Average time taken in seconds for various stages of preprocessing. The total
     time is a sum of downsample, trim, normals and planes, skipping the feature
     normal computation. Average over 86 clouds. ($\mu\pm\sigma$)}
   \label{tbl:preprocess_time}
@@ -1869,10 +2027,11 @@ and do a simple analysis of the results of our experiments.
 
 \subsection{Parameter Settings}
 \subsubsection{Interest Point Selection}
-Since all of the selection methods we use a radius value for computation, we
-have selected values that are similar for all of the methods. During some
-preliminary evaluations, we also attempted to use the Harris method, but we
-received anomalous values from it and decided to drop it from further testing.
+Since all of the selection methods use a radius value for computation in some
+way or another, we have selected values that are similar for all of the methods.
+During some preliminary evaluations, we also attempted to use the Harris method,
+but we received anomalous values from it and decided to drop it from further
+testing.
 \begin{description}
 \item[Uniform] Uniform feature selection has only a single parameter; the
   downsample leaf size $l$. This setting varies the number of points selected,
@@ -1911,7 +2070,7 @@ detail.
 \begin{figure}
   \centering
   \centerline{
-    \subfloat[Default, $N=18076$]{\includegraphics[width=0.4\textwidth]{images/int/uniform_0_05}}
+    \subfloat[DEF, $N=18076$]{\includegraphics[width=0.4\textwidth]{images/int/uniform_0_05}}
     \subfloat[$l=0.08,\, N=7340$]{\includegraphics[width=0.4\textwidth]{images/int/uniform_0_08}}\\
   }
   \centerline{
@@ -1938,7 +2097,7 @@ matched.
 \begin{figure}
   \centering
   \centerline{
-    \subfloat[Default, $N=6956$]{\includegraphics[width=0.45\textwidth]{images/int/iss_def}}
+    \subfloat[DEF, $N=6956$]{\includegraphics[width=0.45\textwidth]{images/int/iss_def}}
     \subfloat[$n_{\min}=12,\, N=6310$]{\includegraphics[width=0.45\textwidth]{images/int/iss_def_minn12}}
     \subfloat[$r_s=12R$, $N=6126$]{\includegraphics[width=0.45\textwidth]{images/int/iss_sal12}}\\
   }
@@ -1948,7 +2107,8 @@ matched.
     \subfloat[$r_s=4R,\, n_{\min}=2,\, N=30966$]{\includegraphics[width=0.45\textwidth]{images/int/iss_sal4_nm2} \label{subf:salnm2}}
   }
   \caption{Interest points extracted using ISS for various parameter settings.
-    $N$ indicates the number of points in the cloud.}
+    $N$ indicates the number of points in the cloud. Values not shown in
+    captions are set to the same values as DEF.}
   \label{fig:intiss}
 \end{figure}
 
@@ -1971,7 +2131,7 @@ many points are retained.
 \begin{figure}
   \centering
   \centerline{
-    \subfloat[Default, $N=3058$]{\includegraphics[width=0.45\textwidth]{images/int/susan_r0_05}}
+    \subfloat[DEF, $N=3058$]{\includegraphics[width=0.45\textwidth]{images/int/susan_r0_05}}
     \subfloat[$\theta_t=0.05,\, N=2487$]{\includegraphics[width=0.45\textwidth]{images/int/susan_r0_05_at0_05}}
     \subfloat[$\theta_t=0.1,\, N=2106$]{\includegraphics[width=0.45\textwidth]{images/int/susan_r0_05_at0_1}}\\
   }
@@ -1982,7 +2142,8 @@ many points are retained.
     \subfloat[$r_m=0.1,\, N=791$]{\includegraphics[width=0.45\textwidth]{images/int/susan_r0_1}}\\
   }
   \caption{Interest points extracted using SUSAN for various parameter settings.
-    $N$ indicates the number of points in the cloud.}
+    $N$ indicates the number of points in the cloud. Values not shown in
+    captions are set to the same values as DEF.}
   \label{fig:intsusan}
 \end{figure}
 
@@ -2011,7 +2172,8 @@ result.
     \subfloat[$S_{\min}=0.03,\, N=1411$]{\includegraphics[width=0.45\textwidth]{images/int/sift_ms0_03}}
   }
   \caption{Interest points extracted using SIFT for various parameter settings.
-    $N$ indicates the number of points in the cloud.}
+    $N$ indicates the number of points in the cloud. Values not shown in
+    captions are set to the same values as DEF.}
   \label{fig:intsift}
 \end{figure}
 
@@ -2032,16 +2194,24 @@ are supposedly very discriminative to retrieve objects.
 
 \begin{figure}
   \centering
-  \subfloat[0.01m]{\includegraphics[width=0.8\textwidth]{images/interest_points_0,01}}\\
-  \subfloat[0.015m]{\includegraphics[width=0.49\textwidth]{images/interest_points_0,015}}
-  \subfloat[0.02m]{\includegraphics[width=0.49\textwidth]{images/interest_points_0,02}}
+  \subfloat[0.01m]{\includegraphics[width=\textwidth]{images/interest_points_0,01}}\\
+  \subfloat[0.015m]{\includegraphics[width=\textwidth]{images/interest_points_0,015}}
   \caption{Number of points extracted from clouds by different methods relative
     to the number of points in the cloud. Subcaption indicates downsample leaf
     size.}
   \label{fig:interest_points}
 \end{figure}
 
-Figure~\ref{fig:interest_points} shows the number of points that are extracted
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{images/interest_points_0,02}
+  \caption{Number of points extracted from clouds by different interest point
+    methods relative to the number of points in the cloud, for a downsampling
+    radius of 0.02m.}
+  \label{fig:interest_points2}
+\end{figure}
+
+Figures~\ref{fig:interest_points}~and~\ref{fig:interest_points2} show the number of points that are extracted
 by the various selection methods relative to the size of the input cloud. As we
 would expect, the uniform selection method uses by far the most points to
 describe the cloud. Part of the reason behind this is that points which are
@@ -2081,16 +2251,16 @@ number of points extracted with ISS using higher downsampling shifts to the
 lower side of SUSAN.
 
 Figure~\ref{fig:feature_agg} shows the computation time for different feature
-types. We can see that SHOT and SHOTCOLOR follow have very similar times, with
-the colour extension slightly shifted from the basic version, as would be
-expected, since the extension simply adds another layer to the computations.
-Even for the largest clouds we process, the computation time is very reasonable.
-The expensive multiple nearest neighbour checks done by the PFH descriptors
-clearly show in the plots, and we can also see that the FPFH descriptor does
-indeed greatly reduce the computation time. For PFH and PFHRGB, we see that
-although there is quite a high variance, the increase in computation time
-relative to number of points appears to be quadratic rather than linear, as
-might be expected from the computations performed.
+types. We can see that SHOT and SHOTCOLOR have very similar times, with the
+colour extension slightly shifted from the basic version, as would be expected,
+since the extension simply adds another layer to the computations. Even for the
+largest clouds we process, the computation time is very reasonable. The
+expensive multiple nearest neighbour checks done by the PFH descriptors clearly
+show in the plots, and we can also see that the FPFH descriptor does indeed
+greatly reduce the computation time. For PFH and PFHRGB, we see that although
+there is quite a high variance, the increase in computation time relative to
+number of points appears to be quadratic rather than linear, as might be
+expected from the computations performed.
 
 These observations show that the preprocessing step is important for a reasons
 beyond simply ensuring that most of the points in the cloud might be objects ---
@@ -2308,7 +2478,8 @@ largest effect on the behaviour of the system.
             &DT&21.7$\pm$24.6 & 49.9$\pm$29.1 & 6.0$\pm$9.1 & 16.4$\pm$14.7 & 5.7$\pm$4.3 & 0.1$\pm$0.4\\
             &RI100&17.7$\pm$23.4 & 39.8$\pm$32.2 & 5.4$\pm$7.5 & 10.3$\pm$11.1 & 3.1$\pm$3.7 & 4.2$\pm$3.8 & 0.3$\pm$0.6\\
             &DS2M&10.3$\pm$17.1 & 44.1$\pm$28.1 & 3.9$\pm$7.2 & 8.4$\pm$10.2 & 2.6$\pm$3.5 & 3.7$\pm$4.0 & 0.2$\pm$0.4\\\hline
-      \multirow{2}{*}{K10R25}&DEF&12.2$\pm$16.6 & 40.2$\pm$33.4 & 4.5$\pm$6.1 & 10.7$\pm$11.1 & 3.0$\pm$3.5 & 3.4$\pm$3.1 & 0.1$\pm$0.2\\
+      \multirow{3}{*}{K10R25}&DEF&12.2$\pm$16.6 & 40.2$\pm$33.4 & 4.5$\pm$6.1 & 10.7$\pm$11.1 & 3.0$\pm$3.5 & 3.4$\pm$3.1 & 0.1$\pm$0.2\\
+            &DT&19.3$\pm$22.3 & 53.3$\pm$30.1 & 5.1$\pm$6.7 & 13.1$\pm$11.1 & 2.9$\pm$3.3 & 5.3$\pm$3.8\\
             &DS2M&9.8$\pm$16.5 & 47.8$\pm$29.6 & 3.7$\pm$4.2 & 7.3$\pm$7.4 & 1.7$\pm$2.5 & 2.8$\pm$2.1\\
       \multicolumn{2}{r}{Actual counts}&79&85&38&45&26&20&59\\
     \end{tabular}
@@ -2337,7 +2508,8 @@ largest effect on the behaviour of the system.
             &DT&39.7$\pm$28.5 & 56.3$\pm$31.5 & 9.3$\pm$13.1 & 18.5$\pm$16.8 & 9.8$\pm$2.8 & 0.3$\pm$0.5\\
             &RI100&32.0$\pm$29.2 & 41.8$\pm$37.9 & 7.5$\pm$10.5 & 12.4$\pm$12.9 & 4.1$\pm$4.3 & 6.6$\pm$3.9 & 0.2$\pm$0.5\\
             &DS2M&21.7$\pm$23.5 & 49.2$\pm$30.3 & 6.8$\pm$11.0 & 11.5$\pm$13.2 & 3.5$\pm$4.9 & 4.5$\pm$4.8 & 0.2$\pm$0.4\\\hline
-      \multirow{2}{*}{K10R25}&DEF&20.6$\pm$22.1 & 44.5$\pm$34.9 & 4.3$\pm$7.3 & 12.0$\pm$12.0 & 3.6$\pm$4.0 & 5.0$\pm$4.0 & 0.0$\pm$0.0\\
+      \multirow{3}{*}{K10R25}&DEF&20.6$\pm$22.1 & 44.5$\pm$34.9 & 4.3$\pm$7.3 & 12.0$\pm$12.0 & 3.6$\pm$4.0 & 5.0$\pm$4.0 & 0.0$\pm$0.0\\
+            &DT&35.8$\pm$26.1 & 57.2$\pm$31.4 & 7.3$\pm$9.4 & 15.0$\pm$12.0 & 4.2$\pm$4.1 & 9.0$\pm$2.3\\
             &DS2M&21.2$\pm$22.2 & 49.2$\pm$31.5 & 5.3$\pm$5.9 & 8.8$\pm$9.8 & 2.7$\pm$3.9 & 3.3$\pm$2.3\\
       \multicolumn{2}{r}{Actual counts}&79&85&38&45&26&20&59\\
     \end{tabular}
@@ -2354,15 +2526,15 @@ largest effect on the behaviour of the system.
 Table~\ref{tbl:aggregate_query} shows aggregated results that ignore the
 different interest types and descriptor types used to compute matches. This
 gives an overview of the results for the three different settings. As mentioned
-above, we consider based on the position of cluster centroids. If the cluster
-centroid is in the oriented bounding box of the object, it is considered to be a
-match. Since there can be multiple clusters in a single target cloud, we rank
-the clusters according to the number of votes they contain. The base values used
-to compute this table come from the total number of clouds in which a match was
-found, for any cluster. This means that if the cluster was the second highest
-ranked, we count that as a match --- this means that the results here are
-somewhat exaggerated if one wishes to consider only matches which are the top
-cluster as valid matches. We will look at more precise results later in this
+above, we consider matches based on the position of cluster centroids. If the
+cluster centroid is in the oriented bounding box of the object, it is considered
+to be a match. Since there can be multiple clusters in a single target cloud, we
+rank the clusters according to the number of votes they contain. The base values
+used to compute this table come from the total number of clouds in which a match
+was found, for any cluster. This means that if the cluster was the second
+highest ranked, we count that as a match --- this means that the results here
+are somewhat exaggerated if one wishes to consider only matches which are the
+top cluster as valid matches. We will look at more precise results later in this
 section.
 
 The first thing one notices is the relatively poor performance of the system in
@@ -2420,11 +2592,64 @@ larger clusters does not have as large an effect as we might have expected.
   \caption{Matching results for the DEF setting for query using data generated
     using DT setting from preprocessing aggregated according to the descriptor
     type that was used. Average over the results of the different interest point
-    selection methods. Top indicates the number of matches which were the top
-    cluster, total the total number of matches, and unique the number of target
-    clouds in whichmatches were found.}
+    selection methods. Top indicates the number of matches which were the
+    highest ranked cluster for that cloud, total the total number of matches,
+    and unique the number of target clouds in which matches were found.}
   \label{tbl:featuregroup}
 \end{table}
+\subsubsection{Computation Time}
+Table~\ref{tbl:agg_time} shows the aggregated computation time for the different
+settings. As expected, we see a slight increase in the times when the value of
+$K$ is increased due to the additional nearest neighbour comparisons that must
+be made. For a system where a user is waiting for results, these times are much
+too slow --- in the worst case, searching our set of 86 clouds would take nearly
+4 minutes, and this is a relatively small dataset.
+\begin{table}
+  \centering
+  \begin{tabular}{cc|ccc}
+    Query & Preprocess & Query & Hough & Cluster\\\hline
+    \multirow{5}{*}{DEF}&DEF&0.82282$\pm$3.02701 & 0.00155$\pm$0.00291 & 0.00047$\pm$0.00033\\
+          &DT&1.28168$\pm$3.99049 & 0.00098$\pm$0.00031 & 0.00070$\pm$0.00040\\
+          &RI100&0.94017$\pm$3.33539 & 0.00171$\pm$0.00194 & 0.00049$\pm$0.00033\\
+          &DS2M&0.53344$\pm$2.00963 & 0.00121$\pm$0.00034 & 0.00050$\pm$0.00043\\
+          &DS15&0.42879$\pm$1.50119 & 0.00084$\pm$0.00024 & 0.00041$\pm$0.00033\\\hline
+    \multirow{4}{*}{K10R2}&DEF&0.85530$\pm$3.13982 & 0.00154$\pm$0.00195 & 0.00111$\pm$0.00085\\
+          &DT&1.42138$\pm$4.01088 & 0.00085$\pm$0.00020 & 0.00147$\pm$0.00073\\
+          &RI100&0.97976$\pm$3.30173 & 0.00171$\pm$0.00122 & 0.00111$\pm$0.00081\\
+          &DS2M&0.75201$\pm$2.33550 & 0.00085$\pm$0.00018 & 0.00111$\pm$0.00079\\\hline
+    \multirow{3}{*}{K10R25}&DEF&0.82580$\pm$3.38259 & 0.00098$\pm$0.00047 & 0.00125$\pm$0.00101\\
+          &DT&1.58978$\pm$4.41767 & 0.00097$\pm$0.00023 & 0.00176$\pm$0.00096\\
+          &DS2M&0.90345$\pm$2.88494 & 0.00102$\pm$0.00014 & 0.00146$\pm$0.00106
+  \end{tabular}
+  \caption{Timings in seconds for the query step for a single cloud.}
+  \label{tbl:agg_time}
+\end{table}
+
+Table~\ref{tbl:agg_time_desc} shows the aggregated times split based on the
+feature type used. We can see that the PFH family descriptors are very quick to
+compute, as a result of their relatively short lengths of 125 to 250. The SHOT
+and SHOTCOLOR descriptors have length 352 and 1344 respectively, which is
+clearly visible in the increased time taken to do the query. With a PFH family
+descriptor being used, the system could probably be used effectively with a user
+interaction step, and its use on an autonomous system would also be less
+problematic as the system would not have to wait so long for a result, which
+could affect planning and completion of other tasks.
+\begin{table}
+  \centering
+  \begin{tabular}{c|ccc}
+    Feature & Query & Hough & Cluster\\
+    FPFH & 0.01526$\pm$0.01875 & 0.00078$\pm$0.00016 & 0.00133$\pm$0.00076\\
+    PFH & 0.03845$\pm$0.04782 & 0.00079$\pm$0.00016 & 0.00136$\pm$0.00075\\
+    PFHRGB & 0.11995$\pm$0.14197 & 0.00083$\pm$0.00013 & 0.00117$\pm$0.00061\\
+    SHOT & 0.82481$\pm$1.15083 & 0.00096$\pm$0.00043 & 0.00140$\pm$0.00084\\
+    SHOTCOLOR & 3.42751$\pm$4.53555 & 0.00078$\pm$0.00010 & 0.00137$\pm$0.00072\\
+  \end{tabular}
+  \caption{Timings in seconds for the query step for a single cloud using different
+    descriptors, from the DT set with the K10R2 setting.
+    Average over 300 different runs.}
+  \label{tbl:agg_time_desc}
+\end{table}
+
 \subsubsection{Interest Point and Feature Effectiveness}
 Table~\ref{tbl:featuregroup} shows more in depth results for a single run, where
 we have aggregated results over the descriptors. We can see that the performance
@@ -2494,12 +2719,25 @@ ISS on the chair instance in terms of top matches, the results for total matches
 are quite similar, indicating that ISS also finds these objects, but results in
 them being ranked less highly, which reduces the number of top matches.
 
-Tables~\ref{tbl:qchair1} and \ref{tbl:qchair_k10} show the full results for the
+It is interesting to note that the best retrieval performance is on the
+preprocessing set DT, which as mentioned in the preprocessing analysis ended up
+not removing as many points as some of the other methods. This result is odd, as
+we would expect to see similar results for sets with the same downsampling due
+to the fact that the parts of the cloud that are being removed are planes. This
+seems to indicate that perhaps having a larger number of points in the final
+cloud can be beneficial, but we do not see any reason why this should be the
+case, especially since the difference between the DT and DEF sets should be that
+the DT set has fewer points that lie on planes removed. Perhaps the increased
+number of points at which features are computed contributes to this in some way.
+
+Tables~\ref{tbl:qchair1} and \ref{tbl:qchair1_k10} show the full results for the
 query sets DEF and K10R2, specific to the chair object. We can see how the
 number of matches which are ranked in the top cluster remains mostly the same,
 but for FPFH and PFH the total number of matches found within the clusters
 almost doubles. A slight increase can also be seen with the PFHRGB and SHOTCOLOR
 descriptors.
+
+
 
 \begin{table}
   \centerline{
@@ -2525,7 +2763,7 @@ descriptors.
 \caption{Query results for chair using DEF and DT settings. Avg rank is the
   average position of the top ranking cluster, if there are any that match. Top
   score is the average total votes for the top cluster.}
-\label{tab:qchair1}
+\label{tbl:qchair1}
 \end{table}
 
 \begin{table}
@@ -2550,60 +2788,60 @@ descriptors.
     \end{tabular}
   }
 \caption{Query results for chair using K10R2 and DT settings.}
-\label{tab:qchair1_k10}
+\label{tbl:qchair1_k10}
 \end{table}
 
-% \begin{table}
-%   \begin{tabular}{cc|cccc}
-%     Object & Type & Top & Total & Unique & Actual \\\hline
-%     \multirow{5}{*}{Backpack} & FPFH & 2.7$\pm$1.5 & 13.0$\pm$14.8 & 13.0$\pm$14.8 & 80.0$\pm$0.0\\
-%            & PFH & 2.0$\pm$2.6 & 12.3$\pm$16.4 & 12.3$\pm$16.4 & \ditto\\
-%            & PFHRGB & 42.3$\pm$11.0 & 53.3$\pm$19.7 & 53.3$\pm$19.7 & \ditto\\
-%            & SHOT & 1.0$\pm$1.7 & 4.0$\pm$6.9 & 4.0$\pm$6.9 & \ditto\\
-%            & SHOTCOLOR & 6.7$\pm$5.5 & 26.0$\pm$32.9 & 26.0$\pm$32.9 & \ditto\\\hline
-%     \multirow{5}{*}{Chair} & FPFH & 16.0$\pm$7.8 & 43.7$\pm$28.4 & 42.0$\pm$27.1 & 85\\
-%            & PFH & 10.7$\pm$10.0 & 45.0$\pm$30.3 & 43.0$\pm$28.6 & \ditto\\
-%            & PFHRGB & 38.0$\pm$15.7 & 70.0$\pm$41.6 & 59.0$\pm$32.0 & \ditto\\
-%            & SHOT & 6.3$\pm$6.5 & 55.7$\pm$43.7 & 51.7$\pm$39.8 & \ditto \\
-%            & SHOTCOLOR & 25.3$\pm$21.7 & 62.3$\pm$45.5 & 53.7$\pm$37.9 & \ditto\\\hline
-%     \multirow{5}{*}{Hanger jacket} & FPFH & 0.7$\pm$1.2 & 5.3$\pm$6.8 & 5.3$\pm$6.8 & 37\\
-%            & PFH & 0.0$\pm$0.0 & 5.3$\pm$4.7 & 5.3$\pm$4.7 & \ditto\\
-%            & PFHRGB & 13.0$\pm$11.3 & 17.3$\pm$15.3 & 17.3$\pm$15.3 & \ditto\\
-%            & SHOT & 0.0$\pm$0.0 & 0.7$\pm$1.2 & 0.7$\pm$1.2 & \ditto \\
-%            & SHOTCOLOR & 0.0$\pm$0.0 & 1.3$\pm$2.3 & 1.3$\pm$2.3 & \ditto\\\hline
-%     \multirow{5}{*}{Laptop} & FPFH & 2.3$\pm$4.0 & 14.3$\pm$12.7 & 14.3$\pm$12.7 & 45\\
-%            & PFH & 4.7$\pm$7.2 & 21.3$\pm$18.7 & 21.3$\pm$18.7 & \ditto \\
-%            & PFHRGB & 19.7$\pm$14.6 & 24.0$\pm$18.2 & 24.0$\pm$18.2 & \ditto\\
-%            & SHOT & 0.0$\pm$0.0 & 9.3$\pm$12.9 & 9.3$\pm$12.9 & \ditto \\
-%            & SHOTCOLOR & 0.0$\pm$0.0 & 13.0$\pm$16.8 & 13.0$\pm$16.8 & \ditto \\
-%   \end{tabular}
-%     \caption{Matching results for the K10R2 setting for query using data generated
-%       using DT setting from preprocessing aggregated according to the descriptor
-%       type that was used.}
-%     \label{tbl:feature_k10r2}
-% \end{table}
+\begin{table}[H]
+  \begin{tabular}{cc|cccc}
+    Object & Descriptor & Top & Total & Unique & Actual \\\hline
+    \multirow{5}{*}{Backpack} & FPFH & 2.7$\pm$1.5 & 13.0$\pm$14.8 & 13.0$\pm$14.8 & 80.0\\
+           & PFH & 2.0$\pm$2.6 & 12.3$\pm$16.4 & 12.3$\pm$16.4 & \ditto\\
+           & PFHRGB & 42.3$\pm$11.0 & 53.3$\pm$19.7 & 53.3$\pm$19.7 & \ditto\\
+           & SHOT & 1.0$\pm$1.7 & 4.0$\pm$6.9 & 4.0$\pm$6.9 & \ditto\\
+           & SHOTCOLOR & 6.7$\pm$5.5 & 26.0$\pm$32.9 & 26.0$\pm$32.9 & \ditto\\\hline
+    \multirow{5}{*}{Chair} & FPFH & 16.0$\pm$7.8 & 43.7$\pm$28.4 & 42.0$\pm$27.1 & 85\\
+           & PFH & 10.7$\pm$10.0 & 45.0$\pm$30.3 & 43.0$\pm$28.6 & \ditto\\
+           & PFHRGB & 38.0$\pm$15.7 & 70.0$\pm$41.6 & 59.0$\pm$32.0 & \ditto\\
+           & SHOT & 6.3$\pm$6.5 & 55.7$\pm$43.7 & 51.7$\pm$39.8 & \ditto \\
+           & SHOTCOLOR & 25.3$\pm$21.7 & 62.3$\pm$45.5 & 53.7$\pm$37.9 & \ditto\\\hline
+    \multirow{5}{*}{Hanger jacket} & FPFH & 0.7$\pm$1.2 & 5.3$\pm$6.8 & 5.3$\pm$6.8 & 37\\
+           & PFH & 0.0$\pm$0.0 & 5.3$\pm$4.7 & 5.3$\pm$4.7 & \ditto\\
+           & PFHRGB & 13.0$\pm$11.3 & 17.3$\pm$15.3 & 17.3$\pm$15.3 & \ditto\\
+           & SHOT & 0.0$\pm$0.0 & 0.7$\pm$1.2 & 0.7$\pm$1.2 & \ditto \\
+           & SHOTCOLOR & 0.0$\pm$0.0 & 1.3$\pm$2.3 & 1.3$\pm$2.3 & \ditto\\\hline
+    \multirow{5}{*}{Laptop} & FPFH & 2.3$\pm$4.0 & 14.3$\pm$12.7 & 14.3$\pm$12.7 & 45\\
+           & PFH & 4.7$\pm$7.2 & 21.3$\pm$18.7 & 21.3$\pm$18.7 & \ditto \\
+           & PFHRGB & 19.7$\pm$14.6 & 24.0$\pm$18.2 & 24.0$\pm$18.2 & \ditto\\
+           & SHOT & 0.0$\pm$0.0 & 9.3$\pm$12.9 & 9.3$\pm$12.9 & \ditto \\
+           & SHOTCOLOR & 0.0$\pm$0.0 & 13.0$\pm$16.8 & 13.0$\pm$16.8 & \ditto \\
+  \end{tabular}
+    \caption{Matching results for the K10R2 setting for query using data generated
+      using DT setting from preprocessing aggregated according to the descriptor
+      type that was used.}
+    \label{tbl:feature_k10r2}
+\end{table}
 
-% \begin{table}
-%   \begin{tabular}{cc|cccc}
-%     Object & Type & Top & Total & Unique & Actual \\\hline
-%     \multirow{3}{*}{Backpack} & ISS & 15.4$\pm$21.3 & 41.0$\pm$24.1 & 41.0$\pm$24.1 & 80\\
-%            & SUSAN & 8.2$\pm$13.1 & 8.2$\pm$13.1 & 8.2$\pm$13.1 & \ditto\\
-%            & UNIFORM & 9.2$\pm$18.9 & 16.0$\pm$25.3 & 16.0$\pm$25.3 & \ditto\\\hline
-%     \multirow{3}{*}{Chair} & ISS & 14.2$\pm$16.6 & 77.2$\pm$15.5 & 69.4$\pm$8.3 & 85\\
-%            & SUSAN & 11.4$\pm$5.7 & 11.8$\pm$6.0 & 11.8$\pm$6.0 & \ditto\\
-%            & UNIFORM & 32.2$\pm$17.7 & 77.0$\pm$16.3 & 68.4$\pm$11.6 & \ditto\\\hline
-%     \multirow{3}{*}{Hanger jacket} & ISS & 4.2$\pm$8.3 & 10.2$\pm$8.3 & 10.2$\pm$8.3 & 37\\
-%            & SUSAN & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 0.0$\pm$0.0 & \ditto\\
-%            & UNIFORM & 4.0$\pm$8.9 & 7.8$\pm$12.2 & 7.8$\pm$12.2 & \ditto\\\hline
-%     \multirow{3}{*}{Laptop} & ISS & 5.4$\pm$11.5 & 30.2$\pm$5.8 & 30.2$\pm$5.8& 45\\
-%            & SUSAN & 0.6$\pm$1.3 & 0.6$\pm$1.3 & 0.6$\pm$1.3 & \ditto\\
-%            & UNIFORM & 10.0$\pm$12.4 & 18.4$\pm$12.9 & 18.4$\pm$12.9 & \ditto\\
-%   \end{tabular}
-%   \caption{Results for the K10R2 setting for query using data generated using DT
-%   setting from preprocessing aggregated according to the interest type that was
-%   used.}
-% \label{tbl:interest_k10r2}
-% \end{table}
+\begin{table}[H]
+  \begin{tabular}{cc|cccc}
+    Object & Interest & Top & Total & Unique & Actual \\\hline
+    \multirow{3}{*}{Backpack} & ISS & 15.4$\pm$21.3 & 41.0$\pm$24.1 & 41.0$\pm$24.1 & 80\\
+           & SUSAN & 8.2$\pm$13.1 & 8.2$\pm$13.1 & 8.2$\pm$13.1 & \ditto\\
+           & UNIFORM & 9.2$\pm$18.9 & 16.0$\pm$25.3 & 16.0$\pm$25.3 & \ditto\\\hline
+    \multirow{3}{*}{Chair} & ISS & 14.2$\pm$16.6 & 77.2$\pm$15.5 & 69.4$\pm$8.3 & 85\\
+           & SUSAN & 11.4$\pm$5.7 & 11.8$\pm$6.0 & 11.8$\pm$6.0 & \ditto\\
+           & UNIFORM & 32.2$\pm$17.7 & 77.0$\pm$16.3 & 68.4$\pm$11.6 & \ditto\\\hline
+    \multirow{3}{*}{Hanger jacket} & ISS & 4.2$\pm$8.3 & 10.2$\pm$8.3 & 10.2$\pm$8.3 & 37\\
+           & SUSAN & 0.0$\pm$0.0 & 0.0$\pm$0.0 & 0.0$\pm$0.0 & \ditto\\
+           & UNIFORM & 4.0$\pm$8.9 & 7.8$\pm$12.2 & 7.8$\pm$12.2 & \ditto\\\hline
+    \multirow{3}{*}{Laptop} & ISS & 5.4$\pm$11.5 & 30.2$\pm$5.8 & 30.2$\pm$5.8& 45\\
+           & SUSAN & 0.6$\pm$1.3 & 0.6$\pm$1.3 & 0.6$\pm$1.3 & \ditto\\
+           & UNIFORM & 10.0$\pm$12.4 & 18.4$\pm$12.9 & 18.4$\pm$12.9 & \ditto\\
+  \end{tabular}
+  \caption{Results for the K10R2 setting for query using data generated using DT
+  setting from preprocessing aggregated according to the interest type that was
+  used.}
+\label{tbl:interest_k10r2}
+\end{table}
 
 Having observed that some of the descriptors and interest point methods do not
 perform well, we can look at the data with those excluded. Comparing
@@ -2613,7 +2851,7 @@ performance for the backpack, from around 15 matches on average to around 30,
 along with a jump for the chair, particularly on the DEF query set, from around
 28 to 38. The K10R2 set also has a small increase. The values for other objects
 have a slight variation, but nothing of note.
-
+\newpage
 \subsubsection{Voting and Clustering Examples}
 Figure~\ref{fig:chairvote} shows the results of voting using ISS and uniform
 feature selection, and Figure~\ref{fig:chaircluster} shows clusters extracted
@@ -2631,7 +2869,7 @@ corresponding clusters. It is difficult to say anything general from looking at
 these results, since each cloud and object will result in variations. However,
 we have a visual confirmation that the matches are correct, and that the voting
 is placing points in the correct regions.
-\newpage
+
 \begin{figure}
   % uniform_pfhrgb-2015-05-27_11-42-48/20140909/patrol_run_53/room_3/
   %uniform_pfhrgb-2015-05-27_11-42-48/20140909/patrol_run_53/room_3/
@@ -2650,7 +2888,7 @@ is placing points in the correct regions.
   \label{fig:chairvote}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
   % uniform_pfhrgb-2015-05-27_11-42-48/20140909/patrol_run_53/room_3/
   %uniform_pfhrgb-2015-05-27_11-42-48/20140909/patrol_run_53/room_3/
   \centering
@@ -2794,77 +3032,5 @@ top 5 clusters, and what was retrieved appeared to be mostly parts of walls.
     those objects.}
   \label{fig:retrieval}
 \end{figure}
-\chapter{Conclusion and Further Work}
-\label{chap:conc}
-In this report, we have presented our implementation of a system for object
-query in point clouds. We use a query cloud which contains points from a single
-object to search in target clouds. The first step in our system is to preprocess
-the clouds to remove points which do not contribute any useful information to
-the query system, such as planes. For this process, we used RANSAC, along with
-downsampling and some additional trimming and transformation. In the second step
-of the process, we select interesting points using one of several possible
-methods, and then extract descriptors at these locations. In the final step, the
-descriptors are compared to descriptors of the same type from a given query
-cloud, and using a voting scheme in 3D space along with clustering, we extract
-regions in which we believe the query object appears in the target cloud.
-
-In our experimental evaluation, we discovered that the system had an optimal
-retrieval rate of approximately 50\% of the actual number of objects of a given
-instance in the target cloud. This value was achieved only for the chair object,
-which appears to have some unique regions that the descriptor comparisons can
-pick up well. The backpack object had retrieval rates of around 40\%, while the
-rates for other objects were much lower, around 10-15\%. We also found that in
-terms of interest point selection, the best methods to use were uniform and ISS,
-which return a large number of points. We believe that these methods perform
-best due to the large numbers of points resulting in more points from the object
-being included in the voting space, and contributing to the cluster scores. The
-best performing descriptor was PFHRGB, followed by SHOTCOLOR, both of which
-include colour information in addition to shape, which is the main difference
-between these two descriptors and the others that we have used. The PFHRGB
-descriptor outperforms SHOTCOLOR in most cases, which we believe to be the
-result of the PFH family being more descriptive of the shape. However, in our
-evaluation of the descriptor computation times, PFHRGB was the most costly to
-compute, so perhaps there is a trade-off that can be made if faster operation is
-necessary. We found that keeping a larger number of the nearest neighbours of
-the query descriptor from the target cloud gave better results, presumably
-because the more descriptors from the object can contribute to the voting space
-and increase the likelihood of a cluster forming. An increase of the total
-number of points used when clustering also improved results.
-
-While the system works satisfactorily for two of the objects we used for
-testing, the results do not look particularly good in the general scheme of
-things. A 50\% retrieval rate is less than one would like, but considering that
-we have done only the bare minimum of preprocessing and descriptor computations,
-the results could be seen as favourable. We have skipped some expensive
-segmentation steps which might seek to separate objects from the scene before
-doing any computations. We use basic nearest neighbour matching to retrieve the
-closest descriptors to a query descriptor, and then use a simple clustering
-technique to select the points that we are interested in.
-
-\section{Possible Improvements}
-The system has many areas which could be improved, in particular in terms of
-computation time. The RANSAC plane extraction is very expensive, and as a result
-preprocessing takes a long time. There are still regions which are useless after
-the preprocessing step has completed, so there is room for faster methods, and
-those which remove more points which we do not wish to keep. Due to time
-constraints, we have been unable to do a thorough investigation of the effects
-of various parameters on the efficacy of the retrieval, especially for the
-descriptors and interest point selection methods. The parameters for the
-preprocessing generally work quite well, but as mentioned above there is room
-for improvement.
-
-Some improvements to the query stage are also likely to improve the retrieval
-rate. We had considered investigating the effect of applying a density estimate
-to the voting space and using that as a search space instead of just points in
-space, but we did not have enough time to try this approach --- it would be
-interesting to see what difference this would make to the output of the system.
-
-In terms of general usability, the system would benefit from an interface which
-would allow the user to more easily input a query object and receive results
-once processing is complete. This addition could include a learning system which
-would ask the user to select matches of the actual object out of the matches
-that were returned, and use these results to improve subsequent searches by
-weighting the descriptors in the regions from which the user-selected matches
-came from, and considering these weights when voting.
 \printbibliography
 \end{document}
