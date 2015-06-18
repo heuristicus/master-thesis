@@ -663,39 +663,64 @@ points cannot be used. By modifying the radius of the sphere used to generate
 the descriptor, interest points at different scales can be selected
 \cite{gelfand2005robust}.
 
-% \section{Matching Objects}
-% \subsection{Point Matching}
-% In \cite{chui2003new}, Chui and Rangarajan introduce an extension to the
-% iterative closest point (ICP) method, which allows for non-rigid registration and
-% improved robustness to outliers. In contrast to ICP, their approach does not use
-% the nearest-neighbour approach to define correspondence. Instead, they use an
-% alternating algorithm similar to expectation maximisation. Annealing is used to
-% prevent binary correspondences when the algorithm is not yet close to the
-% solution --- at the beginning there is a large search range for correspondences,
-% which gradually shrinks as the temperature decreases.
+\section{Matching Objects}
+When we talk about matching objects, we are interested in finding regions of
+point clouds, or entire point clouds which have a very similar structure to some
+object that we would like to find. Over the years many approaches have been
+proposed for matching objects in 3D, but the most well known is probably the
+iterative closest point algorithm (ICP)\cite{besl1992method}. The algorithm is
+not specifically for object matching, but it allows the combination of two point
+clouds with overlapping regions to be combined into a single cloud, which should
+be coherent, and is often used for creating maps from a large number of point
+cloud frames, as is the case in the data set we have. It can of course be used
+for object matching, since objects are 3D clouds as well. In most of the
+following work, the database from which objects are to be retrieved is made up
+of object instances. One of the object instances is selected, and the objective
+is to find all other object instances of the same type.
 
-% \subsection{Model Matching}
-% \begin{figure}
-%   \centering
-%   \subfloat[Conformal factors. High value indicates high required deformation to
-%   sphere \cite{ben2008characterizing}.]{
-%   \includegraphics[width=0.48\textwidth]{images/conformal.png}
-%   \label{fig:conform}
-% }
-%   \caption{Model matching approaches}
-%   \label{fig:modelmatch}
-% \end{figure}
-% In \cite{ben2008characterizing}, Chen et al. describe another approach to model
-% matching using conformal factors. This technique uses ideas from conformal
-% geometry, transforming the mesh of an object such that it has a uniform Gaussian
-% curvature. Information is stored about how much deformation is needed locally to
-% globally transform the object into a sphere --- this is the conformal factor.
-% The factor is based on a global computation on the whole mesh, as opposed to
-% per-vertex computations of the Gaussian curvature, which makes it much smoother
-% and appropriate for use in histograms. The histogram of a sample of the factors
-% is used as a descriptor, and is pose invariant, as seen in
-% Figure~\ref{fig:conform}. The authors say that it should be possible to use the
-% approach in partial model matching.
+In \cite{chui2003new}, Chui and Rangarajan introduce an extension to ICP, which
+allows for non-rigid registration and improved robustness to outliers. In
+contrast to ICP, their approach does not use the nearest-neighbour approach to
+define correspondence. Instead, they use an alternating algorithm similar to
+expectation maximisation. Annealing is used to prevent binary correspondences
+when the algorithm is not yet close to the solution --- at the beginning there
+is a large search range for correspondences, which gradually shrinks as the
+temperature decreases.
+
+\begin{figure}
+  \centering
+  \subfloat[Conformal factors. High value indicates high required deformation to
+  sphere \cite{ben2008characterizing}.]{
+  \includegraphics[width=0.48\textwidth]{images/conformal.png}
+  \label{fig:conform}
+}
+  \caption{Model matching approaches}
+  \label{fig:modelmatch}
+\end{figure}
+In \cite{ben2008characterizing}, Chen et al. describe another approach to model
+matching using conformal factors. This technique uses ideas from conformal
+geometry, transforming the mesh of an object such that it has a uniform Gaussian
+curvature. Information is stored about how much deformation is needed locally to
+globally transform the object into a sphere --- this is the conformal factor.
+The factor is based on a global computation on the whole mesh, as opposed to
+per-vertex computations of the Gaussian curvature, which makes it much smoother
+and appropriate for use in histograms. The histogram of a sample of the factors
+is used as a descriptor, and is pose invariant, as seen in
+Figure~\ref{fig:conform}. The authors say that it should be possible to use the
+approach in partial model matching.
+
+Papadakis et al. perform two studies on model matching. The first uses a hybrid
+global descriptor of the object created by combining 2D and 3D descriptors. 2D
+descriptors are computed by looking at the distance to points on the object from
+6 sides of a cube. The 3D part uses spherical harmonics computed for the entire
+model \cite{papadakis20083d}. The second captures information about the model
+that is to be found by creating a 2D image from a 360 degree sweep around the
+object, like a panorama. They then use a Fourier transform as a descriptor to
+model the properties of the image \cite{papadakis2010panorama}. Gao et al. use a
+graph based method to describe the relationships between points inside a model,
+learn the differences between the different object representations, and retrieve
+objects from a database based on the computed graph of the object of interest
+\cite{gao20123}.
 
 \section{Storing and Querying Descriptors}
 There are several techniques for storing and querying descriptors, mostly based
@@ -1723,6 +1748,35 @@ segmentation steps which might seek to separate objects from the scene before
 doing any computations. We use basic nearest neighbour matching to retrieve the
 closest descriptors to a query descriptor, and then use a simple clustering
 technique to select the points that we are interested in.
+
+It is difficult to compare our results directly to other approaches, for several
+reasons. Firstly, we have been unable to find any previous work which has taken
+an approach as simple as the one we have attempted in this project. The majority
+of other work uses additional steps on top of the basic feature matching. As
+such, the methods we use cannot be directly compared. Furthermore, the work
+which has been done (so far as we are aware) has been done on single frames
+rather than on registered point clouds. This changes the dynamic of the system
+somewhat, and so again, the results are not directly comparable. However, in the
+interests of providing some sort of reference point for the reader, we have
+looked at results from several papers which propose object retrieval systems
+using various approaches, as well as some image-based object retrieval.
+
+Philbin et al., working with a dataset of approximately 1 million images, are
+able to achieve a retrieval rate of approximately 0.65 over 11 different
+objects, in this case landmarks in the town of Oxford, UK
+\cite{philbin2007object}. In another image based paper, Perdoch et al. are able
+to retrieve 70--90\% of object instances in a subset of this same dataset
+\cite{perd2009efficient}. On the same data sets, Qin et al. achieve 80\%
+retrieval\cite{qin2011hello}.
+
+For 3D object retrieval, a model based approach which uses training examples to
+improve performance achieves 60\% retrieval and 90\% retrieval on two separate
+data sets with large numbers of objects \cite{gao20123}. Papadakis et al. also
+use models, achieving 70--80\% retrieval over 5 different datasets
+\cite{papadakis20083d}, and 75--90\% in another paper
+\cite{papadakis2010panorama}. We were unable to find any papers which worked
+with a pure feature-based approach, or used registered clouds rather than models
+in the matching process.
 
 \section{Possible Improvements}
 The system has many areas which could be improved, in particular in terms of
