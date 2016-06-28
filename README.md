@@ -1,5 +1,7 @@
 # master-thesis
 KTH Master's thesis in Systems, Control and Robotics
+
+Please see the [final report](https://github.com/heuristicus/master-thesis/blob/develop/docs/report/report.pdf) for details about the project.
 # Install
 The code for this project uses ROS Indigo.
 
