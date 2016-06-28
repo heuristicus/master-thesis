@@ -1,5 +1,5 @@
-# master-thesis
-KTH Master's thesis in Systems, Control and Robotics
+# Master Thesis
+KTH Master's thesis in Systems, Control and Robotics titled _Feature-Feature Matching for Object Retrieval in Point Clouds_.
 
 Please see the [final report](https://github.com/heuristicus/master-thesis/blob/develop/docs/report/report.pdf) for details about the project.
 # Install
